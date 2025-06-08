@@ -1,5 +1,5 @@
 {
-  "originHash" : "41e69d49be6e8f6f87202ef1cca7b23e3c3f9dd55fe97ec52229d95535c1b5f0",
+  "originHash" : "cade41aba055abc0733f6ae83c8b74a4c8fb3d16a9965b923bcfdea4cfd5b4e9",
   "pins" : [
     {
       "identity" : "ansiterminalmodified",
@@ -8,6 +8,33 @@
       "state" : {
         "revision" : "fd1443a5369693ddac5c8ef8dc6128af4011ff42",
         "version" : "0.6.0"
+      }
+    },
+    {
+      "identity" : "files",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/JohnSundell/Files.git",
+      "state" : {
+        "revision" : "e85f2b4a8dfa0f242889f45236f3867d16e40480",
+        "version" : "4.3.0"
+      }
+    },
+    {
+      "identity" : "nnconfigkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nikolainobadi/NnConfigKit.git",
+      "state" : {
+        "revision" : "d7f1a0291b81bcd91fbbdbb6a5a8e13a822f4a10",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "nngitkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nikolainobadi/NnGitKit.git",
+      "state" : {
+        "revision" : "fa432ab797d88d78a41542e5e9d7590da8349463",
+        "version" : "0.5.0"
       }
     },
     {

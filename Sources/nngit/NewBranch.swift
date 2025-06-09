@@ -27,8 +27,9 @@ extension Nngit {
         func run() throws {
             let picker = SwiftPicker()
             let shell = GitShellAdapter()
+            let loader = GitConfigLoader()
             try shell.verifyLocalGitExists()
-            let config = try loadConfig(picker: picker)
+            let config = try loader.loadConfig(picker: picker)
             try rebaseIfNecessary(shell: shell, config: config, picker: picker)
             let branchName = try createBranchName(name: name, branchType: branchType, issueNumber: issueNumber, config: config, picker: picker)
             let _ = try shell.runWithOutput(makeGitCommand(.newBranch(branchName), path: nil))
@@ -38,32 +39,6 @@ extension Nngit {
 }
 
 extension Nngit.NewBranch {
-    func loadConfig(picker: SwiftPicker) throws -> GitConfig {
-        let configLoader = GitConfigLoader()
-        
-        do {
-            return try configLoader.load()
-        } catch {
-            var defaultBranchName = "main"
-            var issueNumberPrefix: String?
-            var shouldRebaseWhenCreatingNewBranchesFromDefaultBranch: Bool
-            
-            if !picker.getPermission("Is your default branch called 'main'?") {
-                defaultBranchName = try picker.getRequiredInput("Enter the name of your default branch.")
-            }
-            
-            if picker.getPermission("Would you like to add an issue number prefix?") {
-                issueNumberPrefix = try picker.getRequiredInput("Enter the issue number prefix.")
-            }
-            
-            shouldRebaseWhenCreatingNewBranchesFromDefaultBranch = picker.getPermission("Include rebase prompt when creating new branches from \(defaultBranchName)?")
-            
-            let newConfig = GitConfig(defaultBranch: defaultBranchName, issueNumberPrefix: issueNumberPrefix, rebaseWhenBranchingFromDefaultBranch: shouldRebaseWhenCreatingNewBranchesFromDefaultBranch)
-            try configLoader.save(newConfig)
-            return newConfig
-        }
-    }
-    
     func rebaseIfNecessary(shell: GitShell, config: GitConfig, picker: SwiftPicker) throws {
         guard try shell.remoteExists(path: nil) else {
             return

@@ -19,7 +19,8 @@ extension Nngit {
         func run() throws {
             let picker = SwiftPicker()
             let shell = GitShellAdapter()
-            let branchList = try loadLocalBranches(shell: shell)
+            let branchLoader = GitBranchLoader(shell: shell)
+            let branchList = try branchLoader.loadLocalBranches(shell: shell)
             let currentBranch = branchList.first(where: { $0.isCurrentBranch })
             let otherBranches = branchList.filter({ !$0.isCurrentBranch})
             
@@ -31,65 +32,6 @@ extension Nngit {
             
             let selectedBranch = try picker.requiredSingleSelection("Select a branch \(details)", items: otherBranches)
             let _ = try shell.runWithOutput(makeGitCommand(.switchBranch(selectedBranch.name), path: nil))
-        }
-    }
-}
-
-extension Nngit.SwitchBranch {
-    func loadLocalBranches(shell: GitShell) throws -> [GitBranch] {
-        try shell.verifyLocalGitExists()
-        let branchNames = try loadBranchNames(shell: shell)
-        let mergedOutput = try shell.runWithOutput(makeGitCommand(.listMergedBranches, path: nil))
-        let mergedBranches = Set(mergedOutput.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) })
-        
-        return branchNames.map { name in
-            let isCurrentBranch = name.hasPrefix("*")
-            let cleanBranchName = isCurrentBranch ? String(name.dropFirst(2)) : name
-            let isMerged = cleanBranchName == "main" ? true : mergedBranches.contains(cleanBranchName)
-            var creationDate: Date?
-            
-            if let dateOutput = try? shell.runWithOutput(makeGitCommand(.getBranchCreationDate(cleanBranchName), path: nil)) {
-                creationDate = ISO8601DateFormatter().date(from: dateOutput.trimmingCharacters(in: .whitespacesAndNewlines))
-            }
-            
-            let syncStatus = try? getSyncStatus(branchName: name, shell: shell)
-            
-            return .init(name: cleanBranchName, isMerged: isMerged, isCurrentBranch: isCurrentBranch, creationDate: creationDate, syncStatus: syncStatus ?? .undetermined)
-        }
-    }
-    
-    func loadBranchNames(shell: GitShell) throws -> [String] {
-        let output = try shell.runWithOutput(makeGitCommand(.listLocalBranches, path: nil))
-        
-        return output
-            .split(separator: "\n")
-            .map({ $0.trimmingCharacters(in: .whitespaces) })
-    }
-    
-    func getSyncStatus(branchName: String, comparingBranch: String? = nil, shell: GitShell) throws -> BranchSyncStatus {
-        guard try shell.remoteExists(path: nil) else {
-            return .noRemoteBranch
-        }
-        
-        let remoteBranch = "origin/\(comparingBranch ?? branchName)"
-        let comparisonResult = try shell.runWithOutput(makeGitCommand(.compareBranchAndRemote(local: branchName, remote: remoteBranch), path: nil))
-        let changes = comparisonResult.split(separator: "\t").map(String.init)
-        
-        guard changes.count == 2 else {
-            return .undetermined
-        }
-        
-        let ahead = changes[0]
-        let behind = changes[1]
-        
-        if ahead == "0" && behind == "0" {
-            return .nsync
-        } else if ahead != "0" && behind == "0" {
-            return .ahead
-        } else if ahead == "0" && behind != "0" {
-            return .behind
-        } else {
-            return .diverged
         }
     }
 }

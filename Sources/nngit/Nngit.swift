@@ -11,8 +11,8 @@ struct Nngit {
     static let configuration = CommandConfiguration(
         abstract: "A utility for working with Git.",
         subcommands: [
-            SwitchBranch.self,
-            DeleteBranch.self
+            Discard.self,
+            NewBranch.self, SwitchBranch.self, DeleteBranch.self
         ]
     )
 }

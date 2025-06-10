@@ -25,22 +25,23 @@ extension Nngit {
         var issueNumber: Int?
 
         func run() throws {
-            let picker = SwiftPicker()
-            let shell = GitShellAdapter()
+            let shell = Nngit.makeShell()
+            let picker = Nngit.makePicker()
             let loader = GitConfigLoader()
             try shell.verifyLocalGitExists()
             let config = try loader.loadConfig(picker: picker)
             try rebaseIfNecessary(shell: shell, config: config, picker: picker)
-            let branchName = try createBranchName(name: name, branchType: branchType, issueNumber: issueNumber, config: config, picker: picker)
+            let branchName = try name ?? picker.getRequiredInput("Enter the name of your new branch.")
+            let fullBranchName = try BranchNameGenerator.generate(name: branchName, branchType: branchType, issueNumber: issueNumber, config: config)
             
-            try shell.runGitCommandWithOutput(.newBranch(branchName: branchName), path: nil)
-            print("✅ Created and switched to branch: \(branchName)")
+            try shell.runGitCommandWithOutput(.newBranch(branchName: fullBranchName), path: nil)
+            print("✅ Created and switched to branch: \(fullBranchName)")
         }
     }
 }
 
 extension Nngit.NewBranch {
-    func rebaseIfNecessary(shell: GitShell, config: GitConfig, picker: SwiftPicker) throws {
+    func rebaseIfNecessary(shell: GitShell, config: GitConfig, picker: Picker) throws {
         guard try shell.remoteExists(path: nil) else {
             return
         }
@@ -55,36 +56,6 @@ extension Nngit.NewBranch {
         if picker.getPermission("Would you like to rebase before creating your new branch?") {
             try shell.runWithOutput("git pull --rebase")
         }
-    }
-    
-    func createBranchName(name: String?, branchType: BranchType?, issueNumber: Int?, config: GitConfig, picker: SwiftPicker) throws -> String {
-        var result = ""
-        
-        if let branchType {
-            switch branchType {
-            case .feature:
-                result.append("feature/")
-            case .bugfix:
-                result.append("bugfix/")
-            }
-        }
-        
-        if let issueNumber {
-            if let issueNumberPrefix = config.issueNumberPrefix {
-                result.append("\(issueNumberPrefix)-")
-            }
-            result.append("\(issueNumber)/")
-        }
-        
-        let branchName = try name ?? picker.getRequiredInput("Enter the name of your new branch.")
-        let formattedBranchName = branchName
-            .lowercased()
-            .replacingOccurrences(of: " ", with: "-")
-            .replacingOccurrences(of: "[^a-z0-9\\-]", with: "", options: .regularExpression)
-        
-        result.append(formattedBranchName)
-        
-        return result
     }
 }
 

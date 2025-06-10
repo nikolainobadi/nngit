@@ -22,7 +22,7 @@ extension GitBranchLoader {
     func loadLocalBranches(shell: GitShell) throws -> [GitBranch] {
         try shell.verifyLocalGitExists()
         let branchNames = try loadBranchNames(shell: shell)
-        let mergedOutput = try shell.runWithOutput(makeGitCommand(.listMergedBranches, path: nil))
+        let mergedOutput = try shell.runGitCommandWithOutput(.listMergedBranches, path: nil)
         let mergedBranches = Set(mergedOutput.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) })
         
         return branchNames.map { name in
@@ -46,7 +46,7 @@ extension GitBranchLoader {
 // MARK: - Private Methods
 private extension GitBranchLoader {
     func loadBranchNames(shell: GitShell) throws -> [String] {
-        let output = try shell.runWithOutput(makeGitCommand(.listLocalBranches, path: nil))
+        let output = try shell.runGitCommandWithOutput(.listLocalBranches, path: nil)
         
         return output
             .split(separator: "\n")
@@ -59,7 +59,7 @@ private extension GitBranchLoader {
         }
         
         let remoteBranch = "origin/\(comparingBranch ?? branchName)"
-        let comparisonResult = try shell.runWithOutput(makeGitCommand(.compareBranchAndRemote(local: branchName, remote: remoteBranch), path: nil))
+        let comparisonResult = try shell.runGitCommandWithOutput(.compareBranchAndRemote(local: branchName, remote: remoteBranch), path: nil)
         let changes = comparisonResult.split(separator: "\t").map(String.init)
         
         guard changes.count == 2 else {

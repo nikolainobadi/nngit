@@ -16,8 +16,8 @@ extension Nngit {
         )
         
         func run() throws {
-            let picker = SwiftPicker()
-            let shell = GitShellAdapter()
+            let shell = Nngit.makeShell()
+            let picker = Nngit.makePicker()
             try shell.verifyLocalGitExists()
             
             guard try containsUntrackedFiles(shell: shell) else {
@@ -32,11 +32,11 @@ extension Nngit {
 
 extension Nngit.Discard {
     func containsUntrackedFiles(shell: GitShell) throws -> Bool {
-        return try !shell.runWithOutput(makeGitCommand(.getLocalChanges, path: nil)).isEmpty
+        return try !shell.runGitCommandWithOutput(.getLocalChanges, path: nil).isEmpty
     }
     
     func discardAllChanges(shell: GitShell) throws{
-        let _ = try shell.runWithOutput(makeGitCommand(.clearStagedFiles, path: nil))
-        let _ = try shell.runWithOutput(makeGitCommand(.clearUnstagedFiles, path: nil))
+        try shell.runGitCommandWithOutput(.clearStagedFiles, path: nil)
+        try shell.runGitCommandWithOutput(.clearUnstagedFiles, path: nil)
     }
 }

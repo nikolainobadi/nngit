@@ -25,8 +25,8 @@ extension Nngit {
         var issueNumber: Int?
 
         func run() throws {
-            let picker = SwiftPicker()
-            let shell = GitShellAdapter()
+            let shell = Nngit.makeShell()
+            let picker = Nngit.makePicker()
             let loader = GitConfigLoader()
             try shell.verifyLocalGitExists()
             let config = try loader.loadConfig(picker: picker)
@@ -41,7 +41,7 @@ extension Nngit {
 }
 
 extension Nngit.NewBranch {
-    func rebaseIfNecessary(shell: GitShell, config: GitConfig, picker: SwiftPicker) throws {
+    func rebaseIfNecessary(shell: GitShell, config: GitConfig, picker: Picker) throws {
         guard try shell.remoteExists(path: nil) else {
             return
         }

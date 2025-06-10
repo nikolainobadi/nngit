@@ -17,8 +17,8 @@ extension Nngit {
         )
         
         func run() throws {
-            let picker = SwiftPicker()
-            let shell = GitShellAdapter()
+            let shell = Nngit.makeShell()
+            let picker = Nngit.makePicker()
             let branchLoader = GitBranchLoader(shell: shell)
             let branchList = try branchLoader.loadLocalBranches(shell: shell)
             let currentBranch = branchList.first(where: { $0.isCurrentBranch })

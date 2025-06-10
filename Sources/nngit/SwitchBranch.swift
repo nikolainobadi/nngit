@@ -31,7 +31,8 @@ extension Nngit {
             }
             
             let selectedBranch = try picker.requiredSingleSelection("Select a branch \(details)", items: otherBranches)
-            let _ = try shell.runWithOutput(makeGitCommand(.switchBranch(selectedBranch.name), path: nil))
+            
+            try shell.runGitCommandWithOutput(.switchBranch(branchName: selectedBranch.name), path: nil)
         }
     }
 }

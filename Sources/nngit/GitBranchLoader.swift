@@ -31,7 +31,7 @@ extension GitBranchLoader {
             let isMerged = cleanBranchName == "main" ? true : mergedBranches.contains(cleanBranchName)
             var creationDate: Date?
             
-            if let dateOutput = try? shell.runWithOutput(makeGitCommand(.getBranchCreationDate(cleanBranchName), path: nil)) {
+            if let dateOutput = try? shell.runGitCommandWithOutput(.getBranchCreationDate(branchName: cleanBranchName), path: nil) {
                 creationDate = ISO8601DateFormatter().date(from: dateOutput.trimmingCharacters(in: .whitespacesAndNewlines))
             }
             

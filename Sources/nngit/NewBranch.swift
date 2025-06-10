@@ -32,7 +32,8 @@ extension Nngit {
             let config = try loader.loadConfig(picker: picker)
             try rebaseIfNecessary(shell: shell, config: config, picker: picker)
             let branchName = try createBranchName(name: name, branchType: branchType, issueNumber: issueNumber, config: config, picker: picker)
-            let _ = try shell.runWithOutput(makeGitCommand(.newBranch(branchName), path: nil))
+            
+            try shell.runGitCommandWithOutput(.newBranch(branchName: branchName), path: nil)
             print("✅ Created and switched to branch: \(branchName)")
         }
     }

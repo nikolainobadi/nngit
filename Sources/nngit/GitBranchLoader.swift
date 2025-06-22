@@ -16,12 +16,6 @@ struct GitBranchLoader {
     }
 }
 
-enum BranchLocation {
-    case local
-    case remote
-    case both
-}
-
 
 // MARK: - Load
 extension GitBranchLoader {

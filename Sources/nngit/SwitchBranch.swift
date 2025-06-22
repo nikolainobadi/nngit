@@ -13,17 +13,20 @@ import ArgumentParser
 extension Nngit {
     struct SwitchBranch: ParsableCommand {
         static let configuration = CommandConfiguration(
-            abstract: "Lists all local branches, allows selecting a branch to switch."
+            abstract: "Lists branches from the specified location and allows selecting one to switch to."
         )
 
         @Argument(help: "Name (or partial name) of the branch to switch to")
         var search: String?
 
+        @Option(name: .shortAndLong, help: "Where to search for branches: local, remote, or both")
+        var branchLocation: BranchLocation = .local
+
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
             let branchLoader = GitBranchLoader(shell: shell)
-            let branchList = try branchLoader.loadBranches(from: .local, shell: shell)
+            let branchList = try branchLoader.loadBranches(from: branchLocation, shell: shell)
             let currentBranch = branchList.first(where: { $0.isCurrentBranch })
             var availableBranches = branchList.filter({ !$0.isCurrentBranch})
 
@@ -55,6 +58,9 @@ extension Nngit {
     }
 }
 
+
+// MARK: - Extension Dependencies
+extension BranchLocation: ExpressibleByArgument { }
 extension GitBranch: DisplayablePickerItem {
     var displayName: String {
         return name

@@ -10,33 +10,39 @@ import GitShellKit
 
 struct GitBranchLoader {
     private let shell: GitShell
-    
+
     init(shell: GitShell) {
         self.shell = shell
     }
 }
 
+enum BranchLocation {
+    case local
+    case remote
+    case both
+}
+
 
 // MARK: - Load
 extension GitBranchLoader {
-    func loadLocalBranches(shell: GitShell) throws -> [GitBranch] {
+    func loadBranches(from location: BranchLocation = .local, shell: GitShell) throws -> [GitBranch] {
         try shell.verifyLocalGitExists()
-        let branchNames = try loadBranchNames(shell: shell)
+        let branchNames = try loadBranchNames(from: location, shell: shell)
         let mergedOutput = try shell.runGitCommandWithOutput(.listMergedBranches, path: nil)
         let mergedBranches = Set(mergedOutput.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) })
-        
+
         return branchNames.map { name in
             let isCurrentBranch = name.hasPrefix("*")
             let cleanBranchName = isCurrentBranch ? String(name.dropFirst(2)) : name
-            let isMerged = cleanBranchName == "main" ? true : mergedBranches.contains(cleanBranchName)
+            let isMerged = mergedBranches.contains(cleanBranchName)
             var creationDate: Date?
-            
+
             if let dateOutput = try? shell.runGitCommandWithOutput(.getBranchCreationDate(branchName: cleanBranchName), path: nil) {
                 creationDate = ISO8601DateFormatter().date(from: dateOutput.trimmingCharacters(in: .whitespacesAndNewlines))
             }
-            
+
             let syncStatus = try? getSyncStatus(branchName: name, shell: shell)
-            
+
             return .init(name: cleanBranchName, isMerged: isMerged, isCurrentBranch: isCurrentBranch, creationDate: creationDate, syncStatus: syncStatus ?? .undetermined)
         }
     }
@@ -45,12 +51,22 @@ extension GitBranchLoader {
 
 // MARK: - Private Methods
 private extension GitBranchLoader {
-    func loadBranchNames(shell: GitShell) throws -> [String] {
-        let output = try shell.runGitCommandWithOutput(.listLocalBranches, path: nil)
-        
+    func loadBranchNames(from location: BranchLocation, shell: GitShell) throws -> [String] {
+        let output: String
+
+        switch location {
+        case .local:
+            output = try shell.runGitCommandWithOutput(.listLocalBranches, path: nil)
+        case .remote:
+            output = try shell.runGitCommandWithOutput(.listRemoteBranches, path: nil)
+        case .both:
+            output = try shell.runWithOutput("git branch -a")
+        }
+
         return output
             .split(separator: "\n")
             .map({ $0.trimmingCharacters(in: .whitespaces) })
+            .filter({ !$0.contains("->") })
     }
     
     func getSyncStatus(branchName: String, comparingBranch: String? = nil, shell: GitShell) throws -> BranchSyncStatus {

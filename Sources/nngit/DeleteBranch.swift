@@ -46,7 +46,7 @@ extension Nngit.DeleteBranch {
     func loadEligibleBranches(shell: GitShell, config: GitConfig) throws -> [GitBranch] {
         let loader = GitBranchLoader(shell: shell)
         
-        return try loader.loadLocalBranches(shell: shell).filter({ $0.isCurrentBranch && $0.name.lowercased() != config.defaultBranch.lowercased() })
+        return try loader.loadBranches(from: .local, shell: shell).filter({ $0.isCurrentBranch && $0.name.lowercased() != config.defaultBranch.lowercased() })
     }
     
     func deleteBranch(_ branch: GitBranch, shell: GitShell, forced: Bool = false) throws {

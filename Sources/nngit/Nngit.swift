@@ -14,7 +14,8 @@ struct Nngit {
         abstract: "A utility for working with Git.",
         subcommands: [
             Discard.self,
-            NewBranch.self, SwitchBranch.self, DeleteBranch.self
+            NewBranch.self, SwitchBranch.self, DeleteBranch.self,
+            AddBranchPrefix.self
         ]
     )
     

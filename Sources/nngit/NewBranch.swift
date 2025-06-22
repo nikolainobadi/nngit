@@ -24,6 +24,9 @@ extension Nngit {
         @Option(name: .shortAndLong, help: "Issue number to include in the branch name.")
         var issueNumber: String?
 
+        @Flag(name: .long, help: "Select the branch prefix from a list of options.")
+        var selectBranchPrefix: Bool = false
+
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
@@ -36,7 +39,9 @@ extension Nngit {
             var selectedPrefix: BranchPrefix?
 
             if !config.branchPrefixList.isEmpty {
-                if let providedName = branchPrefixName {
+                if selectBranchPrefix {
+                    selectedPrefix = try picker.requiredSingleSelection("Select a branch prefix", items: config.branchPrefixList)
+                } else if let providedName = branchPrefixName {
                     if let match = config.branchPrefixList.first(where: { $0.name == providedName }) {
                         selectedPrefix = match
                     } else {

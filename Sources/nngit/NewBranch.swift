@@ -26,7 +26,7 @@ extension Nngit {
             let config = try loader.loadConfig(picker: picker)
             try rebaseIfNecessary(shell: shell, config: config, picker: picker)
             let branchName = try name ?? picker.getRequiredInput("Enter the name of your new branch.")
-            let fullBranchName = try BranchNameGenerator.generate(name: branchName, config: config)
+            let fullBranchName = BranchNameGenerator.generate(name: branchName)
 
             try shell.runGitCommandWithOutput(.newBranch(branchName: fullBranchName), path: nil)
             print("✅ Created and switched to branch: \(fullBranchName)")

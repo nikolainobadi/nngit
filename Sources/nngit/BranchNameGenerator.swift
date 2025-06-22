@@ -5,19 +5,25 @@
 //  Created by Nikolai Nobadi on 6/8/25.
 //
 
-import SwiftPicker
-
 enum BranchNameGenerator {
-    static func generate(name: String, config: GitConfig) throws -> String {
-        var result = ""
+    static func generate(name: String, branchPrefix: String? = nil, issueNumber: String? = nil) -> String {
+        var components: [String] = []
+
+        if let branchPrefix, !branchPrefix.isEmpty {
+            components.append(branchPrefix)
+        }
+
+        if let issueNumber, !issueNumber.isEmpty {
+            components.append(issueNumber)
+        }
 
         let formattedBranchName = name
             .lowercased()
             .replacingOccurrences(of: " ", with: "-")
             .replacingOccurrences(of: "[^a-z0-9\\-]", with: "", options: .regularExpression)
 
-        result.append(formattedBranchName)
+        components.append(formattedBranchName)
 
-        return result
+        return components.joined(separator: "/")
     }
 }

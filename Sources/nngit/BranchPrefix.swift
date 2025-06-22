@@ -6,8 +6,15 @@
 //
 
 import Foundation
+import SwiftPicker
 
 struct BranchPrefix: Codable {
     let name: String
     let requiresIssueNumber: Bool
+}
+
+extension BranchPrefix: DisplayablePickerItem {
+    var displayName: String {
+        return name
+    }
 }

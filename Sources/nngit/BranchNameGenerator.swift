@@ -8,24 +8,8 @@
 import SwiftPicker
 
 enum BranchNameGenerator {
-    static func generate(name: String, branchType: Nngit.NewBranch.BranchType?, issueNumber: Int?, config: GitConfig) throws -> String {
+    static func generate(name: String, config: GitConfig) throws -> String {
         var result = ""
-
-        if let branchType {
-            switch branchType {
-            case .feature:
-                result.append("feature/")
-            case .bugfix:
-                result.append("bugfix/")
-            }
-        }
-
-        if let issueNumber {
-            if let issueNumberPrefix = config.issueNumberPrefix {
-                result.append("\(issueNumberPrefix)-")
-            }
-            result.append("\(issueNumber)/")
-        }
 
         let formattedBranchName = name
             .lowercased()
@@ -37,4 +21,3 @@ enum BranchNameGenerator {
         return result
     }
 }
-

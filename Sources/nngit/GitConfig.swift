@@ -7,12 +7,12 @@
 
 struct GitConfig: Codable {
     var defaultBranch: String
-    var issueNumberPrefix: String?
+    var branchPrefixList: [BranchPrefix]
     var rebaseWhenBranchingFromDefaultBranch: Bool
 }
 
 extension GitConfig {
     static var defaultConfig: GitConfig {
-        return .init(defaultBranch: "main", rebaseWhenBranchingFromDefaultBranch: true)
+        return .init(defaultBranch: "main", branchPrefixList: [], rebaseWhenBranchingFromDefaultBranch: true)
     }
 }

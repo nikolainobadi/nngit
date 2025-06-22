@@ -24,7 +24,6 @@ extension GitConfigLoader {
             return try load()
         } catch {
             var defaultBranchName = "main"
-            var issueNumberPrefix: String?
             var shouldRebaseWhenCreatingNewBranchesFromDefaultBranch: Bool
             
             if !picker.getPermission("Is your default branch called 'main'?") {
@@ -32,12 +31,12 @@ extension GitConfigLoader {
             }
             
             if picker.getPermission("Would you like to add an issue number prefix?") {
-                issueNumberPrefix = try picker.getRequiredInput("Enter the issue number prefix.")
+                
             }
             
             shouldRebaseWhenCreatingNewBranchesFromDefaultBranch = picker.getPermission("Include rebase prompt when creating new branches from \(defaultBranchName)?")
             
-            let newConfig = GitConfig(defaultBranch: defaultBranchName, issueNumberPrefix: issueNumberPrefix, rebaseWhenBranchingFromDefaultBranch: shouldRebaseWhenCreatingNewBranchesFromDefaultBranch)
+            let newConfig = GitConfig(defaultBranch: defaultBranchName, branchPrefixList: [], rebaseWhenBranchingFromDefaultBranch: shouldRebaseWhenCreatingNewBranchesFromDefaultBranch)
             
             try save(newConfig)
             

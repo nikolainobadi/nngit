@@ -17,9 +17,8 @@ extension Nngit {
         var number: Int = 1
         
         func run() throws {
-            let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
-            let manager = GitCommitManager(shell: shell)
+            let manager = Nngit.makeCommitManager()
             
             guard number > 0 else {
                 print("number of commits to undo must be greater than 1")

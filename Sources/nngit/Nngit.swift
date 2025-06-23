@@ -9,13 +9,14 @@ import SwiftPicker
 import GitShellKit
 import ArgumentParser
 
-struct Nngit {
+@main
+struct Nngit: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "A utility for working with Git.",
         subcommands: [
             Discard.self,
             NewBranch.self, SwitchBranch.self, DeleteBranch.self,
-            AddBranchPrefix.self
+            AddBranchPrefix.self, EditBranchPrefix.self, DeleteBranchPrefix.self
         ]
     )
     

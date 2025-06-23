@@ -9,7 +9,7 @@ let package = Package(
         .macOS(.v14),
     ],
     products: [
-        .library(
+        .executable(
             name: "nngit",
             targets: ["nngit"]),
     ],
@@ -21,7 +21,7 @@ let package = Package(
         .package(url: "https://github.com/nikolainobadi/SwiftPicker.git", branch: "picker-protocol"),
     ],
     targets: [
-        .target(
+        .executableTarget(
             name: "nngit",
             dependencies: [
                 "SwiftShell",

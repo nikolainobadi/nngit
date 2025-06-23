@@ -15,9 +15,11 @@ extension Nngit {
         
         @Argument(help: "The number of commits to discard. (default is 1)")
         var number: Int = 1
+
+        @Flag(name: .long, help: "Force discarding commits even if they were authored by others.")
+        var force: Bool = false
         
         func run() throws {
-            let picker = Nngit.makePicker()
             let manager = Nngit.makeCommitManager()
             
             guard number > 0 else {
@@ -32,7 +34,12 @@ extension Nngit {
             }
             
             if commitInfo.contains(where: { !$0.wasAuthoredByCurrentUser }) {
-                try picker.requiredPermission("\nSome of the commits were created by other authors. Are you sure you want to discard them?")
+                if force {
+                    print("\nWarning: discarding commits authored by others.")
+                } else {
+                    print("\nSome of the commits were created by other authors. Re-run this command with --force to discard them.")
+                    return
+                }
             }
             
             print("should undo \(number) commits by running the command: git reset --hard HEAD~\(number)")

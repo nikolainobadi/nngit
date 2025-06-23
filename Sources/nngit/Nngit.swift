@@ -14,7 +14,7 @@ struct Nngit: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "A utility for working with Git.",
         subcommands: [
-            Discard.self,
+            Discard.self, UndoCommit.self,
             NewBranch.self, SwitchBranch.self, DeleteBranch.self,
             AddBranchPrefix.self, EditBranchPrefix.self, DeleteBranchPrefix.self
         ]

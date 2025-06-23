@@ -33,6 +33,8 @@ extension Nngit {
                 items: config.branchPrefixList
             )
 
+            try picker.requiredPermission("Delete branch prefix '\(selected.name)'?")
+
             config.branchPrefixList.removeAll { $0.name == selected.name }
             try loader.save(config)
             print("✅ Deleted branch prefix: \(selected.name)")

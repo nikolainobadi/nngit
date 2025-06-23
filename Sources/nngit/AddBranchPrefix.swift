@@ -37,6 +37,11 @@ extension Nngit {
             }
 
             let prefix = BranchPrefix(name: name, requiresIssueNumber: requiresIssueNumber)
+
+            print("Name: \(prefix.name)")
+            print("Requires Issue Number: \(prefix.requiresIssueNumber)")
+            try picker.requiredPermission("Add this branch prefix?")
+
             config.branchPrefixList.append(prefix)
             try loader.save(config)
             print("✅ Added branch prefix: \(name)")

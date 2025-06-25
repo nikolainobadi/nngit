@@ -9,7 +9,7 @@ import SwiftPicker
 import GitShellKit
 import ArgumentParser
 
-extension xNngit {
+extension Nngit {
     struct AddBranchPrefix: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Adds a new branch prefix to the nngit configuration."

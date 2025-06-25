@@ -9,7 +9,7 @@ import SwiftPicker
 import GitShellKit
 import ArgumentParser
 
-extension Nngit {
+extension xNngit {
     struct AddBranchPrefix: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Adds a new branch prefix to the nngit configuration."
@@ -24,7 +24,7 @@ extension Nngit {
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
-            let loader = GitConfigLoader()
+            let loader = Nngit.makeConfigLoader()
 
             try shell.verifyLocalGitExists()
             var config = try loader.loadConfig(picker: picker)

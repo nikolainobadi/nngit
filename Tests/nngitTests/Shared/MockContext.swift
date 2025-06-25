@@ -12,6 +12,7 @@ import GitShellKit
 final class MockContext {
     private var picker: MockPicker?
     private var shell: MockGitShell?
+    private var configLoader: GitConfigLoader?
     
     init(picker: MockPicker? = nil, shell: MockGitShell? = nil) {
         self.picker = picker
@@ -43,5 +44,12 @@ extension MockContext: NnGitContext {
     
     func makeCommitManager() -> GitCommitManager {
         return DefaultGitCommitManager(shell: makeShell())
+    }
+
+    func makeConfigLoader() -> GitConfigLoader {
+        if let configLoader { return configLoader }
+        let loader = DefaultGitConfigLoader()
+        configLoader = loader
+        return loader
     }
 }

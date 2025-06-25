@@ -30,7 +30,7 @@ extension Nngit {
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
-            let loader = GitConfigLoader()
+            let loader = Nngit.makeConfigLoader()
             try shell.verifyLocalGitExists()
             let config = try loader.loadConfig(picker: picker)
             try rebaseIfNecessary(shell: shell, config: config, picker: picker)

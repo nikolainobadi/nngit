@@ -35,12 +35,17 @@ extension Nngit {
     static func makeCommitManager() -> GitCommitManager {
         return context.makeCommitManager()
     }
+
+    static func makeConfigLoader() -> GitConfigLoader {
+        return context.makeConfigLoader()
+    }
 }
 
 protocol NnGitContext {
     func makePicker() -> Picker
     func makeShell() -> GitShell
     func makeCommitManager() -> GitCommitManager
+    func makeConfigLoader() -> GitConfigLoader
 }
 
 struct DefaultContext: NnGitContext {
@@ -54,5 +59,9 @@ struct DefaultContext: NnGitContext {
 
     func makeCommitManager() -> GitCommitManager {
         return DefaultGitCommitManager(shell: makeShell())
+    }
+
+    func makeConfigLoader() -> GitConfigLoader {
+        return DefaultGitConfigLoader()
     }
 }

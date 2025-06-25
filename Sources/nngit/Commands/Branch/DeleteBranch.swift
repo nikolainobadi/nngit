@@ -18,7 +18,7 @@ extension Nngit {
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
-            let configLoader = GitConfigLoader()
+            let configLoader = Nngit.makeConfigLoader()
             
             try shell.verifyLocalGitExists()
             

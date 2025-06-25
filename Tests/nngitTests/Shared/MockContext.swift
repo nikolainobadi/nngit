@@ -10,10 +10,10 @@ import GitShellKit
 @testable import nngit
 
 final class MockContext {
-    let picker: MockPicker
-    let shell: MockGitShell
+    private var picker: MockPicker?
+    private var shell: MockGitShell?
     
-    init(picker: MockPicker = MockPicker(), shell: MockGitShell = MockGitShell(responses: [:])) {
+    init(picker: MockPicker? = nil, shell: MockGitShell? = nil) {
         self.picker = picker
         self.shell = shell
     }
@@ -22,7 +22,26 @@ final class MockContext {
 
 // MARK: - Context
 extension MockContext: NnGitContext {
-    func makePicker() -> Picker { picker }
-    func makeShell() -> GitShell { shell }
-    func makeCommitManager() -> GitCommitManager { DefaultGitCommitManager(shell: shell) }
+    func makePicker() -> Picker {
+        if let picker {
+            return picker
+        }
+        
+        let newPicker = MockPicker()
+        picker = newPicker
+        return newPicker
+    }
+    func makeShell() -> GitShell {
+        if let shell {
+            return shell
+        }
+        
+        let newShell = MockGitShell(responses: [:])
+        shell = newShell
+        return newShell
+    }
+    
+    func makeCommitManager() -> GitCommitManager {
+        return DefaultGitCommitManager(shell: makeShell())
+    }
 }

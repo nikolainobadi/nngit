@@ -21,7 +21,7 @@ final class MockGitShell {
 extension MockGitShell: GitShell {
     func runWithOutput(_ command: String) throws -> String {
         commands.append(command)
-        let output = responses[command] ?? ""
-        return output
+        
+        return responses[command] ?? ""
     }
 }

@@ -14,9 +14,10 @@ final class MockContext {
     private var shell: MockGitShell?
     private var configLoader: GitConfigLoader?
     
-    init(picker: MockPicker? = nil, shell: MockGitShell? = nil) {
+    init(picker: MockPicker? = nil, shell: MockGitShell? = nil, configLoader: GitConfigLoader? = nil) {
         self.picker = picker
         self.shell = shell
+        self.configLoader = configLoader
     }
 }
 

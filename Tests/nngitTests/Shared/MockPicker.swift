@@ -52,7 +52,10 @@ extension MockPicker: Picker {
     }
     
     func requiredSingleSelection<Item: DisplayablePickerItem>(title: PickerPrompt, items: [Item]) throws -> Item {
-        fatalError() // TODO: -
+        if let index = selectionResponses[title.title], items.indices.contains(index) {
+            return items[index]
+        }
+        return items[0]
     }
     
     func multiSelection<Item: DisplayablePickerItem>(title: PickerPrompt, items: [Item]) -> [Item] {

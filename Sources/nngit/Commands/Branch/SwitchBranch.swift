@@ -63,6 +63,9 @@ extension Nngit {
 extension BranchLocation: ExpressibleByArgument { }
 extension GitBranch: DisplayablePickerItem {
     var displayName: String {
-        return name
+        // Show branch name with merge and sync status
+        let mergeStatus = isMerged ? "merged" : "unmerged"
+        let sync = syncStatus.rawValue
+        return "\(name) (\(mergeStatus), \(sync))"
     }
 }

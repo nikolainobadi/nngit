@@ -16,7 +16,7 @@ struct Nngit: ParsableCommand {
         subcommands: [
             Discard.self, UndoCommit.self,
             NewBranch.self, SwitchBranch.self, DeleteBranch.self,
-            AddBranchPrefix.self, EditBranchPrefix.self, DeleteBranchPrefix.self
+            AddBranchPrefix.self, EditBranchPrefix.self, DeleteBranchPrefix.self, ListBranchPrefix.self
         ]
     )
     

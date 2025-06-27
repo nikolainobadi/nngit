@@ -6,7 +6,12 @@
 //
 
 enum BranchNameGenerator {
-    static func generate(name: String, branchPrefix: String? = nil, issueNumber: String? = nil) -> String {
+    static func generate(
+        name: String,
+        branchPrefix: String? = nil,
+        issueNumber: String? = nil,
+        issueNumberPrefix: String? = nil
+    ) -> String {
         var components: [String] = []
 
         if let branchPrefix, !branchPrefix.isEmpty {
@@ -14,7 +19,11 @@ enum BranchNameGenerator {
         }
 
         if let issueNumber, !issueNumber.isEmpty {
-            components.append(issueNumber)
+            if let prefix = issueNumberPrefix, !prefix.isEmpty {
+                components.append(prefix + issueNumber)
+            } else {
+                components.append(issueNumber)
+            }
         }
 
         let formattedBranchName = name

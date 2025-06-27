@@ -10,6 +10,8 @@ struct AddBranchPrefixTests {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let picker = MockPicker()
         picker.requiredInputResponses["Enter a branch prefix name"] = "hotfix"
+        picker.permissionResponses["Require an issue number when using this prefix?"] = true
+        picker.requiredInputResponses["Enter an issue number prefix (leave blank for none)"] = "ISS-"
         picker.permissionResponses["Add this branch prefix?"] = true
         let loader = StubConfigLoader(initialConfig: .defaultConfig)
         let shell = MockGitShell(responses: [localGitCheck: "true"])
@@ -19,7 +21,12 @@ struct AddBranchPrefixTests {
         #expect(shell.commands.contains(localGitCheck))
         #expect(picker.requiredPermissions.contains("Add this branch prefix?"))
         #expect(loader.savedConfigs.count == 1)
-        #expect(loader.savedConfigs.first!.branchPrefixList.first!.name == "hotfix")
+        let saved = loader.savedConfigs.first!.branchPrefixList.first!
+        #expect(saved.name == "hotfix")
+        #expect(saved.requiresIssueNumber)
+        #expect(saved.issueNumberPrefix == "ISS-")
+        #expect(output.contains("Requires Issue Number: true"))
+        #expect(output.contains("Issue Number Prefix: ISS-"))
         #expect(output.contains("✅ Added branch prefix: hotfix"))
     }
 
@@ -27,7 +34,9 @@ struct AddBranchPrefixTests {
     func addsNewPrefixWithIssueRequirement() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let picker = MockPicker()
+        picker.permissionResponses["Require an issue number when using this prefix?"] = false
         picker.permissionResponses["Add this branch prefix?"] = true
+        picker.requiredInputResponses["Enter an issue number prefix (leave blank for none)"] = "BUG-"
         let loader = StubConfigLoader(initialConfig: .defaultConfig)
         let shell = MockGitShell(responses: [localGitCheck: "true"])
         let context = MockContext(picker: picker, shell: shell, configLoader: loader)

@@ -64,7 +64,8 @@ extension Nngit {
             let fullBranchName = BranchNameGenerator.generate(
                 name: branchName,
                 branchPrefix: selectedPrefix?.name,
-                issueNumber: issue
+                issueNumber: issue,
+                issueNumberPrefix: selectedPrefix?.issueNumberPrefix
             )
 
             try shell.runGitCommandWithOutput(.newBranch(branchName: fullBranchName), path: nil)

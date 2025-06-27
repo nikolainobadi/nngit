@@ -11,6 +11,7 @@ import SwiftPicker
 struct BranchPrefix: Codable {
     let name: String
     let requiresIssueNumber: Bool
+    let issueNumberPrefix: String?
 }
 
 extension BranchPrefix: DisplayablePickerItem {

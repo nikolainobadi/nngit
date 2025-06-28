@@ -8,6 +8,7 @@
 import ArgumentParser
 
 extension Nngit {
+    /// Command that discards one or more commits from the current branch.
     struct UndoCommit: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Runs 'git reset --hard HEAD, essentially discarding any number of commits."
@@ -19,6 +20,7 @@ extension Nngit {
         @Flag(name: .long, help: "Force discarding commits even if they were authored by others.")
         var force: Bool = false
         
+        /// Executes the command using the shared context components.
         func run() throws {
             let manager = Nngit.makeCommitManager()
             

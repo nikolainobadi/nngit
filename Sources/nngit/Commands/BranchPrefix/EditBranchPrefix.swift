@@ -10,11 +10,13 @@ import GitShellKit
 import ArgumentParser
 
 extension Nngit {
+    /// Command used to modify an existing branch prefix.
     struct EditBranchPrefix: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Edits an existing branch prefix in the nngit configuration."
         )
 
+        /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()

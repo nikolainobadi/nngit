@@ -10,11 +10,13 @@ import GitShellKit
 import ArgumentParser
 
 extension Nngit {
+    /// Command that prints all branch prefixes configured for the repository.
     struct ListBranchPrefix: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Lists all saved branch prefixes in the nngit configuration."
         )
 
+        /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()

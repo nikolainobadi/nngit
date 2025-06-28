@@ -8,7 +8,14 @@
 import SwiftShell
 import GitShellKit
 
+/// Concrete implementation of ``GitShell`` that executes commands using
+/// ``SwiftShell``.
 struct GitShellAdapter: GitShell {
+    /// Runs the provided command via the underlying shell and returns the
+    /// standard output produced by the command.
+    ///
+    /// - Parameter command: The git command to execute.
+    /// - Returns: The standard output from the shell.
     func runWithOutput(_ command: String) throws -> String {
         // TODO: - maybe handle erros?
         return SwiftShell.run(bash: command).stdout
@@ -16,6 +23,8 @@ struct GitShellAdapter: GitShell {
 }
 
 extension GitShell {
+    /// Throws ``GitShellError.missingLocalGit`` if no git repository exists at
+    /// the given path.
     func verifyLocalGitExists() throws {
         guard try localGitExists(at: nil) else {
             throw GitShellError.missingLocalGit

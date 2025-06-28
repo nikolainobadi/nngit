@@ -11,6 +11,7 @@ import GitShellKit
 import ArgumentParser
 
 extension Nngit {
+    /// Command that helps switching between local or remote branches.
     struct SwitchBranch: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Lists branches from the specified location and allows selecting one to switch to."
@@ -22,6 +23,7 @@ extension Nngit {
         @Option(name: .shortAndLong, help: "Where to search for branches: local, remote, or both")
         var branchLocation: BranchLocation = .local
 
+        /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()

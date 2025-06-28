@@ -8,6 +8,7 @@
 import NnConfigKit
 import SwiftPicker
 
+/// Default implementation of ``GitConfigLoader`` backed by ``NnConfigManager``.
 struct DefaultGitConfigLoader: GitConfigLoader {
     private let manager = NnConfigManager<GitConfig>(projectName: "nngit")
 }
@@ -15,10 +16,12 @@ struct DefaultGitConfigLoader: GitConfigLoader {
 
 // MARK: - Actions
 extension DefaultGitConfigLoader {
+    /// Persists the provided configuration to disk.
     func save(_ config: GitConfig) throws {
         try manager.saveConfig(config)
     }
-    
+
+    /// Loads the configuration from disk or creates a new one by prompting the user.
     func loadConfig(picker: Picker) throws -> GitConfig {
         do {
             return try load()
@@ -46,6 +49,7 @@ extension DefaultGitConfigLoader {
 }
 
 private extension DefaultGitConfigLoader {
+    /// Helper method reading the configuration from ``NnConfigManager``.
     func load() throws -> GitConfig {
         return try manager.loadConfig()
     }

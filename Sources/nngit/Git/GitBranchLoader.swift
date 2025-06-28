@@ -14,7 +14,7 @@ protocol GitBranchLoaderProtocol {
     func loadBranches(from location: BranchLocation, shell: GitShell) throws -> [GitBranch]
 }
 
-/// Default implementation of GitBranchLoaderProtocol using GitShell.
+/// Default implementation of ``GitBranchLoaderProtocol`` using ``GitShell``.
 struct GitBranchLoader: GitBranchLoaderProtocol {
     private let shell: GitShell
 
@@ -26,6 +26,12 @@ struct GitBranchLoader: GitBranchLoaderProtocol {
 
 // MARK: - Load
 extension GitBranchLoader {
+    /// Returns branch models enriched with merge and sync information.
+    ///
+    /// - Parameters:
+    ///   - location: The source of branches to load. Defaults to ``BranchLocation.local``.
+    ///   - shell: Shell instance used to execute git commands.
+    /// - Returns: Array of ``GitBranch`` representing the repository state.
     func loadBranches(from location: BranchLocation = .local, shell: GitShell) throws -> [GitBranch] {
         try shell.verifyLocalGitExists()
         let branchNames = try loadBranchNames(from: location, shell: shell)
@@ -52,6 +58,12 @@ extension GitBranchLoader {
 
 // MARK: - Private Methods
 private extension GitBranchLoader {
+    /// Loads raw branch name strings from git.
+    ///
+    /// - Parameters:
+    ///   - location: Where to list branches from.
+    ///   - shell: Shell used to execute git commands.
+    /// - Returns: Array of branch names exactly as returned by git.
     func loadBranchNames(from location: BranchLocation, shell: GitShell) throws -> [String] {
         let output: String
 
@@ -70,6 +82,15 @@ private extension GitBranchLoader {
             .filter({ !$0.contains("->") })
     }
     
+    /// Returns the synchronization status between a local branch and its remote counterpart.
+    ///
+    /// - Parameters:
+    ///   - branchName: The local branch name to compare.
+    ///   - comparingBranch: Optional remote branch name to compare against. When
+    ///     `nil`, the same branch name on `origin` is used.
+    ///   - shell: Shell used to execute git commands.
+    /// - Returns: ``BranchSyncStatus`` describing whether the branch is ahead,
+    ///   behind, or in sync with the remote.
     func getSyncStatus(branchName: String, comparingBranch: String? = nil, shell: GitShell) throws -> BranchSyncStatus {
         guard try shell.remoteExists(path: nil) else {
             return .noRemoteBranch

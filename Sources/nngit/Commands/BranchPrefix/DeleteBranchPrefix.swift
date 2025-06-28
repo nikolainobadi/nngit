@@ -10,11 +10,13 @@ import GitShellKit
 import ArgumentParser
 
 extension Nngit {
+    /// Command that removes an existing branch prefix from the configuration.
     struct DeleteBranchPrefix: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Deletes a branch prefix from the nngit configuration."
         )
 
+        /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()

@@ -10,11 +10,13 @@ import GitShellKit
 import ArgumentParser
 
 extension Nngit {
+    /// Command that allows selecting and deleting local branches.
     struct DeleteBranch: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Lists all available local branches, deletes the selected branches, and prunes the remote origin if one exists."
         )
         
+        /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
@@ -46,6 +48,7 @@ extension Nngit {
 }
 
 extension Nngit.DeleteBranch {
+    /// Returns a list of branches eligible for deletion.
     func loadEligibleBranches(shell: GitShell, config: GitConfig) throws -> [GitBranch] {
         let loader = Nngit.makeBranchLoader()
         // Exclude the current branch and the default branch from deletion candidates
@@ -55,7 +58,8 @@ extension Nngit.DeleteBranch {
                 branch.name.lowercased() != config.defaultBranch.lowercased()
             }
     }
-    
+
+    /// Deletes the given branch using `git branch -d` or `-D` when forced.
     func deleteBranch(_ branch: GitBranch, shell: GitShell, forced: Bool = false) throws {
         let _ = try shell.runWithOutput(makeGitCommand(.deleteBranch(name: branch.name, forced: forced), path: nil))
     }

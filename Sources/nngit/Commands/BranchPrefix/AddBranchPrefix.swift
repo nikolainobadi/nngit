@@ -10,6 +10,7 @@ import GitShellKit
 import ArgumentParser
 
 extension Nngit {
+    /// Command that appends a new branch prefix to the configuration.
     struct AddBranchPrefix: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Adds a new branch prefix to the nngit configuration."
@@ -24,6 +25,7 @@ extension Nngit {
         @Option(name: .long, help: "Optional prefix string to prepend before the issue number")
         var issueNumberPrefixOption: String?
 
+        /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()

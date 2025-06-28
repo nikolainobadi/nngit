@@ -57,7 +57,7 @@ struct AddBranchPrefixTests {
     @Test("warns and does not add when prefix already exists")
     func warnsForDuplicate() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
-        let existing = BranchPrefix(name: "feature", requiresIssueNumber: false)
+        let existing = BranchPrefix(name: "feature", requiresIssueNumber: false, issueNumberPrefix: nil)
         var initial = GitConfig.defaultConfig
         initial.branchPrefixList = [existing]
         let loader = StubConfigLoader(initialConfig: initial)

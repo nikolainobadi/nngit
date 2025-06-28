@@ -20,8 +20,7 @@ final class MockPicker {
 // MARK: - Picker
 extension MockPicker: Picker {
     func getInput(prompt: PickerPrompt) -> String {
-        // TODO: -
-        return ""
+        return requiredInputResponses[prompt.title] ?? ""
     }
     
     func getRequiredInput(prompt: PickerPrompt) throws -> String {

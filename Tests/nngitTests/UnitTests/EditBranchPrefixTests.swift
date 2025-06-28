@@ -70,11 +70,10 @@ struct EditBranchPrefixTests {
         let shell = MockGitShell(responses: [localGitCheck: "true"])
         let context = MockContext(picker: picker, shell: shell, configLoader: loader)
 
-        do {
+        #expect {
             _ = try Nngit.testRun(context: context, args: ["edit-branch-prefix"])
-            #expect(false)
-        } catch {
-            #expect(loader.savedConfigs.isEmpty)
+        } throws: { _ in
+            return loader.savedConfigs.isEmpty
         }
     }
 }

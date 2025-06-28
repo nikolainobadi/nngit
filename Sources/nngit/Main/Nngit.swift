@@ -39,6 +39,11 @@ extension Nngit {
     static func makeConfigLoader() -> GitConfigLoader {
         return context.makeConfigLoader()
     }
+
+    /// Abstraction for branch loading, so it can be mocked in tests.
+    static func makeBranchLoader() -> GitBranchLoaderProtocol {
+        return context.makeBranchLoader()
+    }
 }
 
 protocol NnGitContext {
@@ -46,6 +51,7 @@ protocol NnGitContext {
     func makeShell() -> GitShell
     func makeCommitManager() -> GitCommitManager
     func makeConfigLoader() -> GitConfigLoader
+    func makeBranchLoader() -> GitBranchLoaderProtocol
 }
 
 struct DefaultContext: NnGitContext {
@@ -63,5 +69,9 @@ struct DefaultContext: NnGitContext {
 
     func makeConfigLoader() -> GitConfigLoader {
         return DefaultGitConfigLoader()
+    }
+
+    func makeBranchLoader() -> GitBranchLoaderProtocol {
+        return GitBranchLoader(shell: makeShell())
     }
 }

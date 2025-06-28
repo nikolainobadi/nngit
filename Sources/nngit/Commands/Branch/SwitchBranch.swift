@@ -25,7 +25,7 @@ extension Nngit {
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
-            let branchLoader = GitBranchLoader(shell: shell)
+            let branchLoader = Nngit.makeBranchLoader()
             let branchList = try branchLoader.loadBranches(from: branchLocation, shell: shell)
             let currentBranch = branchList.first(where: { $0.isCurrentBranch })
             var availableBranches = branchList.filter({ !$0.isCurrentBranch})

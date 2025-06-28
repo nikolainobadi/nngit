@@ -8,7 +8,14 @@
 import Foundation
 import GitShellKit
 
-struct GitBranchLoader {
+/// Protocol for loading Git branches, abstracted for testing.
+protocol GitBranchLoaderProtocol {
+    /// Loads branches from the given location.
+    func loadBranches(from location: BranchLocation, shell: GitShell) throws -> [GitBranch]
+}
+
+/// Default implementation of GitBranchLoaderProtocol using GitShell.
+struct GitBranchLoader: GitBranchLoaderProtocol {
     private let shell: GitShell
 
     init(shell: GitShell) {

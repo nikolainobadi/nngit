@@ -29,7 +29,6 @@ extension Nngit {
             }
 
             print("Branch prefixes:")
-            print("Branch prefixes:")
             for prefix in config.branchPrefixList {
                 let requiresText = prefix.requiresIssueNumber ? "yes" : "no"
                 let prefixPart = prefix.issueNumberPrefix.map { ", prefix: \($0)" } ?? ""

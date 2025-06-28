@@ -10,15 +10,17 @@ import GitShellKit
 import ArgumentParser
 
 extension Nngit {
+    /// Command that allows selecting and deleting local branches.
     struct DeleteBranch: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Lists all available local branches, deletes the selected branches, and prunes the remote origin if one exists."
         )
         
+        /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
-            let configLoader = GitConfigLoader()
+            let configLoader = Nngit.makeConfigLoader()
             
             try shell.verifyLocalGitExists()
             
@@ -30,9 +32,12 @@ extension Nngit {
                 if branch.isMerged {
                     try deleteBranch(branch, shell: shell)
                 } else {
-                    try picker.requiredPermission("This branch has NOT been merged into \(config.defaultBranch.yellow). Are you sure you want to delete it?")
+                    try picker.requiredPermission(
+                        "This branch has NOT been merged into \(config.defaultBranch.yellow). Are you sure you want to delete it?"
+                    )
                     try deleteBranch(branch, shell: shell, forced: true)
                 }
+                print("✅ Deleted branch: \(branch.name)")
             }
             
             if try shell.remoteExists(path: nil) {
@@ -43,12 +48,18 @@ extension Nngit {
 }
 
 extension Nngit.DeleteBranch {
+    /// Returns a list of branches eligible for deletion.
     func loadEligibleBranches(shell: GitShell, config: GitConfig) throws -> [GitBranch] {
-        let loader = GitBranchLoader(shell: shell)
-        
-        return try loader.loadLocalBranches(shell: shell).filter({ $0.isCurrentBranch && $0.name.lowercased() != config.defaultBranch.lowercased() })
+        let loader = Nngit.makeBranchLoader()
+        // Exclude the current branch and the default branch from deletion candidates
+        return try loader.loadBranches(from: .local, shell: shell)
+            .filter { branch in
+                !branch.isCurrentBranch &&
+                branch.name.lowercased() != config.defaultBranch.lowercased()
+            }
     }
-    
+
+    /// Deletes the given branch using `git branch -d` or `-D` when forced.
     func deleteBranch(_ branch: GitBranch, shell: GitShell, forced: Bool = false) throws {
         let _ = try shell.runWithOutput(makeGitCommand(.deleteBranch(name: branch.name, forced: forced), path: nil))
     }

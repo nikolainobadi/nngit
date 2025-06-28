@@ -1,5 +1,5 @@
 //
-//  GitConfigLoader.swift
+//  DefaultGitConfigLoader.swift
 //  nngit
 //
 //  Created by Nikolai Nobadi on 6/8/25.
@@ -8,23 +8,25 @@
 import NnConfigKit
 import SwiftPicker
 
-struct GitConfigLoader {
+/// Default implementation of ``GitConfigLoader`` backed by ``NnConfigManager``.
+struct DefaultGitConfigLoader: GitConfigLoader {
     private let manager = NnConfigManager<GitConfig>(projectName: "nngit")
 }
 
 
 // MARK: - Actions
-extension GitConfigLoader {
+extension DefaultGitConfigLoader {
+    /// Persists the provided configuration to disk.
     func save(_ config: GitConfig) throws {
         try manager.saveConfig(config)
     }
-    
+
+    /// Loads the configuration from disk or creates a new one by prompting the user.
     func loadConfig(picker: Picker) throws -> GitConfig {
         do {
             return try load()
         } catch {
             var defaultBranchName = "main"
-            var issueNumberPrefix: String?
             var shouldRebaseWhenCreatingNewBranchesFromDefaultBranch: Bool
             
             if !picker.getPermission("Is your default branch called 'main'?") {
@@ -32,12 +34,12 @@ extension GitConfigLoader {
             }
             
             if picker.getPermission("Would you like to add an issue number prefix?") {
-                issueNumberPrefix = try picker.getRequiredInput("Enter the issue number prefix.")
+                
             }
             
             shouldRebaseWhenCreatingNewBranchesFromDefaultBranch = picker.getPermission("Include rebase prompt when creating new branches from \(defaultBranchName)?")
             
-            let newConfig = GitConfig(defaultBranch: defaultBranchName, issueNumberPrefix: issueNumberPrefix, rebaseWhenBranchingFromDefaultBranch: shouldRebaseWhenCreatingNewBranchesFromDefaultBranch)
+            let newConfig = GitConfig(defaultBranch: defaultBranchName, branchPrefixList: [], rebaseWhenBranchingFromDefaultBranch: shouldRebaseWhenCreatingNewBranchesFromDefaultBranch)
             
             try save(newConfig)
             
@@ -46,7 +48,8 @@ extension GitConfigLoader {
     }
 }
 
-private extension GitConfigLoader {
+private extension DefaultGitConfigLoader {
+    /// Helper method reading the configuration from ``NnConfigManager``.
     func load() throws -> GitConfig {
         return try manager.loadConfig()
     }

@@ -8,9 +8,16 @@
 import Foundation
 import GitShellKit
 
-struct GitBranchLoader {
+/// Protocol for loading Git branches, abstracted for testing.
+protocol GitBranchLoaderProtocol {
+    /// Loads branches from the given location.
+    func loadBranches(from location: BranchLocation, shell: GitShell) throws -> [GitBranch]
+}
+
+/// Default implementation of ``GitBranchLoaderProtocol`` using ``GitShell``.
+struct GitBranchLoader: GitBranchLoaderProtocol {
     private let shell: GitShell
-    
+
     init(shell: GitShell) {
         self.shell = shell
     }
@@ -19,24 +26,30 @@ struct GitBranchLoader {
 
 // MARK: - Load
 extension GitBranchLoader {
-    func loadLocalBranches(shell: GitShell) throws -> [GitBranch] {
+    /// Returns branch models enriched with merge and sync information.
+    ///
+    /// - Parameters:
+    ///   - location: The source of branches to load. Defaults to ``BranchLocation.local``.
+    ///   - shell: Shell instance used to execute git commands.
+    /// - Returns: Array of ``GitBranch`` representing the repository state.
+    func loadBranches(from location: BranchLocation = .local, shell: GitShell) throws -> [GitBranch] {
         try shell.verifyLocalGitExists()
-        let branchNames = try loadBranchNames(shell: shell)
+        let branchNames = try loadBranchNames(from: location, shell: shell)
         let mergedOutput = try shell.runGitCommandWithOutput(.listMergedBranches, path: nil)
         let mergedBranches = Set(mergedOutput.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) })
-        
+
         return branchNames.map { name in
             let isCurrentBranch = name.hasPrefix("*")
             let cleanBranchName = isCurrentBranch ? String(name.dropFirst(2)) : name
-            let isMerged = cleanBranchName == "main" ? true : mergedBranches.contains(cleanBranchName)
+            let isMerged = mergedBranches.contains(cleanBranchName)
             var creationDate: Date?
-            
+
             if let dateOutput = try? shell.runGitCommandWithOutput(.getBranchCreationDate(branchName: cleanBranchName), path: nil) {
                 creationDate = ISO8601DateFormatter().date(from: dateOutput.trimmingCharacters(in: .whitespacesAndNewlines))
             }
-            
+
             let syncStatus = try? getSyncStatus(branchName: name, shell: shell)
-            
+
             return .init(name: cleanBranchName, isMerged: isMerged, isCurrentBranch: isCurrentBranch, creationDate: creationDate, syncStatus: syncStatus ?? .undetermined)
         }
     }
@@ -45,14 +58,39 @@ extension GitBranchLoader {
 
 // MARK: - Private Methods
 private extension GitBranchLoader {
-    func loadBranchNames(shell: GitShell) throws -> [String] {
-        let output = try shell.runGitCommandWithOutput(.listLocalBranches, path: nil)
-        
+    /// Loads raw branch name strings from git.
+    ///
+    /// - Parameters:
+    ///   - location: Where to list branches from.
+    ///   - shell: Shell used to execute git commands.
+    /// - Returns: Array of branch names exactly as returned by git.
+    func loadBranchNames(from location: BranchLocation, shell: GitShell) throws -> [String] {
+        let output: String
+
+        switch location {
+        case .local:
+            output = try shell.runGitCommandWithOutput(.listLocalBranches, path: nil)
+        case .remote:
+            output = try shell.runGitCommandWithOutput(.listRemoteBranches, path: nil)
+        case .both:
+            output = try shell.runWithOutput("git branch -a")
+        }
+
         return output
             .split(separator: "\n")
             .map({ $0.trimmingCharacters(in: .whitespaces) })
+            .filter({ !$0.contains("->") })
     }
     
+    /// Returns the synchronization status between a local branch and its remote counterpart.
+    ///
+    /// - Parameters:
+    ///   - branchName: The local branch name to compare.
+    ///   - comparingBranch: Optional remote branch name to compare against. When
+    ///     `nil`, the same branch name on `origin` is used.
+    ///   - shell: Shell used to execute git commands.
+    /// - Returns: ``BranchSyncStatus`` describing whether the branch is ahead,
+    ///   behind, or in sync with the remote.
     func getSyncStatus(branchName: String, comparingBranch: String? = nil, shell: GitShell) throws -> BranchSyncStatus {
         guard try shell.remoteExists(path: nil) else {
             return .noRemoteBranch

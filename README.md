@@ -14,6 +14,7 @@ A command-line utility for managing Git branches and history. `nngit` offers hel
 - Delete merged branches with optional origin pruning
 - Discard staged/unstaged changes
 - Undo commits with safety checks
+- Edit overall nngit configuration
 
 ## Installation
 ```bash
@@ -28,6 +29,7 @@ $ nngit new-branch feature "Add login"
 $ nngit switch-branch
 $ nngit discard --files both
 $ nngit undo-commit 2
+$ nngit edit-config --default-branch develop
 ```
 
 ## Architecture Notes

@@ -32,6 +32,28 @@ $ nngit undo-commit 2
 $ nngit edit-config --default-branch develop
 ```
 
+## Configuration
+`nngit` stores its settings in a JSON file located at
+`~/.config/nngit/config.json`.  This file is created automatically the first time
+you run the tool.  You can modify values using the `edit-config` command or by
+opening the file in your editor of choice.
+
+Branch prefixes are kept inside this same file.  A prefix represents the first
+segment of a branch name such as `feature` or `bugfix`.  Prefixes can optionally
+require an issue number and may provide a small string to prepend before the
+number.  Use the `add-branch-prefix`, `edit-branch-prefix`, `delete-branch-prefix`
+and `list-branch-prefix` commands to manage them.  When creating a new branch,
+`nngit` will combine the selected prefix, the issue number (if any) and your
+branch description to generate the final name.
+
+Non-Homebrew users can build the executable manually:
+
+```bash
+swift build -c release
+```
+
+The compiled binary will be available at `.build/release/nngit`.
+
 ## Architecture Notes
 - Built on top of `swift-argument-parser` for CLI parsing
 - Uses `SwiftShell` for shell execution and `GitShellKit` abstractions

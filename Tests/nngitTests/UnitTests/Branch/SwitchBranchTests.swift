@@ -99,6 +99,29 @@ struct SwitchBranchTests {
         #expect(!shell.commands.contains(where: { $0.contains("git log -1") }))
         #expect(output.isEmpty)
     }
+
+    @Test("includes branches from all authors with flag")
+    func includeAllFlag() throws {
+        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
+        let switchCmd = makeGitCommand(.switchBranch(branchName: "dev"), path: nil)
+        let branch1 = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        let branch2 = GitBranch(name: "dev", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let loader = StubBranchLoader(branches: [branch1, branch2])
+        let shell = MockGitShell(responses: [
+            localGitCheck: "true",
+            switchCmd: ""
+        ])
+        let picker = MockPicker()
+        picker.selectionResponses["Select a branch (switching from main)"] = 1
+        let context = MockContext(picker: picker, shell: shell, branchLoader: loader)
+
+        let output = try Nngit.testRun(context: context, args: ["switch-branch", "--include-all"])
+
+        #expect(shell.commands.contains(localGitCheck))
+        #expect(shell.commands.contains(switchCmd))
+        #expect(!shell.commands.contains(where: { $0.contains("git log -1") }))
+        #expect(output.isEmpty)
+    }
 }
 
 // MARK: - Helpers

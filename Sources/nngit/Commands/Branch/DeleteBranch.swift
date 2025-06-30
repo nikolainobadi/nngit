@@ -19,6 +19,9 @@ extension Nngit {
         @Flag(name: .long, help: "Prune 'origin' after deleting branches.")
         var pruneOrigin: Bool = false
 
+        @Flag(name: .long, help: "Include branches from all authors when listing")
+        var includeAll: Bool = false
+
         @Argument(help: "Name (or partial name) of the branch to delete")
         var search: String?
 
@@ -37,7 +40,9 @@ extension Nngit {
             let config = try configLoader.loadConfig(picker: picker)
             let branchLoader = Nngit.makeBranchLoader()
             var eligibleBranches = try loadEligibleBranches(shell: shell, config: config)
-            eligibleBranches = branchLoader.filterBranchesByAuthor(eligibleBranches, shell: shell, includeAuthor: includeAuthor)
+            if !includeAll {
+                eligibleBranches = branchLoader.filterBranchesByAuthor(eligibleBranches, shell: shell, includeAuthor: includeAuthor)
+            }
 
             if let search,
                !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {

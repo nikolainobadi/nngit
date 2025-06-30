@@ -27,6 +27,9 @@ extension Nngit {
                 help: "Additional author names or emails to include when filtering branches")
         var includeAuthor: [String] = []
 
+        @Flag(name: .long, help: "Include branches from all authors when listing")
+        var includeAll: Bool = false
+
         /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
@@ -37,7 +40,9 @@ extension Nngit {
             let currentBranch = branchList.first(where: { $0.isCurrentBranch })
             var availableBranches = branchList.filter { !$0.isCurrentBranch }
 
-            availableBranches = branchLoader.filterBranchesByAuthor(availableBranches, shell: shell, includeAuthor: includeAuthor)
+            if !includeAll {
+                availableBranches = branchLoader.filterBranchesByAuthor(availableBranches, shell: shell, includeAuthor: includeAuthor)
+            }
 
             if let search,
                !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {

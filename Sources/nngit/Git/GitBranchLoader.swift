@@ -37,6 +37,7 @@ extension GitBranchLoader {
         let branchNames = try loadBranchNames(from: location, shell: shell)
         let mergedOutput = try shell.runGitCommandWithOutput(.listMergedBranches, path: nil)
         let mergedBranches = Set(mergedOutput.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) })
+        let remoteExists = (try? shell.remoteExists(path: nil)) ?? false
 
         return branchNames.map { name in
             let isCurrentBranch = name.hasPrefix("*")
@@ -48,7 +49,7 @@ extension GitBranchLoader {
                 creationDate = ISO8601DateFormatter().date(from: dateOutput.trimmingCharacters(in: .whitespacesAndNewlines))
             }
 
-            let syncStatus = try? getSyncStatus(branchName: name, shell: shell)
+            let syncStatus = try? getSyncStatus(branchName: name, shell: shell, remoteExists: remoteExists)
 
             return .init(name: cleanBranchName, isMerged: isMerged, isCurrentBranch: isCurrentBranch, creationDate: creationDate, syncStatus: syncStatus ?? .undetermined)
         }
@@ -91,7 +92,16 @@ private extension GitBranchLoader {
     ///   - shell: Shell used to execute git commands.
     /// - Returns: ``BranchSyncStatus`` describing whether the branch is ahead,
     ///   behind, or in sync with the remote.
-    func getSyncStatus(branchName: String, comparingBranch: String? = nil, shell: GitShell) throws -> BranchSyncStatus {
+    func getSyncStatus(
+        branchName: String,
+        comparingBranch: String? = nil,
+        shell: GitShell,
+        remoteExists: Bool = true
+    ) throws -> BranchSyncStatus {
+        if !remoteExists {
+            return .noRemoteBranch
+        }
+
         guard try shell.remoteExists(path: nil) else {
             return .noRemoteBranch
         }

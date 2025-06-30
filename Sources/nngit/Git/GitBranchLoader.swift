@@ -14,6 +14,49 @@ protocol GitBranchLoaderProtocol {
     func loadBranches(from location: BranchLocation, shell: GitShell) throws -> [GitBranch]
 }
 
+// MARK: - Filtering Helpers
+extension GitBranchLoaderProtocol {
+    /// Filters branches by author using the provided shell and includeAuthor list.
+    /// The current git user's name/email are automatically included when present.
+    func filterBranchesByAuthor(_ branches: [GitBranch], shell: GitShell, includeAuthor: [String]) -> [GitBranch] {
+        var allowedAuthors = Set(includeAuthor)
+
+        let userName = (try? shell.runWithOutput("git config user.name").trimmingCharacters(in: .whitespacesAndNewlines))
+            .flatMap { $0.isEmpty ? nil : $0 }
+            ?? (try? shell.runWithOutput("git config --global user.name").trimmingCharacters(in: .whitespacesAndNewlines))
+            .flatMap { $0.isEmpty ? nil : $0 }
+
+        let userEmail = (try? shell.runWithOutput("git config user.email").trimmingCharacters(in: .whitespacesAndNewlines))
+            .flatMap { $0.isEmpty ? nil : $0 }
+            ?? (try? shell.runWithOutput("git config --global user.email").trimmingCharacters(in: .whitespacesAndNewlines))
+            .flatMap { $0.isEmpty ? nil : $0 }
+
+        if let userName { allowedAuthors.insert(userName) }
+        if let userEmail { allowedAuthors.insert(userEmail) }
+
+        guard !allowedAuthors.isEmpty else { return branches }
+
+        return branches.filter { branch in
+            if let output = try? shell.runWithOutput("git log -1 --pretty=format:'%an,%ae' \(branch.name)") {
+                let parts = output.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: ",")
+                guard parts.count == 2 else { return false }
+                let authorName = String(parts[0])
+                let authorEmail = String(parts[1])
+                return allowedAuthors.contains(authorName) || allowedAuthors.contains(authorEmail)
+            }
+            return false
+        }
+    }
+
+    /// Filters branches by a search term, matching case-insensitively on the name.
+    func filterBranchesBySearch(_ branches: [GitBranch], search: String?) -> [GitBranch] {
+        guard let search,
+              !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return branches }
+
+        return branches.filter { $0.name.lowercased().contains(search.lowercased()) }
+    }
+}
+
 /// Default implementation of ``GitBranchLoaderProtocol`` using ``GitShell``.
 struct GitBranchLoader: GitBranchLoaderProtocol {
     private let shell: GitShell

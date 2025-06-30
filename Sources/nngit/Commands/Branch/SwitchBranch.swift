@@ -35,34 +35,9 @@ extension Nngit {
             let branchLoader = Nngit.makeBranchLoader()
             let branchList = try branchLoader.loadBranches(from: branchLocation, shell: shell)
             let currentBranch = branchList.first(where: { $0.isCurrentBranch })
-            var availableBranches = branchList.filter({ !$0.isCurrentBranch})
+            var availableBranches = branchList.filter { !$0.isCurrentBranch }
 
-            let userName = (try? shell.runWithOutput("git config user.name").trimmingCharacters(in: .whitespacesAndNewlines))
-                .flatMap { $0.isEmpty ? nil : $0 }
-                ?? (try? shell.runWithOutput("git config --global user.name").trimmingCharacters(in: .whitespacesAndNewlines))
-                .flatMap { $0.isEmpty ? nil : $0 }
-
-            let userEmail = (try? shell.runWithOutput("git config user.email").trimmingCharacters(in: .whitespacesAndNewlines))
-                .flatMap { $0.isEmpty ? nil : $0 }
-                ?? (try? shell.runWithOutput("git config --global user.email").trimmingCharacters(in: .whitespacesAndNewlines))
-                .flatMap { $0.isEmpty ? nil : $0 }
-
-            var allowedAuthors = Set(includeAuthor)
-            if let userName { allowedAuthors.insert(userName) }
-            if let userEmail { allowedAuthors.insert(userEmail) }
-
-            if !allowedAuthors.isEmpty {
-                availableBranches = availableBranches.filter { branch in
-                    if let output = try? shell.runWithOutput("git log -1 --pretty=format:'%an,%ae' \(branch.name)") {
-                        let parts = output.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: ",")
-                        guard parts.count == 2 else { return false }
-                        let authorName = String(parts[0])
-                        let authorEmail = String(parts[1])
-                        return allowedAuthors.contains(authorName) || allowedAuthors.contains(authorEmail)
-                    }
-                    return false
-                }
-            }
+            availableBranches = branchLoader.filterBranchesByAuthor(availableBranches, shell: shell, includeAuthor: includeAuthor)
 
             if let search,
                !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -71,7 +46,7 @@ extension Nngit {
                     return
                 }
 
-                availableBranches = availableBranches.filter { $0.name.lowercased().contains(search.lowercased()) }
+                availableBranches = branchLoader.filterBranchesBySearch(availableBranches, search: search)
 
                 guard !availableBranches.isEmpty else {
                     print("No branches found matching '\(search)'")

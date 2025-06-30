@@ -18,6 +18,13 @@ extension Nngit {
 
         @Flag(name: .long, help: "Prune 'origin' after deleting branches.")
         var pruneOrigin: Bool = false
+
+        @Argument(help: "Name (or partial name) of the branch to delete")
+        var search: String?
+
+        @Option(name: .long, parsing: .upToNextOption,
+                help: "Additional author names or emails to include when filtering branches")
+        var includeAuthor: [String] = []
         
         /// Executes the command using the shared context components.
         func run() throws {
@@ -28,7 +35,19 @@ extension Nngit {
             try shell.verifyLocalGitExists()
             
             let config = try configLoader.loadConfig(picker: picker)
-            let eligibleBranches = try loadEligibleBranches(shell: shell, config: config)
+            let branchLoader = Nngit.makeBranchLoader()
+            var eligibleBranches = try loadEligibleBranches(shell: shell, config: config)
+            eligibleBranches = branchLoader.filterBranchesByAuthor(eligibleBranches, shell: shell, includeAuthor: includeAuthor)
+
+            if let search,
+               !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                eligibleBranches = branchLoader.filterBranchesBySearch(eligibleBranches, search: search)
+                guard !eligibleBranches.isEmpty else {
+                    print("No branches found matching '\(search)'")
+                    return
+                }
+            }
+
             let branchesToDelete = picker.multiSelection("Select which branches to delete", items: eligibleBranches)
         
             for branch in branchesToDelete {

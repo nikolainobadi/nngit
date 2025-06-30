@@ -76,6 +76,59 @@ struct DeleteBranchTests {
         #expect(!shell.commands.contains(pruneCmd))
         #expect(shell.commands.contains(deleteFoo))
     }
+
+    @Test("filters branches using search term")
+    func filtersWithSearch() throws {
+        let deleteFeature = makeGitCommand(.deleteBranch(name: "feature", forced: false), path: nil)
+        let responses = [
+            makeGitCommand(.localGitCheck, path: nil): "true",
+            "git config user.name": "John Doe",
+            "git config user.email": "john@example.com",
+            "git log -1 --pretty=format:'%an,%ae' feature": "John Doe,john@example.com",
+            "git log -1 --pretty=format:'%an,%ae' bugfix": "John Doe,john@example.com",
+            deleteFeature: ""
+        ]
+        let shell = MockGitShell(responses: responses)
+        let picker = MockPicker()
+        picker.selectionResponses["Select which branches to delete"] = 0
+        let branch1 = GitBranch(name: "main", isMerged: true, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        let branch2 = GitBranch(name: "feature", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let branch3 = GitBranch(name: "bugfix", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let loader = StubBranchLoader(branches: [branch1, branch2, branch3])
+        let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
+
+        try Nngit.testRun(context: context, args: ["delete-branch", "fea"])
+
+        #expect(shell.commands.contains(deleteFeature))
+        #expect(!shell.commands.contains(makeGitCommand(.deleteBranch(name: "bugfix", forced: false), path: nil)))
+    }
+
+    @Test("filters branches by author")
+    func filtersByAuthor() throws {
+        let deleteFoo = makeGitCommand(.deleteBranch(name: "foo", forced: false), path: nil)
+        let responses = [
+            makeGitCommand(.localGitCheck, path: nil): "true",
+            "git config user.name": "John Doe",
+            "git config user.email": "john@example.com",
+            "git log -1 --pretty=format:'%an,%ae' foo": "John Doe,john@example.com",
+            "git log -1 --pretty=format:'%an,%ae' bar": "Jane Smith,jane@example.com",
+            deleteFoo: ""
+        ]
+        let shell = MockGitShell(responses: responses)
+        let picker = MockPicker()
+        picker.selectionResponses["Select which branches to delete"] = 0
+        let foo = GitBranch(name: "foo", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let bar = GitBranch(name: "bar", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let loader = StubBranchLoader(branches: [foo, bar])
+        let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
+
+        try Nngit.testRun(context: context, args: ["delete-branch"])
+
+        #expect(shell.commands.contains(deleteFoo))
+        #expect(!shell.commands.contains(makeGitCommand(.deleteBranch(name: "bar", forced: false), path: nil)))
+    }
 }
 
 private class StubBranchLoader: GitBranchLoaderProtocol {

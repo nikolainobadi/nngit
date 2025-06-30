@@ -33,10 +33,6 @@ extension DefaultGitConfigLoader {
                 defaultBranchName = try picker.getRequiredInput("Enter the name of your default branch.")
             }
             
-            if picker.getPermission("Would you like to add an issue number prefix?") {
-                
-            }
-            
             shouldRebaseWhenCreatingNewBranchesFromDefaultBranch = picker.getPermission("Include rebase prompt when creating new branches from \(defaultBranchName)?")
             
             let newConfig = GitConfig(defaultBranch: defaultBranchName, branchPrefixList: [], rebaseWhenBranchingFromDefaultBranch: shouldRebaseWhenCreatingNewBranchesFromDefaultBranch)

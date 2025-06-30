@@ -13,8 +13,11 @@ extension Nngit {
     /// Command that allows selecting and deleting local branches.
     struct DeleteBranch: ParsableCommand {
         static let configuration = CommandConfiguration(
-            abstract: "Lists all available local branches, deletes the selected branches, and prunes the remote origin if one exists."
+            abstract: "Lists all available local branches, deletes the selected branches, and optionally prunes the remote origin."
         )
+
+        @Flag(name: .long, help: "Prune 'origin' after deleting branches.")
+        var pruneOrigin: Bool = false
         
         /// Executes the command using the shared context components.
         func run() throws {
@@ -40,7 +43,7 @@ extension Nngit {
                 print("✅ Deleted branch: \(branch.name)")
             }
             
-            if try shell.remoteExists(path: nil) {
+            if (pruneOrigin || config.pruneWhenDeletingBranches) && (try? shell.remoteExists(path: nil)) == true {
                 let _ = try shell.runWithOutput(makeGitCommand(.pruneOrigin, path: nil))
             }
         }

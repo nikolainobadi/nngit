@@ -11,7 +11,7 @@ A command-line utility for managing Git branches and history. `nngit` offers hel
 - Create branches with optional prefixes and issue numbers
 - Manage branch prefixes (add, edit, delete, list)
 - Switch between local and remote branches
-- Delete merged branches and prune origin
+- Delete merged branches with optional origin pruning
 - Discard staged/unstaged changes
 - Undo commits with safety checks
 

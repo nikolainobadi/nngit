@@ -32,6 +32,14 @@ $ nngit undo-commit 2
 $ nngit edit-config --default-branch develop
 ```
 
+### Branch Prefix Workflow
+Below is an example showing how to add a prefix that requires an issue number and then create a branch using it:
+
+```bash
+$ nngit add-branch-prefix feature --requires-issue-number --issue-number-prefix ISS-
+$ nngit new-branch --prefix feature --issue 42 "Add login screen"
+```
+
 ## Configuration
 `nngit` stores its settings in a JSON file located at
 `~/.config/nngit/config.json`.  This file is created automatically the first time
@@ -62,6 +70,9 @@ The compiled binary will be available at `.build/release/nngit`.
 
 ## Documentation
 The source is documented with inline comments, and a test suite resides under `Tests/`.
+
+## Troubleshooting
+If you see a "missing git repository" error when running commands, ensure you are inside a git repository. Navigate to your project root or run `git init` to create one before using `nngit`.
 
 ## Acknowledgments
 - [SwiftShell](https://github.com/kareman/SwiftShell)

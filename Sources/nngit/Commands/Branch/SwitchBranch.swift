@@ -23,6 +23,10 @@ extension Nngit {
         @Option(name: .shortAndLong, help: "Where to search for branches: local, remote, or both")
         var branchLocation: BranchLocation = .local
 
+        @Option(name: .long, parsing: .upToNextOption,
+                help: "Additional author names or emails to include when filtering branches")
+        var includeAuthor: [String] = []
+
         /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
@@ -32,6 +36,33 @@ extension Nngit {
             let branchList = try branchLoader.loadBranches(from: branchLocation, shell: shell)
             let currentBranch = branchList.first(where: { $0.isCurrentBranch })
             var availableBranches = branchList.filter({ !$0.isCurrentBranch})
+
+            let userName = (try? shell.runWithOutput("git config user.name").trimmingCharacters(in: .whitespacesAndNewlines))
+                .flatMap { $0.isEmpty ? nil : $0 }
+                ?? (try? shell.runWithOutput("git config --global user.name").trimmingCharacters(in: .whitespacesAndNewlines))
+                .flatMap { $0.isEmpty ? nil : $0 }
+
+            let userEmail = (try? shell.runWithOutput("git config user.email").trimmingCharacters(in: .whitespacesAndNewlines))
+                .flatMap { $0.isEmpty ? nil : $0 }
+                ?? (try? shell.runWithOutput("git config --global user.email").trimmingCharacters(in: .whitespacesAndNewlines))
+                .flatMap { $0.isEmpty ? nil : $0 }
+
+            var allowedAuthors = Set(includeAuthor)
+            if let userName { allowedAuthors.insert(userName) }
+            if let userEmail { allowedAuthors.insert(userEmail) }
+
+            if !allowedAuthors.isEmpty {
+                availableBranches = availableBranches.filter { branch in
+                    if let output = try? shell.runWithOutput("git log -1 --pretty=format:'%an,%ae' \(branch.name)") {
+                        let parts = output.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: ",")
+                        guard parts.count == 2 else { return false }
+                        let authorName = String(parts[0])
+                        let authorEmail = String(parts[1])
+                        return allowedAuthors.contains(authorName) || allowedAuthors.contains(authorEmail)
+                    }
+                    return false
+                }
+            }
 
             if let search,
                !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {

@@ -17,8 +17,12 @@ struct GitShellAdapter: GitShell {
     /// - Parameter command: The git command to execute.
     /// - Returns: The standard output from the shell.
     func runWithOutput(_ command: String) throws -> String {
-        // TODO: - maybe handle erros?
-        return SwiftShell.run(bash: command).stdout
+        let result = SwiftShell.run(bash: command)
+        if result.exitcode != 0 {
+            let output = (result.stdout + result.stderror).trimmingCharacters(in: .whitespacesAndNewlines)
+            throw GitShellError.commandFailed(code: Int32(result.exitcode), command: command, output: output)
+        }
+        return result.stdout
     }
 }
 

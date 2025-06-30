@@ -151,6 +151,29 @@ struct DeleteBranchTests {
         #expect(shell.commands.contains(deleteBar))
         #expect(!shell.commands.contains(where: { $0.contains("git log -1") }))
     }
+
+    @Test("deletes all merged branches with flag")
+    func deleteAllMerged() throws {
+        let deleteFoo = makeGitCommand(.deleteBranch(name: "foo", forced: false), path: nil)
+        let deleteBar = makeGitCommand(.deleteBranch(name: "bar", forced: false), path: nil)
+        let responses = [
+            makeGitCommand(.localGitCheck, path: nil): "true",
+            deleteFoo: "",
+            deleteBar: ""
+        ]
+        let shell = MockGitShell(responses: responses)
+        let picker = MockPicker()
+        let foo = GitBranch(name: "foo", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let bar = GitBranch(name: "bar", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let loader = StubBranchLoader(branches: [foo, bar])
+        let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
+
+        try Nngit.testRun(context: context, args: ["delete-branch", "--all-merged"])
+
+        #expect(shell.commands.contains(deleteFoo))
+        #expect(shell.commands.contains(deleteBar))
+    }
 }
 
 private class StubBranchLoader: GitBranchLoaderProtocol {

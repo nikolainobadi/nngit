@@ -22,6 +22,9 @@ extension Nngit {
         @Flag(name: .long, help: "Include branches from all authors when listing")
         var includeAll: Bool = false
 
+        @Flag(name: .long, help: "Delete all merged branches without prompting")
+        var allMerged: Bool = false
+
         @Argument(help: "Name (or partial name) of the branch to delete")
         var search: String?
 
@@ -53,7 +56,16 @@ extension Nngit {
                 }
             }
 
-            let branchesToDelete = picker.multiSelection("Select which branches to delete", items: eligibleBranches)
+            let branchesToDelete: [GitBranch]
+            if allMerged {
+                branchesToDelete = eligibleBranches.filter { $0.isMerged }
+                if branchesToDelete.isEmpty {
+                    print("No merged branches found")
+                    return
+                }
+            } else {
+                branchesToDelete = picker.multiSelection("Select which branches to delete", items: eligibleBranches)
+            }
         
             for branch in branchesToDelete {
                 if branch.isMerged {

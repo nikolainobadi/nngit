@@ -18,6 +18,11 @@ struct BranchPrefix: Codable {
 extension BranchPrefix: DisplayablePickerItem {
     /// String used when presenting this prefix in a picker.
     var displayName: String {
-        return name
+        guard requiresIssueNumber else {
+            return name
+        }
+
+        let prefix = issueNumberPrefix ?? ""
+        return "\(name)/\(prefix)<issueNumber>"
     }
 }

@@ -23,15 +23,27 @@ extension Nngit {
         @Option(name: .shortAndLong, help: "Where to search for branches: local, remote, or both")
         var branchLocation: BranchLocation = .local
 
+        @Option(name: .long, parsing: .upToNextOption,
+                help: "Additional author names or emails to include when filtering branches")
+        var includeAuthor: [String] = []
+
+        @Flag(name: .long, help: "Include branches from all authors when listing")
+        var includeAll: Bool = false
+
         /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
             try shell.verifyLocalGitExists()
             let branchLoader = Nngit.makeBranchLoader()
-            let branchList = try branchLoader.loadBranches(from: branchLocation, shell: shell)
+            let config = try Nngit.makeConfigLoader().loadConfig(picker: picker)
+            let branchList = try branchLoader.loadBranches(from: branchLocation, shell: shell, mainBranchName: config.defaultBranch)
             let currentBranch = branchList.first(where: { $0.isCurrentBranch })
-            var availableBranches = branchList.filter({ !$0.isCurrentBranch})
+            var availableBranches = branchList.filter { !$0.isCurrentBranch }
+
+            if !includeAll {
+                availableBranches = branchLoader.filterBranchesByAuthor(availableBranches, shell: shell, includeAuthor: includeAuthor)
+            }
 
             if let search,
                !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -40,7 +52,7 @@ extension Nngit {
                     return
                 }
 
-                availableBranches = availableBranches.filter { $0.name.lowercased().contains(search.lowercased()) }
+                availableBranches = branchLoader.filterBranchesBySearch(availableBranches, search: search)
 
                 guard !availableBranches.isEmpty else {
                     print("No branches found matching '\(search)'")

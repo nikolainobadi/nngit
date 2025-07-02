@@ -58,6 +58,9 @@ extension MockPicker: Picker {
     }
     
     func multiSelection<Item: DisplayablePickerItem>(title: PickerPrompt, items: [Item]) -> [Item] {
-        return [] // TODO: - 
+        if let index = selectionResponses[title.title], items.indices.contains(index) {
+            return [items[index]]
+        }
+        return []
     }
 }

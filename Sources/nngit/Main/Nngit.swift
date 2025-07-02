@@ -14,11 +14,12 @@ import ArgumentParser
 struct Nngit: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "A utility for working with Git.",
-        version: "0.3.1",
+        version: "0.3.4",
         subcommands: [
             Discard.self, UndoCommit.self,
             NewBranch.self, SwitchBranch.self, DeleteBranch.self,
-            AddBranchPrefix.self, EditBranchPrefix.self, DeleteBranchPrefix.self, ListBranchPrefix.self
+            AddBranchPrefix.self, EditBranchPrefix.self, DeleteBranchPrefix.self, ListBranchPrefix.self,
+            EditConfig.self
         ]
     )
     
@@ -47,7 +48,7 @@ extension Nngit {
     }
 
     /// Abstraction for branch loading so it can be mocked in tests.
-    static func makeBranchLoader() -> GitBranchLoaderProtocol {
+    static func makeBranchLoader() -> GitBranchLoader {
         return context.makeBranchLoader()
     }
 }
@@ -62,7 +63,7 @@ protocol NnGitContext {
     /// Provides access to the git configuration loader.
     func makeConfigLoader() -> GitConfigLoader
     /// Creates an object capable of loading git branches.
-    func makeBranchLoader() -> GitBranchLoaderProtocol
+    func makeBranchLoader() -> GitBranchLoader
 }
 
 struct DefaultContext: NnGitContext {
@@ -87,7 +88,7 @@ struct DefaultContext: NnGitContext {
     }
 
     /// Provides the default branch loader for the repository.
-    func makeBranchLoader() -> GitBranchLoaderProtocol {
-        return GitBranchLoader(shell: makeShell())
+    func makeBranchLoader() -> GitBranchLoader {
+        return DefaultGitBranchLoader(shell: makeShell())
     }
 }

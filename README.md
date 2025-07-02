@@ -11,9 +11,10 @@ A command-line utility for managing Git branches and history. `nngit` offers hel
 - Create branches with optional prefixes and issue numbers
 - Manage branch prefixes (add, edit, delete, list)
 - Switch between local and remote branches
-- Delete merged branches and prune origin
+- Delete merged branches with optional origin pruning
 - Discard staged/unstaged changes
 - Undo commits with safety checks
+- Edit overall nngit configuration
 
 ## Installation
 ```bash
@@ -28,7 +29,38 @@ $ nngit new-branch feature "Add login"
 $ nngit switch-branch
 $ nngit discard --files both
 $ nngit undo-commit 2
+$ nngit edit-config --default-branch develop
 ```
+
+### Branch Prefix Workflow
+Below is an example showing how to add a prefix that requires an issue number and then create a branch using it:
+
+```bash
+$ nngit add-branch-prefix feature --requires-issue-number --issue-number-prefix ISS-
+$ nngit new-branch --prefix feature --issue 42 "Add login screen"
+```
+
+## Configuration
+`nngit` stores its settings in a JSON file located at
+`~/.config/nngit/config.json`.  This file is created automatically the first time
+you run the tool.  You can modify values using the `edit-config` command or by
+opening the file in your editor of choice.
+
+Branch prefixes are kept inside this same file.  A prefix represents the first
+segment of a branch name such as `feature` or `bugfix`.  Prefixes can optionally
+require an issue number and may provide a small string to prepend before the
+number.  Use the `add-branch-prefix`, `edit-branch-prefix`, `delete-branch-prefix`
+and `list-branch-prefix` commands to manage them.  When creating a new branch,
+`nngit` will combine the selected prefix, the issue number (if any) and your
+branch description to generate the final name.
+
+Non-Homebrew users can build the executable manually:
+
+```bash
+swift build -c release
+```
+
+The compiled binary will be available at `.build/release/nngit`.
 
 ## Architecture Notes
 - Built on top of `swift-argument-parser` for CLI parsing
@@ -38,6 +70,9 @@ $ nngit undo-commit 2
 
 ## Documentation
 The source is documented with inline comments, and a test suite resides under `Tests/`.
+
+## Troubleshooting
+If you see a "missing git repository" error when running commands, ensure you are inside a git repository. Navigate to your project root or run `git init` to create one before using `nngit`.
 
 ## Acknowledgments
 - [SwiftShell](https://github.com/kareman/SwiftShell)

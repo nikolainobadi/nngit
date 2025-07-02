@@ -28,6 +28,9 @@ extension Nngit {
         @Flag(name: .long, help: "Select the branch prefix from a list of options.")
         var selectBranchPrefix: Bool = false
 
+        @Flag(name: .long, help: "Create the branch with no prefix even if prefixes exist.")
+        var noPrefix: Bool = false
+
         /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
@@ -40,18 +43,20 @@ extension Nngit {
 
             var selectedPrefix: BranchPrefix?
 
-            if !config.branchPrefixList.isEmpty {
+            if !config.branchPrefixList.isEmpty && !noPrefix {
                 if selectBranchPrefix {
-                    selectedPrefix = try picker.requiredSingleSelection("Select a branch prefix", items: config.branchPrefixList)
+                    selectedPrefix = try choosePrefix(from: config.branchPrefixList, picker: picker)
                 } else if let providedName = branchPrefixName {
                     if let match = config.branchPrefixList.first(where: { $0.name == providedName }) {
                         selectedPrefix = match
+                    } else if providedName.lowercased() == "no-prefix" {
+                        selectedPrefix = nil
                     } else {
                         print("No branch prefix named '\(providedName)'.")
-                        selectedPrefix = try picker.requiredSingleSelection("Select a branch prefix", items: config.branchPrefixList)
+                        selectedPrefix = try choosePrefix(from: config.branchPrefixList, picker: picker)
                     }
                 } else {
-                    selectedPrefix = try picker.requiredSingleSelection("Select a branch prefix", items: config.branchPrefixList)
+                    selectedPrefix = try choosePrefix(from: config.branchPrefixList, picker: picker)
                 }
             }
 
@@ -94,4 +99,17 @@ extension Nngit.NewBranch {
             try shell.runWithOutput("git pull --rebase")
         }
     }
+
+    /// Prompts the user to choose a branch prefix or none.
+    func choosePrefix(from list: [BranchPrefix], picker: Picker) throws -> BranchPrefix? {
+        let items = list.map { BranchPrefixChoice(prefix: $0) } + [BranchPrefixChoice(prefix: nil)]
+        let selection = try picker.requiredSingleSelection("Select a branch prefix", items: items)
+        return selection.prefix
+    }
+}
+
+/// Wrapper allowing optional branch prefixes in picker selections.
+private struct BranchPrefixChoice: DisplayablePickerItem {
+    let prefix: BranchPrefix?
+    var displayName: String { prefix?.displayName ?? "No Prefix" }
 }

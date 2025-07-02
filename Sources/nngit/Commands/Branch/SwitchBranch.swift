@@ -36,7 +36,8 @@ extension Nngit {
             let picker = Nngit.makePicker()
             try shell.verifyLocalGitExists()
             let branchLoader = Nngit.makeBranchLoader()
-            let branchList = try branchLoader.loadBranches(from: branchLocation, shell: shell)
+            let config = try Nngit.makeConfigLoader().loadConfig(picker: picker)
+            let branchList = try branchLoader.loadBranches(from: branchLocation, shell: shell, mainBranchName: config.defaultBranch)
             let currentBranch = branchList.first(where: { $0.isCurrentBranch })
             var availableBranches = branchList.filter { !$0.isCurrentBranch }
 

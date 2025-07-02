@@ -13,12 +13,12 @@ final class MockContext {
     private var picker: MockPicker?
     private var shell: MockGitShell?
     private var configLoader: GitConfigLoader?
-    private var branchLoader: GitBranchLoaderProtocol?
+    private var branchLoader: GitBranchLoader?
     
     init(picker: MockPicker? = nil,
          shell: MockGitShell? = nil,
          configLoader: GitConfigLoader? = nil,
-         branchLoader: GitBranchLoaderProtocol? = nil) {
+         branchLoader: GitBranchLoader? = nil) {
         self.picker = picker
         self.shell = shell
         self.configLoader = configLoader
@@ -58,9 +58,10 @@ extension MockContext: NnGitContext {
         configLoader = loader
         return loader
     }
-    func makeBranchLoader() -> GitBranchLoaderProtocol {
+    
+    func makeBranchLoader() -> GitBranchLoader {
         if let branchLoader { return branchLoader }
-        let loader = GitBranchLoader(shell: makeShell())
+        let loader = DefaultGitBranchLoader(shell: makeShell())
         branchLoader = loader
         return loader
     }

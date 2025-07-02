@@ -91,7 +91,7 @@ extension Nngit.DeleteBranch {
     func loadEligibleBranches(shell: GitShell, config: GitConfig) throws -> [GitBranch] {
         let loader = Nngit.makeBranchLoader()
         // Exclude the current branch and the default branch from deletion candidates
-        return try loader.loadBranches(from: .local, shell: shell)
+        return try loader.loadBranches(from: .local, shell: shell, mainBranchName: config.defaultBranch)
             .filter { branch in
                 !branch.isCurrentBranch &&
                 branch.name.lowercased() != config.defaultBranch.lowercased()

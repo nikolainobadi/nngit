@@ -8,57 +8,8 @@
 import Foundation
 import GitShellKit
 
-/// Protocol for loading Git branches, abstracted for testing.
-protocol GitBranchLoaderProtocol {
-    /// Loads branches from the given location.
-    func loadBranches(from location: BranchLocation, shell: GitShell) throws -> [GitBranch]
-}
-
-// MARK: - Filtering Helpers
-extension GitBranchLoaderProtocol {
-    /// Filters branches by author using the provided shell and includeAuthor list.
-    /// The current git user's name/email are automatically included when present.
-    func filterBranchesByAuthor(_ branches: [GitBranch], shell: GitShell, includeAuthor: [String]) -> [GitBranch] {
-        var allowedAuthors = Set(includeAuthor)
-
-        let userName = (try? shell.runWithOutput("git config user.name").trimmingCharacters(in: .whitespacesAndNewlines))
-            .flatMap { $0.isEmpty ? nil : $0 }
-            ?? (try? shell.runWithOutput("git config --global user.name").trimmingCharacters(in: .whitespacesAndNewlines))
-            .flatMap { $0.isEmpty ? nil : $0 }
-
-        let userEmail = (try? shell.runWithOutput("git config user.email").trimmingCharacters(in: .whitespacesAndNewlines))
-            .flatMap { $0.isEmpty ? nil : $0 }
-            ?? (try? shell.runWithOutput("git config --global user.email").trimmingCharacters(in: .whitespacesAndNewlines))
-            .flatMap { $0.isEmpty ? nil : $0 }
-
-        if let userName { allowedAuthors.insert(userName) }
-        if let userEmail { allowedAuthors.insert(userEmail) }
-
-        guard !allowedAuthors.isEmpty else { return branches }
-
-        return branches.filter { branch in
-            if let output = try? shell.runWithOutput("git log -1 --pretty=format:'%an,%ae' \(branch.name)") {
-                let parts = output.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: ",")
-                guard parts.count == 2 else { return false }
-                let authorName = String(parts[0])
-                let authorEmail = String(parts[1])
-                return allowedAuthors.contains(authorName) || allowedAuthors.contains(authorEmail)
-            }
-            return false
-        }
-    }
-
-    /// Filters branches by a search term, matching case-insensitively on the name.
-    func filterBranchesBySearch(_ branches: [GitBranch], search: String?) -> [GitBranch] {
-        guard let search,
-              !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return branches }
-
-        return branches.filter { $0.name.lowercased().contains(search.lowercased()) }
-    }
-}
-
-/// Default implementation of ``GitBranchLoaderProtocol`` using ``GitShell``.
-struct GitBranchLoader: GitBranchLoaderProtocol {
+/// Default implementation of ``GitBranchLoader`` using ``GitShell``.
+struct DefaultGitBranchLoader {
     private let shell: GitShell
 
     init(shell: GitShell) {
@@ -68,17 +19,17 @@ struct GitBranchLoader: GitBranchLoaderProtocol {
 
 
 // MARK: - Load
-extension GitBranchLoader {
+extension DefaultGitBranchLoader: GitBranchLoader {
     /// Returns branch models enriched with merge and sync information.
     ///
     /// - Parameters:
     ///   - location: The source of branches to load. Defaults to ``BranchLocation.local``.
     ///   - shell: Shell instance used to execute git commands.
     /// - Returns: Array of ``GitBranch`` representing the repository state.
-    func loadBranches(from location: BranchLocation = .local, shell: GitShell) throws -> [GitBranch] {
+    func loadBranches(from location: BranchLocation = .local, shell: GitShell, mainBranchName: String) throws -> [GitBranch] {
         try shell.verifyLocalGitExists()
         let branchNames = try loadBranchNames(from: location, shell: shell)
-        let mergedOutput = try shell.runGitCommandWithOutput(.listMergedBranches, path: nil)
+        let mergedOutput = try shell.runGitCommandWithOutput(.listMergedBranches(branchName: mainBranchName), path: nil)
         let mergedBranches = Set(mergedOutput.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) })
         let remoteExists = (try? shell.remoteExists(path: nil)) ?? false
 
@@ -101,7 +52,7 @@ extension GitBranchLoader {
 
 
 // MARK: - Private Methods
-private extension GitBranchLoader {
+private extension DefaultGitBranchLoader {
     /// Loads raw branch name strings from git.
     ///
     /// - Parameters:
@@ -169,5 +120,57 @@ private extension GitBranchLoader {
         } else {
             return .diverged
         }
+    }
+}
+
+
+// MARK: - Dependencies
+/// Protocol for loading Git branches, abstracted for testing.
+protocol GitBranchLoader {
+    /// Loads branches from the given location.
+    func loadBranches(from location: BranchLocation, shell: GitShell, mainBranchName: String) throws -> [GitBranch]
+}
+
+
+// MARK: - Filtering Helpers
+extension GitBranchLoader {
+    /// Filters branches by author using the provided shell and includeAuthor list.
+    /// The current git user's name/email are automatically included when present.
+    func filterBranchesByAuthor(_ branches: [GitBranch], shell: GitShell, includeAuthor: [String]) -> [GitBranch] {
+        var allowedAuthors = Set(includeAuthor)
+
+        let userName = (try? shell.runWithOutput("git config user.name").trimmingCharacters(in: .whitespacesAndNewlines))
+            .flatMap { $0.isEmpty ? nil : $0 }
+            ?? (try? shell.runWithOutput("git config --global user.name").trimmingCharacters(in: .whitespacesAndNewlines))
+            .flatMap { $0.isEmpty ? nil : $0 }
+
+        let userEmail = (try? shell.runWithOutput("git config user.email").trimmingCharacters(in: .whitespacesAndNewlines))
+            .flatMap { $0.isEmpty ? nil : $0 }
+            ?? (try? shell.runWithOutput("git config --global user.email").trimmingCharacters(in: .whitespacesAndNewlines))
+            .flatMap { $0.isEmpty ? nil : $0 }
+
+        if let userName { allowedAuthors.insert(userName) }
+        if let userEmail { allowedAuthors.insert(userEmail) }
+
+        guard !allowedAuthors.isEmpty else { return branches }
+
+        return branches.filter { branch in
+            if let output = try? shell.runWithOutput("git log -1 --pretty=format:'%an,%ae' \(branch.name)") {
+                let parts = output.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: ",")
+                guard parts.count == 2 else { return false }
+                let authorName = String(parts[0])
+                let authorEmail = String(parts[1])
+                return allowedAuthors.contains(authorName) || allowedAuthors.contains(authorEmail)
+            }
+            return false
+        }
+    }
+
+    /// Filters branches by a search term, matching case-insensitively on the name.
+    func filterBranchesBySearch(_ branches: [GitBranch], search: String?) -> [GitBranch] {
+        guard let search,
+              !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return branches }
+
+        return branches.filter { $0.name.lowercased().contains(search.lowercased()) }
     }
 }

@@ -176,10 +176,10 @@ struct DeleteBranchTests {
     }
 }
 
-private class StubBranchLoader: GitBranchLoaderProtocol {
+private class StubBranchLoader: GitBranchLoader {
     private let branches: [GitBranch]
     init(branches: [GitBranch]) { self.branches = branches }
-    func loadBranches(from location: BranchLocation, shell: GitShell) throws -> [GitBranch] { branches }
+    func loadBranches(from location: BranchLocation, shell: GitShell, mainBranchName: String) throws -> [GitBranch] { branches }
 }
 
 private class StubConfigLoader: GitConfigLoader {

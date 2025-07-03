@@ -42,19 +42,22 @@ extension Nngit {
             
             let config = try configLoader.loadConfig(picker: picker)
             let branchLoader = Nngit.makeBranchLoader()
-            var eligibleBranches = try loadEligibleBranches(shell: shell, config: config)
+            var branchNames = try loadEligibleBranchNames(shell: shell, config: config)
+
             if !includeAll {
-                eligibleBranches = branchLoader.filterBranchesByAuthor(eligibleBranches, shell: shell, includeAuthor: includeAuthor)
+                branchNames = branchLoader.filterBranchNamesByAuthor(branchNames, shell: shell, includeAuthor: includeAuthor)
             }
 
             if let search,
                !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                eligibleBranches = branchLoader.filterBranchesBySearch(eligibleBranches, search: search)
-                guard !eligibleBranches.isEmpty else {
+                branchNames = branchLoader.filterBranchNamesBySearch(branchNames, search: search)
+                guard !branchNames.isEmpty else {
                     print("No branches found matching '\(search)'")
                     return
                 }
             }
+
+            let eligibleBranches = try branchLoader.loadBranches(for: branchNames, shell: shell, mainBranchName: config.defaultBranch)
 
             let branchesToDelete: [GitBranch]
             if allMerged {
@@ -87,15 +90,22 @@ extension Nngit {
 }
 
 extension Nngit.DeleteBranch {
+    /// Returns a list of branch names eligible for deletion.
+    func loadEligibleBranchNames(shell: GitShell, config: GitConfig) throws -> [String] {
+        let loader = Nngit.makeBranchLoader()
+        return try loader.loadBranchNames(from: .local, shell: shell)
+            .filter { name in
+                let clean = name.hasPrefix("*") ? String(name.dropFirst(2)) : name
+                return clean.lowercased() != config.defaultBranch.lowercased()
+            }
+    }
+
     /// Returns a list of branches eligible for deletion.
     func loadEligibleBranches(shell: GitShell, config: GitConfig) throws -> [GitBranch] {
+        let names = try loadEligibleBranchNames(shell: shell, config: config)
         let loader = Nngit.makeBranchLoader()
-        // Exclude the current branch and the default branch from deletion candidates
-        return try loader.loadBranches(from: .local, shell: shell, mainBranchName: config.defaultBranch)
-            .filter { branch in
-                !branch.isCurrentBranch &&
-                branch.name.lowercased() != config.defaultBranch.lowercased()
-            }
+        return try loader.loadBranches(for: names, shell: shell, mainBranchName: config.defaultBranch)
+            .filter { !$0.isCurrentBranch }
     }
 
     /// Deletes the given branch using `git branch -d` or `-D` when forced.

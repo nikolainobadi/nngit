@@ -37,28 +37,31 @@ extension Nngit {
             try shell.verifyLocalGitExists()
             let branchLoader = Nngit.makeBranchLoader()
             let config = try Nngit.makeConfigLoader().loadConfig(picker: picker)
-            let branchList = try branchLoader.loadBranches(from: branchLocation, shell: shell, mainBranchName: config.defaultBranch)
-            let currentBranch = branchList.first(where: { $0.isCurrentBranch })
-            var availableBranches = branchList.filter { !$0.isCurrentBranch }
+            var branchNames = try branchLoader.loadBranchNames(from: branchLocation, shell: shell)
 
             if !includeAll {
-                availableBranches = branchLoader.filterBranchesByAuthor(availableBranches, shell: shell, includeAuthor: includeAuthor)
+                branchNames = branchLoader.filterBranchNamesByAuthor(branchNames, shell: shell, includeAuthor: includeAuthor)
             }
 
             if let search,
                !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                if let exact = availableBranches.first(where: { $0.name == search }) {
-                    try shell.runGitCommandWithOutput(.switchBranch(branchName: exact.name), path: nil)
-                    return
-                }
+                branchNames = branchLoader.filterBranchNamesBySearch(branchNames, search: search)
 
-                availableBranches = branchLoader.filterBranchesBySearch(availableBranches, search: search)
-
-                guard !availableBranches.isEmpty else {
+                if branchNames.isEmpty {
                     print("No branches found matching '\(search)'")
                     return
                 }
+                if branchNames.contains(where: { $0 == search || $0 == "* " + search }) {
+                    let exactName = branchNames.first(where: { $0 == search || $0 == "* " + search })!
+                    let clean = exactName.hasPrefix("*") ? String(exactName.dropFirst(2)) : exactName
+                    try shell.runGitCommandWithOutput(.switchBranch(branchName: clean), path: nil)
+                    return
+                }
             }
+
+            let branchList = try branchLoader.loadBranches(for: branchNames, shell: shell, mainBranchName: config.defaultBranch)
+            let currentBranch = branchList.first(where: { $0.isCurrentBranch })
+            let availableBranches = branchList.filter { !$0.isCurrentBranch }
 
             var details = ""
 

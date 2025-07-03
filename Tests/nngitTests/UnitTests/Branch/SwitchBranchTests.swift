@@ -135,4 +135,12 @@ private class StubBranchLoader: GitBranchLoader {
     func loadBranches(from location: BranchLocation, shell: GitShell, mainBranchName: String) throws -> [GitBranch] {
         return branches
     }
+
+    func loadBranchNames(from location: BranchLocation, shell: GitShell) throws -> [String] {
+        return branches.map { $0.isCurrentBranch ? "* \($0.name)" : $0.name }
+    }
+
+    func loadBranches(for names: [String], shell: GitShell, mainBranchName: String) throws -> [GitBranch] {
+        return branches.filter { names.contains($0.isCurrentBranch ? "* \($0.name)" : $0.name) }
+    }
 }

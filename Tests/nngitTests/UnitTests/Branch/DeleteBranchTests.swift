@@ -179,13 +179,27 @@ struct DeleteBranchTests {
 private class StubBranchLoader: GitBranchLoader {
     private let branches: [GitBranch]
     init(branches: [GitBranch]) { self.branches = branches }
-    func loadBranches(from location: BranchLocation, shell: GitShell, mainBranchName: String) throws -> [GitBranch] { branches }
+    func loadBranches(
+        from location: BranchLocation,
+        shell: GitShell,
+        mainBranchName: String,
+        loadMergeStatus: Bool,
+        loadCreationDate: Bool,
+        loadSyncStatus: Bool
+    ) throws -> [GitBranch] { branches }
 
     func loadBranchNames(from location: BranchLocation, shell: GitShell) throws -> [String] {
         branches.map { $0.isCurrentBranch ? "* \($0.name)" : $0.name }
     }
 
-    func loadBranches(for names: [String], shell: GitShell, mainBranchName: String) throws -> [GitBranch] {
+    func loadBranches(
+        for names: [String],
+        shell: GitShell,
+        mainBranchName: String,
+        loadMergeStatus: Bool,
+        loadCreationDate: Bool,
+        loadSyncStatus: Bool
+    ) throws -> [GitBranch] {
         branches.filter { names.contains($0.isCurrentBranch ? "* \($0.name)" : $0.name) }
     }
 }

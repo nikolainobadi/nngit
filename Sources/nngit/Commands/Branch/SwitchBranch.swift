@@ -59,7 +59,14 @@ extension Nngit {
                 }
             }
 
-            let branchList = try branchLoader.loadBranches(for: branchNames, shell: shell, mainBranchName: config.defaultBranch)
+            let branchList = try branchLoader.loadBranches(
+                for: branchNames,
+                shell: shell,
+                mainBranchName: config.defaultBranch,
+                loadMergeStatus: config.loadMergeStatusWhenLoadingBranches,
+                loadCreationDate: config.loadCreationDateWhenLoadingBranches,
+                loadSyncStatus: config.loadSyncStatusWhenLoadingBranches
+            )
             let currentBranch = branchList.first(where: { $0.isCurrentBranch })
             let availableBranches = branchList.filter { !$0.isCurrentBranch }
 

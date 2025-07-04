@@ -57,7 +57,14 @@ extension Nngit {
                 }
             }
 
-            let eligibleBranches = try branchLoader.loadBranches(for: branchNames, shell: shell, mainBranchName: config.defaultBranch)
+            let eligibleBranches = try branchLoader.loadBranches(
+                for: branchNames,
+                shell: shell,
+                mainBranchName: config.defaultBranch,
+                loadMergeStatus: config.loadMergeStatusWhenLoadingBranches,
+                loadCreationDate: config.loadCreationDateWhenLoadingBranches,
+                loadSyncStatus: config.loadSyncStatusWhenLoadingBranches
+            )
 
             let branchesToDelete: [GitBranch]
             if allMerged {
@@ -104,8 +111,15 @@ extension Nngit.DeleteBranch {
     func loadEligibleBranches(shell: GitShell, config: GitConfig) throws -> [GitBranch] {
         let names = try loadEligibleBranchNames(shell: shell, config: config)
         let loader = Nngit.makeBranchLoader()
-        return try loader.loadBranches(for: names, shell: shell, mainBranchName: config.defaultBranch)
-            .filter { !$0.isCurrentBranch }
+        return try loader.loadBranches(
+            for: names,
+            shell: shell,
+            mainBranchName: config.defaultBranch,
+            loadMergeStatus: config.loadMergeStatusWhenLoadingBranches,
+            loadCreationDate: config.loadCreationDateWhenLoadingBranches,
+            loadSyncStatus: config.loadSyncStatusWhenLoadingBranches
+        )
+        .filter { !$0.isCurrentBranch }
     }
 
     /// Deletes the given branch using `git branch -d` or `-D` when forced.

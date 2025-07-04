@@ -14,8 +14,7 @@ struct EditConfigTests {
         let shell = MockGitShell(responses: [localCheck: "true"])
         let context = MockContext(picker: picker, shell: shell, configLoader: loader)
 
-        let output = try Nngit.testRun(context: context, args: [
-            "edit-config",
+        let output = try runCommand(context: context, args: [
             "--default-branch", "dev",
             "--rebase-when-branching", "false",
             "--prune-when-deleting", "true",
@@ -48,7 +47,7 @@ struct EditConfigTests {
         let shell = MockGitShell(responses: [localCheck: "true"])
         let context = MockContext(picker: picker, shell: shell, configLoader: loader)
 
-        let output = try Nngit.testRun(context: context, args: ["edit-config"])
+        let output = try runCommand(context: context)
 
         #expect(shell.commands.contains(localCheck))
         #expect(loader.savedConfigs.count == 1)
@@ -73,8 +72,7 @@ struct EditConfigTests {
         let shell = MockGitShell(responses: [localCheck: "true"])
         let context = MockContext(picker: picker, shell: shell, configLoader: loader)
 
-        let output = try Nngit.testRun(context: context, args: [
-            "edit-config",
+        let output = try runCommand(context: context, args: [
             "--default-branch", initial.defaultBranch,
             "--rebase-when-branching", String(initial.rebaseWhenBranchingFromDefaultBranch),
             "--prune-when-deleting", String(initial.pruneWhenDeletingBranches),
@@ -89,13 +87,27 @@ struct EditConfigTests {
     }
 }
 
-private class StubConfigLoader: GitConfigLoader {
-    private(set) var savedConfigs: [GitConfig] = []
-    private let initialConfig: GitConfig
 
-    init(initialConfig: GitConfig) { self.initialConfig = initialConfig }
+// MARK: - Helpers
+private extension EditConfigTests {
+    func runCommand(context: MockContext, args: [String] = []) throws -> String {
+        return try Nngit.testRun(context: context, args: ["config"] + args)
+    }
+    
+    final class StubConfigLoader: GitConfigLoader {
+        private let initialConfig: GitConfig
+        private(set) var savedConfigs: [GitConfig] = []
 
-    func loadConfig(picker: Picker) throws -> GitConfig { initialConfig }
+        init(initialConfig: GitConfig) {
+            self.initialConfig = initialConfig
+        }
 
-    func save(_ config: GitConfig) throws { savedConfigs.append(config) }
+        func loadConfig(picker: Picker) throws -> GitConfig {
+            return initialConfig
+        }
+
+        func save(_ config: GitConfig) throws {
+            savedConfigs.append(config)
+        }
+    }
 }

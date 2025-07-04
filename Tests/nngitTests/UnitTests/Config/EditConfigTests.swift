@@ -18,7 +18,10 @@ struct EditConfigTests {
             "edit-config",
             "--default-branch", "dev",
             "--rebase-when-branching", "false",
-            "--prune-when-deleting", "true"
+            "--prune-when-deleting", "true",
+            "--load-merge-status", "false",
+            "--load-creation-date", "false",
+            "--load-sync-status", "false"
         ])
 
         #expect(shell.commands.contains(localCheck))
@@ -27,6 +30,9 @@ struct EditConfigTests {
         #expect(saved.defaultBranch == "dev")
         #expect(!saved.rebaseWhenBranchingFromDefaultBranch)
         #expect(saved.pruneWhenDeletingBranches)
+        #expect(!saved.loadMergeStatusWhenLoadingBranches)
+        #expect(!saved.loadCreationDateWhenLoadingBranches)
+        #expect(!saved.loadSyncStatusWhenLoadingBranches)
         #expect(output.contains("✅ Updated configuration"))
     }
 
@@ -36,9 +42,8 @@ struct EditConfigTests {
         let initial = GitConfig.defaultConfig
         let loader = StubConfigLoader(initialConfig: initial)
         let picker = MockPicker()
+        picker.selectionResponses["Select which values you would like to edit"] = 0
         picker.requiredInputResponses["Enter a new default branch name (leave blank to keep 'main')"] = "develop"
-        picker.permissionResponses["Rebase when branching from default branch? (current: yes)"] = false
-        picker.permissionResponses["Automatically prune origin when deleting branches? (current: no)"] = true
         picker.permissionResponses["Save these changes?"] = true
         let shell = MockGitShell(responses: [localCheck: "true"])
         let context = MockContext(picker: picker, shell: shell, configLoader: loader)
@@ -49,8 +54,11 @@ struct EditConfigTests {
         #expect(loader.savedConfigs.count == 1)
         let saved = loader.savedConfigs.first!
         #expect(saved.defaultBranch == "develop")
-        #expect(!saved.rebaseWhenBranchingFromDefaultBranch)
-        #expect(saved.pruneWhenDeletingBranches)
+        #expect(saved.rebaseWhenBranchingFromDefaultBranch == initial.rebaseWhenBranchingFromDefaultBranch)
+        #expect(saved.pruneWhenDeletingBranches == initial.pruneWhenDeletingBranches)
+        #expect(saved.loadMergeStatusWhenLoadingBranches == initial.loadMergeStatusWhenLoadingBranches)
+        #expect(saved.loadCreationDateWhenLoadingBranches == initial.loadCreationDateWhenLoadingBranches)
+        #expect(saved.loadSyncStatusWhenLoadingBranches == initial.loadSyncStatusWhenLoadingBranches)
         #expect(output.contains("Current:"))
         #expect(output.contains("Updated:"))
         #expect(picker.requiredPermissions.contains("Save these changes?"))
@@ -69,7 +77,10 @@ struct EditConfigTests {
             "edit-config",
             "--default-branch", initial.defaultBranch,
             "--rebase-when-branching", String(initial.rebaseWhenBranchingFromDefaultBranch),
-            "--prune-when-deleting", String(initial.pruneWhenDeletingBranches)
+            "--prune-when-deleting", String(initial.pruneWhenDeletingBranches),
+            "--load-merge-status", String(initial.loadMergeStatusWhenLoadingBranches),
+            "--load-creation-date", String(initial.loadCreationDateWhenLoadingBranches),
+            "--load-sync-status", String(initial.loadSyncStatusWhenLoadingBranches)
         ])
 
         #expect(shell.commands.contains(localCheck))

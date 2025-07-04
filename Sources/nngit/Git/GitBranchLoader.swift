@@ -26,10 +26,24 @@ extension DefaultGitBranchLoader: GitBranchLoader {
     ///   - location: The source of branches to load. Defaults to ``BranchLocation.local``.
     ///   - shell: Shell instance used to execute git commands.
     /// - Returns: Array of ``GitBranch`` representing the repository state.
-    func loadBranches(from location: BranchLocation = .local, shell: GitShell, mainBranchName: String) throws -> [GitBranch] {
+    func loadBranches(
+        from location: BranchLocation = .local,
+        shell: GitShell,
+        mainBranchName: String,
+        loadMergeStatus: Bool = true,
+        loadCreationDate: Bool = true,
+        loadSyncStatus: Bool = true
+    ) throws -> [GitBranch] {
         try shell.verifyLocalGitExists()
         let names = try loadBranchNames(from: location, shell: shell)
-        return try loadBranches(for: names, shell: shell, mainBranchName: mainBranchName)
+        return try loadBranches(
+            for: names,
+            shell: shell,
+            mainBranchName: mainBranchName,
+            loadMergeStatus: loadMergeStatus,
+            loadCreationDate: loadCreationDate,
+            loadSyncStatus: loadSyncStatus
+        )
     }
 
     func loadBranchNames(from location: BranchLocation, shell: GitShell) throws -> [String] {
@@ -50,24 +64,63 @@ extension DefaultGitBranchLoader: GitBranchLoader {
             .filter({ !$0.contains("->") })
     }
 
-    func loadBranches(for names: [String], shell: GitShell, mainBranchName: String) throws -> [GitBranch] {
-        let mergedOutput = try shell.runGitCommandWithOutput(.listMergedBranches(branchName: mainBranchName), path: nil)
-        let mergedBranches = Set(mergedOutput.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) })
-        let remoteExists = (try? shell.remoteExists(path: nil)) ?? false
+    func loadBranches(
+        for names: [String],
+        shell: GitShell,
+        mainBranchName: String,
+        loadMergeStatus: Bool = true,
+        loadCreationDate: Bool = true,
+        loadSyncStatus: Bool = true
+    ) throws -> [GitBranch] {
+        let mergedBranches: Set<String>
+        if loadMergeStatus {
+            let mergedOutput = try shell.runGitCommandWithOutput(
+                .listMergedBranches(branchName: mainBranchName),
+                path: nil
+            )
+            mergedBranches = Set(mergedOutput
+                .split(separator: "\n")
+                .map { $0.trimmingCharacters(in: .whitespaces) })
+        } else {
+            mergedBranches = []
+        }
+
+        let remoteExists = loadSyncStatus ? ((try? shell.remoteExists(path: nil)) ?? false) : false
 
         return names.map { name in
             let isCurrentBranch = name.hasPrefix("*")
             let cleanBranchName = isCurrentBranch ? String(name.dropFirst(2)) : name
-            let isMerged = mergedBranches.contains(cleanBranchName)
-            var creationDate: Date?
+            let isMerged = loadMergeStatus ? mergedBranches.contains(cleanBranchName) : false
 
-            if let dateOutput = try? shell.runGitCommandWithOutput(.getBranchCreationDate(branchName: cleanBranchName), path: nil) {
-                creationDate = ISO8601DateFormatter().date(from: dateOutput.trimmingCharacters(in: .whitespacesAndNewlines))
+            var creationDate: Date?
+            if loadCreationDate,
+               let dateOutput = try? shell.runGitCommandWithOutput(
+                   .getBranchCreationDate(branchName: cleanBranchName),
+                   path: nil
+               ) {
+                creationDate = ISO8601DateFormatter().date(
+                    from: dateOutput.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
             }
 
-            let syncStatus = try? getSyncStatus(branchName: name, shell: shell, remoteExists: remoteExists)
+            let syncStatus: BranchSyncStatus
+            if loadSyncStatus {
+                syncStatus = (try? getSyncStatus(
+                    branchName: name,
+                    shell: shell,
+                    remoteExists: remoteExists
+                )) ?? .undetermined
+            } else {
+                syncStatus = .undetermined
+            }
 
-            return .init(name: cleanBranchName, isMerged: isMerged, isCurrentBranch: isCurrentBranch, creationDate: creationDate, syncStatus: syncStatus ?? .undetermined)
+            return .init(
+                name: cleanBranchName,
+                isMerged: isMerged,
+                isCurrentBranch: isCurrentBranch,
+                creationDate: creationDate,
+                syncStatus: syncStatus
+            )
         }
     }
 }
@@ -125,11 +178,25 @@ private extension DefaultGitBranchLoader {
 /// Protocol for loading Git branches, abstracted for testing.
 protocol GitBranchLoader {
     /// Loads branches from the given location.
-    func loadBranches(from location: BranchLocation, shell: GitShell, mainBranchName: String) throws -> [GitBranch]
+    func loadBranches(
+        from location: BranchLocation,
+        shell: GitShell,
+        mainBranchName: String,
+        loadMergeStatus: Bool,
+        loadCreationDate: Bool,
+        loadSyncStatus: Bool
+    ) throws -> [GitBranch]
     /// Returns just the raw branch names from the given location.
     func loadBranchNames(from location: BranchLocation, shell: GitShell) throws -> [String]
     /// Creates ``GitBranch`` models using the provided branch names.
-    func loadBranches(for names: [String], shell: GitShell, mainBranchName: String) throws -> [GitBranch]
+    func loadBranches(
+        for names: [String],
+        shell: GitShell,
+        mainBranchName: String,
+        loadMergeStatus: Bool,
+        loadCreationDate: Bool,
+        loadSyncStatus: Bool
+    ) throws -> [GitBranch]
 }
 
 

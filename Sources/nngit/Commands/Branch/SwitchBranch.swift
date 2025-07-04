@@ -30,6 +30,18 @@ extension Nngit {
         @Flag(name: .long, help: "Include branches from all authors when listing")
         var includeAll: Bool = false
 
+        @Option(name: .customLong("load-merge-status"),
+                help: "Load merge status when listing branches (true/false)")
+        var loadMergeStatus: Bool?
+
+        @Option(name: .customLong("load-creation-date"),
+                help: "Load branch creation date when listing branches (true/false)")
+        var loadCreationDate: Bool?
+
+        @Option(name: .customLong("load-sync-status"),
+                help: "Load sync status when listing branches (true/false)")
+        var loadSyncStatus: Bool?
+
         /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
@@ -38,6 +50,10 @@ extension Nngit {
             let branchLoader = Nngit.makeBranchLoader()
             let config = try Nngit.makeConfigLoader().loadConfig(picker: picker)
             var branchNames = try branchLoader.loadBranchNames(from: branchLocation, shell: shell)
+
+            let loadMerge = loadMergeStatus ?? config.loadMergeStatusWhenLoadingBranches
+            let loadCreation = loadCreationDate ?? config.loadCreationDateWhenLoadingBranches
+            let loadSync = loadSyncStatus ?? config.loadSyncStatusWhenLoadingBranches
 
             if !includeAll {
                 branchNames = branchLoader.filterBranchNamesByAuthor(branchNames, shell: shell, includeAuthor: includeAuthor)
@@ -59,7 +75,14 @@ extension Nngit {
                 }
             }
 
-            let branchList = try branchLoader.loadBranches(for: branchNames, shell: shell, mainBranchName: config.defaultBranch)
+            let branchList = try branchLoader.loadBranches(
+                for: branchNames,
+                shell: shell,
+                mainBranchName: config.defaultBranch,
+                loadMergeStatus: loadMerge,
+                loadCreationDate: loadCreation,
+                loadSyncStatus: loadSync
+            )
             let currentBranch = branchList.first(where: { $0.isCurrentBranch })
             let availableBranches = branchList.filter { !$0.isCurrentBranch }
 

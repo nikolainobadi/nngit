@@ -25,6 +25,18 @@ extension Nngit {
         @Flag(name: .long, help: "Delete all merged branches without prompting")
         var allMerged: Bool = false
 
+        @Option(name: .customLong("load-merge-status"),
+                help: "Load merge status when listing branches (true/false)")
+        var loadMergeStatus: Bool?
+
+        @Option(name: .customLong("load-creation-date"),
+                help: "Load branch creation date when listing branches (true/false)")
+        var loadCreationDate: Bool?
+
+        @Option(name: .customLong("load-sync-status"),
+                help: "Load sync status when listing branches (true/false)")
+        var loadSyncStatus: Bool?
+
         @Argument(help: "Name (or partial name) of the branch to delete")
         var search: String?
 
@@ -37,12 +49,16 @@ extension Nngit {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
             let configLoader = Nngit.makeConfigLoader()
-            
+
             try shell.verifyLocalGitExists()
-            
+
             let config = try configLoader.loadConfig(picker: picker)
             let branchLoader = Nngit.makeBranchLoader()
             var branchNames = try loadEligibleBranchNames(shell: shell, config: config)
+
+            let loadMerge = loadMergeStatus ?? config.loadMergeStatusWhenLoadingBranches
+            let loadCreation = loadCreationDate ?? config.loadCreationDateWhenLoadingBranches
+            let loadSync = loadSyncStatus ?? config.loadSyncStatusWhenLoadingBranches
 
             if !includeAll {
                 branchNames = branchLoader.filterBranchNamesByAuthor(branchNames, shell: shell, includeAuthor: includeAuthor)
@@ -57,7 +73,14 @@ extension Nngit {
                 }
             }
 
-            let eligibleBranches = try branchLoader.loadBranches(for: branchNames, shell: shell, mainBranchName: config.defaultBranch)
+            let eligibleBranches = try branchLoader.loadBranches(
+                for: branchNames,
+                shell: shell,
+                mainBranchName: config.defaultBranch,
+                loadMergeStatus: loadMerge,
+                loadCreationDate: loadCreation,
+                loadSyncStatus: loadSync
+            )
 
             let branchesToDelete: [GitBranch]
             if allMerged {
@@ -104,8 +127,15 @@ extension Nngit.DeleteBranch {
     func loadEligibleBranches(shell: GitShell, config: GitConfig) throws -> [GitBranch] {
         let names = try loadEligibleBranchNames(shell: shell, config: config)
         let loader = Nngit.makeBranchLoader()
-        return try loader.loadBranches(for: names, shell: shell, mainBranchName: config.defaultBranch)
-            .filter { !$0.isCurrentBranch }
+        return try loader.loadBranches(
+            for: names,
+            shell: shell,
+            mainBranchName: config.defaultBranch,
+            loadMergeStatus: config.loadMergeStatusWhenLoadingBranches,
+            loadCreationDate: config.loadCreationDateWhenLoadingBranches,
+            loadSyncStatus: config.loadSyncStatusWhenLoadingBranches
+        )
+        .filter { !$0.isCurrentBranch }
     }
 
     /// Deletes the given branch using `git branch -d` or `-D` when forced.

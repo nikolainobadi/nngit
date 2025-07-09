@@ -38,6 +38,13 @@ extension DefaultGitCommitManager {
     func undoCommits(count: Int) throws {
         let _ = try shell.runWithOutput("git reset --hard HEAD~\(count)")
     }
+    
+    /// Performs a soft reset to move the specified number of commits back to staging area.
+    ///
+    /// - Parameter count: Number of commits to soft reset from the current branch.
+    func softResetCommits(count: Int) throws {
+        let _ = try shell.runWithOutput("git reset --soft HEAD~\(count)")
+    }
 }
 
 

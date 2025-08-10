@@ -9,9 +9,9 @@ import SwiftPicker
 import GitShellKit
 import ArgumentParser
 
-extension Nngit {
+extension Nngit.MyBranches {
     /// Command that allows removing branches from the tracked MyBranches list.
-    struct RemoveMyBranch: ParsableCommand {
+    struct Remove: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Remove branches from your tracked MyBranches list without deleting the actual git branch."
         )

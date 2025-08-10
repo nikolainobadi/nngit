@@ -21,7 +21,7 @@ struct AddMyBranchTests {
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
 
-        let output = try Nngit.testRun(context: context, args: ["add-my-branch", "feature-branch"])
+        let output = try Nngit.testRun(context: context, args: ["my-branches", "add", "feature-branch"])
 
         #expect(shell.commands.contains(localGitCheck))
         #expect(output.contains("✅ Added branch 'feature-branch' to MyBranches."))
@@ -50,7 +50,7 @@ struct AddMyBranchTests {
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
 
-        let output = try Nngit.testRun(context: context, args: ["add-my-branch", "feature-branch", "--description", "My awesome feature"])
+        let output = try Nngit.testRun(context: context, args: ["my-branches", "add", "feature-branch", "--description", "My awesome feature"])
 
         #expect(output.contains("✅ Added branch 'feature-branch' to MyBranches."))
         
@@ -75,7 +75,7 @@ struct AddMyBranchTests {
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
 
-        let output = try Nngit.testRun(context: context, args: ["add-my-branch", "non-existent"])
+        let output = try Nngit.testRun(context: context, args: ["my-branches", "add", "non-existent"])
 
         #expect(output.contains("❌ Branch 'non-existent' does not exist locally."))
         #expect(configLoader.savedConfig == nil) // Should not save if branch doesn't exist
@@ -99,7 +99,7 @@ struct AddMyBranchTests {
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
 
-        let output = try Nngit.testRun(context: context, args: ["add-my-branch", "feature-branch"])
+        let output = try Nngit.testRun(context: context, args: ["my-branches", "add", "feature-branch"])
 
         #expect(output.contains("Branch 'feature-branch' is already tracked in MyBranches."))
         #expect(configLoader.savedConfig == nil) // Should not save if already tracked
@@ -124,7 +124,7 @@ struct AddMyBranchTests {
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
 
-        let output = try Nngit.testRun(context: context, args: ["add-my-branch", "--all"])
+        let output = try Nngit.testRun(context: context, args: ["my-branches", "add", "--all"])
 
         #expect(output.contains("✅ Added 2 branches to MyBranches: feature-1, feature-2"))
         
@@ -152,7 +152,7 @@ struct AddMyBranchTests {
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
 
-        let output = try Nngit.testRun(context: context, args: ["add-my-branch"])
+        let output = try Nngit.testRun(context: context, args: ["my-branches", "add"])
 
         #expect(output.contains("✅ Added 1 branches to MyBranches: main"))
         

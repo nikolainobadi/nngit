@@ -22,7 +22,7 @@ struct RemoveMyBranchTests {
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
 
-        let output = try Nngit.testRun(context: context, args: ["remove-my-branch", "feature-1"])
+        let output = try Nngit.testRun(context: context, args: ["my-branches", "remove", "feature-1"])
 
         #expect(shell.commands.contains(localGitCheck))
         #expect(output.contains("✅ Removed branch 'feature-1' from MyBranches."))
@@ -49,7 +49,7 @@ struct RemoveMyBranchTests {
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
 
-        let output = try Nngit.testRun(context: context, args: ["remove-my-branch", "non-tracked"])
+        let output = try Nngit.testRun(context: context, args: ["my-branches", "remove", "non-tracked"])
 
         #expect(output.contains("❌ Branch 'non-tracked' is not tracked in MyBranches."))
         #expect(configLoader.savedConfig == nil) // Should not save if branch not tracked
@@ -73,7 +73,7 @@ struct RemoveMyBranchTests {
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
 
-        let output = try Nngit.testRun(context: context, args: ["remove-my-branch", "--all"])
+        let output = try Nngit.testRun(context: context, args: ["my-branches", "remove", "--all"])
 
         #expect(output.contains("✅ Removed all 3 branches from MyBranches."))
         
@@ -99,7 +99,7 @@ struct RemoveMyBranchTests {
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
 
-        let output = try Nngit.testRun(context: context, args: ["remove-my-branch"])
+        let output = try Nngit.testRun(context: context, args: ["my-branches", "remove"])
 
         #expect(output.contains("✅ Removed 1 branches from MyBranches: feature-1"))
         
@@ -121,7 +121,7 @@ struct RemoveMyBranchTests {
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
 
-        let output = try Nngit.testRun(context: context, args: ["remove-my-branch"])
+        let output = try Nngit.testRun(context: context, args: ["my-branches", "remove"])
 
         #expect(output.contains("No branches are currently tracked in MyBranches."))
         #expect(configLoader.savedConfig == nil) // Should not save if no branches to remove
@@ -142,7 +142,7 @@ struct RemoveMyBranchTests {
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
 
-        let output = try Nngit.testRun(context: context, args: ["remove-my-branch"])
+        let output = try Nngit.testRun(context: context, args: ["my-branches", "remove"])
 
         #expect(output.contains("No branches selected."))
         #expect(configLoader.savedConfig == nil) // Should not save if no selection made

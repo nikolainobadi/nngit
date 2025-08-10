@@ -9,9 +9,9 @@ import SwiftPicker
 import GitShellKit
 import ArgumentParser
 
-extension Nngit {
+extension Nngit.MyBranches {
     /// Command that allows registering existing branches as tracked MyBranches.
-    struct AddMyBranch: ParsableCommand {
+    struct Add: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Register existing git branches to your tracked MyBranches list for easier switching and deletion."
         )

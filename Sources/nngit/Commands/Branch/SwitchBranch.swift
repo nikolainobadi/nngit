@@ -51,9 +51,9 @@ extension Nngit {
             let config = try Nngit.makeConfigLoader().loadConfig(picker: picker)
             var branchNames = try branchLoader.loadBranchNames(from: branchLocation, shell: shell)
 
-            let loadMerge = loadMergeStatus ?? config.loadMergeStatusWhenLoadingBranches
-            let loadCreation = loadCreationDate ?? config.loadCreationDateWhenLoadingBranches
-            let loadSync = loadSyncStatus ?? config.loadSyncStatusWhenLoadingBranches
+            let loadMerge = loadMergeStatus ?? config.loading.loadMergeStatus
+            let loadCreation = loadCreationDate ?? config.loading.loadCreationDate
+            let loadSync = loadSyncStatus ?? config.loading.loadSyncStatus
 
             if !includeAll {
                 branchNames = branchLoader.filterBranchNamesByAuthor(branchNames, shell: shell, includeAuthor: includeAuthor)
@@ -78,7 +78,7 @@ extension Nngit {
             let branchList = try branchLoader.loadBranches(
                 for: branchNames,
                 shell: shell,
-                mainBranchName: config.defaultBranch,
+                mainBranchName: config.branches.defaultBranch,
                 loadMergeStatus: loadMerge,
                 loadCreationDate: loadCreation,
                 loadSyncStatus: loadSync

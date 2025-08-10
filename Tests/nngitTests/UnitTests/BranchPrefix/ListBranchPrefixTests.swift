@@ -24,7 +24,7 @@ struct ListBranchPrefixTests {
         let p1 = BranchPrefix(name: "feature", requiresIssueNumber: false)
         let p2 = BranchPrefix(name: "bugfix", requiresIssueNumber: true)
         var initial = GitConfig.defaultConfig
-        initial.branchPrefixList = [p1, p2]
+        initial.branchPrefixes = [p1, p2]
         let loader = StubConfigLoader(initialConfig: initial)
         let picker = MockPicker()
         let shell = MockGitShell(responses: [localGitCheck: "true"])

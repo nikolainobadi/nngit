@@ -34,7 +34,7 @@ struct NewBranchTests {
         let pullRebase = "git pull --rebase"
         let newBranchCmd = makeGitCommand(.newBranch(branchName: "bar"), path: nil)
         var config = GitConfig.defaultConfig
-        config.rebaseWhenBranchingFromDefaultBranch = true
+        config.behaviors.rebaseWhenBranchingFromDefault = true
         let loader = StubNewBranchConfigLoader(initialConfig: config)
         let shell = MockGitShell(responses: [
             localGitCheck: "true",
@@ -61,7 +61,7 @@ struct NewBranchTests {
         let checkRemote = makeGitCommand(.checkForRemote, path: nil)
         let newBranchCmd = makeGitCommand(.newBranch(branchName: "feat/42/test-branch"), path: nil)
         var config = GitConfig.defaultConfig
-        config.branchPrefixList = [BranchPrefix(name: "feat", requiresIssueNumber: true)]
+        config.branchPrefixes = [BranchPrefix(name: "feat", requiresIssueNumber: true)]
         let loader = StubNewBranchConfigLoader(initialConfig: config)
         let shell = MockGitShell(responses: [
             localGitCheck: "true",
@@ -87,7 +87,7 @@ struct NewBranchTests {
         let checkRemote = makeGitCommand(.checkForRemote, path: nil)
         let newBranchCmd = makeGitCommand(.newBranch(branchName: "foo"), path: nil)
         var config = GitConfig.defaultConfig
-        config.branchPrefixList = [BranchPrefix(name: "feat", requiresIssueNumber: false)]
+        config.branchPrefixes = [BranchPrefix(name: "feat", requiresIssueNumber: false)]
         let loader = StubNewBranchConfigLoader(initialConfig: config)
         let shell = MockGitShell(responses: [
             localGitCheck: "true",
@@ -110,7 +110,7 @@ struct NewBranchTests {
         let checkRemote = makeGitCommand(.checkForRemote, path: nil)
         let newBranchCmd = makeGitCommand(.newBranch(branchName: "bar"), path: nil)
         var config = GitConfig.defaultConfig
-        config.branchPrefixList = [BranchPrefix(name: "feat", requiresIssueNumber: false)]
+        config.branchPrefixes = [BranchPrefix(name: "feat", requiresIssueNumber: false)]
         let loader = StubNewBranchConfigLoader(initialConfig: config)
         let shell = MockGitShell(responses: [
             localGitCheck: "true",

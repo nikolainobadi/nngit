@@ -25,19 +25,19 @@ extension Nngit {
             try shell.verifyLocalGitExists()
             var config = try loader.loadConfig(picker: picker)
 
-            guard !config.branchPrefixList.isEmpty else {
+            guard !config.branchPrefixes.isEmpty else {
                 print("No branch prefixes exist.")
                 return
             }
 
             let selected = try picker.requiredSingleSelection(
                 "Select a branch prefix to delete",
-                items: config.branchPrefixList
+                items: config.branchPrefixes
             )
 
             try picker.requiredPermission("Delete branch prefix '\(selected.name)'?")
 
-            config.branchPrefixList.removeAll { $0.name == selected.name }
+            config.branchPrefixes.removeAll { $0.name == selected.name }
             try loader.save(config)
             print("✅ Deleted branch prefix: \(selected.name)")
         }

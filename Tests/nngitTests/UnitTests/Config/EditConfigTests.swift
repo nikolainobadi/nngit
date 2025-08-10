@@ -26,12 +26,12 @@ struct EditConfigTests {
         #expect(shell.commands.contains(localCheck))
         #expect(loader.savedConfigs.count == 1)
         let saved = loader.savedConfigs.first!
-        #expect(saved.defaultBranch == "dev")
-        #expect(!saved.rebaseWhenBranchingFromDefaultBranch)
-        #expect(saved.pruneWhenDeletingBranches)
-        #expect(!saved.loadMergeStatusWhenLoadingBranches)
-        #expect(!saved.loadCreationDateWhenLoadingBranches)
-        #expect(!saved.loadSyncStatusWhenLoadingBranches)
+        #expect(saved.branches.defaultBranch == "dev")
+        #expect(!saved.behaviors.rebaseWhenBranchingFromDefault)
+        #expect(saved.behaviors.pruneWhenDeleting)
+        #expect(!saved.loading.loadMergeStatus)
+        #expect(!saved.loading.loadCreationDate)
+        #expect(!saved.loading.loadSyncStatus)
         #expect(output.contains("✅ Updated configuration"))
     }
 
@@ -52,12 +52,12 @@ struct EditConfigTests {
         #expect(shell.commands.contains(localCheck))
         #expect(loader.savedConfigs.count == 1)
         let saved = loader.savedConfigs.first!
-        #expect(saved.defaultBranch == "develop")
-        #expect(saved.rebaseWhenBranchingFromDefaultBranch == initial.rebaseWhenBranchingFromDefaultBranch)
-        #expect(saved.pruneWhenDeletingBranches == initial.pruneWhenDeletingBranches)
-        #expect(saved.loadMergeStatusWhenLoadingBranches == initial.loadMergeStatusWhenLoadingBranches)
-        #expect(saved.loadCreationDateWhenLoadingBranches == initial.loadCreationDateWhenLoadingBranches)
-        #expect(saved.loadSyncStatusWhenLoadingBranches == initial.loadSyncStatusWhenLoadingBranches)
+        #expect(saved.branches.defaultBranch == "develop")
+        #expect(saved.behaviors.rebaseWhenBranchingFromDefault == initial.behaviors.rebaseWhenBranchingFromDefault)
+        #expect(saved.behaviors.pruneWhenDeleting == initial.behaviors.pruneWhenDeleting)
+        #expect(saved.loading.loadMergeStatus == initial.loading.loadMergeStatus)
+        #expect(saved.loading.loadCreationDate == initial.loading.loadCreationDate)
+        #expect(saved.loading.loadSyncStatus == initial.loading.loadSyncStatus)
         #expect(output.contains("Current:"))
         #expect(output.contains("Updated:"))
         #expect(picker.requiredPermissions.contains("Save these changes?"))
@@ -73,12 +73,12 @@ struct EditConfigTests {
         let context = MockContext(picker: picker, shell: shell, configLoader: loader)
 
         let output = try runCommand(context: context, args: [
-            "--default-branch", initial.defaultBranch,
-            "--rebase-when-branching", String(initial.rebaseWhenBranchingFromDefaultBranch),
-            "--prune-when-deleting", String(initial.pruneWhenDeletingBranches),
-            "--load-merge-status", String(initial.loadMergeStatusWhenLoadingBranches),
-            "--load-creation-date", String(initial.loadCreationDateWhenLoadingBranches),
-            "--load-sync-status", String(initial.loadSyncStatusWhenLoadingBranches)
+            "--default-branch", initial.branches.defaultBranch,
+            "--rebase-when-branching", String(initial.behaviors.rebaseWhenBranchingFromDefault),
+            "--prune-when-deleting", String(initial.behaviors.pruneWhenDeleting),
+            "--load-merge-status", String(initial.loading.loadMergeStatus),
+            "--load-creation-date", String(initial.loading.loadCreationDate),
+            "--load-sync-status", String(initial.loading.loadSyncStatus)
         ])
 
         #expect(shell.commands.contains(localCheck))

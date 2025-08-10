@@ -40,7 +40,7 @@ struct DeleteBranchTests {
             deleteFoo: ""
         ]
         var config = GitConfig.defaultConfig
-        config.pruneWhenDeletingBranches = true
+        config.behaviors.pruneWhenDeleting = true
         let shell = MockGitShell(responses: responses)
         let picker = MockPicker()
         picker.selectionResponses["Select which branches to delete"] = 0

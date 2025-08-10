@@ -34,7 +34,7 @@ extension Nngit {
 
             let name = try prefixName ?? picker.getRequiredInput("Enter a branch prefix name")
 
-            guard !config.branchPrefixList.contains(where: { $0.name == name }) else {
+            guard !config.branchPrefixes.contains(where: { $0.name == name }) else {
                 print("A branch prefix named '\(name)' already exists.")
                 return
             }
@@ -54,7 +54,7 @@ extension Nngit {
             print("Requires Issue Number: \(requireIssue)")
             try picker.requiredPermission("Add this branch prefix?")
 
-            config.branchPrefixList.append(prefix)
+            config.branchPrefixes.append(prefix)
             try loader.save(config)
             print("✅ Added branch prefix: \(name)")
         }

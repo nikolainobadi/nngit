@@ -24,7 +24,7 @@ struct EditBranchPrefixTests {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let oldPrefix = BranchPrefix(name: "feature", requiresIssueNumber: false)
         var initial = GitConfig.defaultConfig
-        initial.branchPrefixList = [oldPrefix]
+        initial.branchPrefixes = [oldPrefix]
         let loader = StubConfigLoader(initialConfig: initial)
         let picker = MockPicker()
         picker.selectionResponses["Select a branch prefix to edit"] = 0
@@ -39,9 +39,9 @@ struct EditBranchPrefixTests {
         #expect(picker.requiredPermissions.contains("Save these changes?"))
         #expect(loader.savedConfigs.count == 1)
         let saved = loader.savedConfigs.first!
-        #expect(saved.branchPrefixList.count == 1)
-        #expect(saved.branchPrefixList[0].name == "feat")
-        #expect(saved.branchPrefixList[0].requiresIssueNumber)
+        #expect(saved.branchPrefixes.count == 1)
+        #expect(saved.branchPrefixes[0].name == "feat")
+        #expect(saved.branchPrefixes[0].requiresIssueNumber)
         #expect(output.contains("Current:"))
         #expect(output.contains("  Name: feature"))
         #expect(output.contains("  Requires Issue Number: false"))
@@ -56,7 +56,7 @@ struct EditBranchPrefixTests {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let oldPrefix = BranchPrefix(name: "hotfix", requiresIssueNumber: true)
         var initial = GitConfig.defaultConfig
-        initial.branchPrefixList = [oldPrefix]
+        initial.branchPrefixes = [oldPrefix]
         let loader = StubConfigLoader(initialConfig: initial)
         let picker = MockPicker()
         picker.selectionResponses["Select a branch prefix to edit"] = 0

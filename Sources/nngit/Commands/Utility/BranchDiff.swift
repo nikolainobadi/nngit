@@ -33,7 +33,7 @@ extension Nngit {
             try shell.verifyLocalGitExists()
             
             let config = try loader.loadConfig(picker: picker)
-            let targetBaseBranch = baseBranch ?? config.defaultBranch
+            let targetBaseBranch = baseBranch ?? config.branches.defaultBranch
             
             // Get current branch name
             let currentBranch = try shell.runWithOutput("git branch --show-current")

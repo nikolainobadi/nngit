@@ -56,9 +56,9 @@ extension Nngit {
             let branchLoader = Nngit.makeBranchLoader()
             var branchNames = try loadEligibleBranchNames(shell: shell, config: config)
 
-            let loadMerge = loadMergeStatus ?? config.loadMergeStatusWhenLoadingBranches
-            let loadCreation = loadCreationDate ?? config.loadCreationDateWhenLoadingBranches
-            let loadSync = loadSyncStatus ?? config.loadSyncStatusWhenLoadingBranches
+            let loadMerge = loadMergeStatus ?? config.loading.loadMergeStatus
+            let loadCreation = loadCreationDate ?? config.loading.loadCreationDate
+            let loadSync = loadSyncStatus ?? config.loading.loadSyncStatus
 
             if !includeAll {
                 branchNames = branchLoader.filterBranchNamesByAuthor(branchNames, shell: shell, includeAuthor: includeAuthor)
@@ -76,7 +76,7 @@ extension Nngit {
             let eligibleBranches = try branchLoader.loadBranches(
                 for: branchNames,
                 shell: shell,
-                mainBranchName: config.defaultBranch,
+                mainBranchName: config.branches.defaultBranch,
                 loadMergeStatus: loadMerge,
                 loadCreationDate: loadCreation,
                 loadSyncStatus: loadSync
@@ -98,14 +98,14 @@ extension Nngit {
                     try deleteBranch(branch, shell: shell)
                 } else {
                     try picker.requiredPermission(
-                        "This branch has NOT been merged into \(config.defaultBranch.yellow). Are you sure you want to delete it?"
+                        "This branch has NOT been merged into \(config.branches.defaultBranch.yellow). Are you sure you want to delete it?"
                     )
                     try deleteBranch(branch, shell: shell, forced: true)
                 }
                 print("✅ Deleted branch: \(branch.name)")
             }
             
-            if (pruneOrigin || config.pruneWhenDeletingBranches) && (try? shell.remoteExists(path: nil)) == true {
+            if (pruneOrigin || config.behaviors.pruneWhenDeleting) && (try? shell.remoteExists(path: nil)) == true {
                 let _ = try shell.runWithOutput(makeGitCommand(.pruneOrigin, path: nil))
             }
         }
@@ -119,7 +119,7 @@ extension Nngit.DeleteBranch {
         return try loader.loadBranchNames(from: .local, shell: shell)
             .filter { name in
                 let clean = name.hasPrefix("*") ? String(name.dropFirst(2)) : name
-                return clean.lowercased() != config.defaultBranch.lowercased()
+                return clean.lowercased() != config.branches.defaultBranch.lowercased()
             }
     }
 
@@ -130,10 +130,10 @@ extension Nngit.DeleteBranch {
         return try loader.loadBranches(
             for: names,
             shell: shell,
-            mainBranchName: config.defaultBranch,
-            loadMergeStatus: config.loadMergeStatusWhenLoadingBranches,
-            loadCreationDate: config.loadCreationDateWhenLoadingBranches,
-            loadSyncStatus: config.loadSyncStatusWhenLoadingBranches
+            mainBranchName: config.branches.defaultBranch,
+            loadMergeStatus: config.loading.loadMergeStatus,
+            loadCreationDate: config.loading.loadCreationDate,
+            loadSyncStatus: config.loading.loadSyncStatus
         )
         .filter { !$0.isCurrentBranch }
     }

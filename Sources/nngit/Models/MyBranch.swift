@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftPicker
 
 /// Model representing a user-tracked git branch.
 struct MyBranch: Codable {
@@ -29,5 +30,14 @@ extension MyBranch: Equatable {
 extension MyBranch: Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(name)
+    }
+}
+
+extension MyBranch: DisplayablePickerItem {
+    var displayName: String {
+        if let description = description, description != name {
+            return "\(name) - \(description)"
+        }
+        return name
     }
 }

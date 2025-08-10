@@ -20,6 +20,7 @@ struct Nngit: ParsableCommand {
             NewBranch.self, SwitchBranch.self, DeleteBranch.self, CheckoutRemote.self,
             MyBranches.self,
             AddBranchPrefix.self, EditBranchPrefix.self, DeleteBranchPrefix.self, ListBranchPrefix.self,
+            Staging.self,
             EditConfig.self
         ]
     )

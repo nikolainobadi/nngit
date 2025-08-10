@@ -174,6 +174,118 @@ struct DeleteBranchTests {
         #expect(shell.commands.contains(deleteFoo))
         #expect(shell.commands.contains(deleteBar))
     }
+    
+    @Test("uses MyBranch array for selection when available")
+    func usesMyBranchesForSelection() throws {
+        let getCurrentBranch = makeGitCommand(.getCurrentBranchName, path: nil)
+        let deleteFeature = makeGitCommand(.deleteBranch(name: "feature-branch", forced: false), path: nil)
+        
+        // Create config with MyBranches
+        var config = GitConfig.defaultConfig
+        config.myBranches = [
+            MyBranch(name: "feature-branch", description: "My feature"),
+            MyBranch(name: "main", description: "Main branch"), // Should be filtered out as default
+            MyBranch(name: "deleted-branch", description: "Gone") // Should be filtered out as non-existent
+        ]
+        
+        let branch1 = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        let branch2 = GitBranch(name: "feature-branch", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let branchLoader = StubBranchLoader(branches: [branch1, branch2])
+        
+        let shell = MockGitShell(responses: [
+            makeGitCommand(.localGitCheck, path: nil): "true",
+            getCurrentBranch: "main",
+            deleteFeature: ""
+        ])
+        
+        let picker = MockPicker()
+        picker.selectionResponses["Select which tracked branches to delete"] = 0 // Select first MyBranch
+        
+        let configLoader = StubConfigLoader(initialConfig: config)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
+
+        _ = try Nngit.testRun(context: context, args: ["delete-branch"])
+
+        #expect(shell.commands.contains(getCurrentBranch))
+        #expect(shell.commands.contains(deleteFeature))
+        
+        // Verify the deleted branch was removed from myBranches
+        #expect(configLoader.savedConfig != nil)
+        let savedConfig = try #require(configLoader.savedConfig)
+        #expect(savedConfig.myBranches.count == 2) // One branch deleted
+        #expect(!savedConfig.myBranches.contains { $0.name == "feature-branch" })
+    }
+    
+    @Test("removes deleted branches from myBranches array in normal mode")
+    func removesDeletedBranchesFromMyBranchesInNormalMode() throws {
+        let deleteFeature = makeGitCommand(.deleteBranch(name: "feature-branch", forced: false), path: nil)
+        
+        // Create config with MyBranches - using search to trigger normal mode
+        var config = GitConfig.defaultConfig
+        config.myBranches = [
+            MyBranch(name: "feature-branch", description: "My feature"),
+            MyBranch(name: "other-branch", description: "Other branch")
+        ]
+        
+        let branch1 = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        let branch2 = GitBranch(name: "feature-branch", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let branchLoader = StubBranchLoader(branches: [branch1, branch2])
+        
+        let shell = MockGitShell(responses: [
+            makeGitCommand(.localGitCheck, path: nil): "true",
+            "git config user.name": "John Doe",
+            "git config user.email": "john@example.com",
+            "git log -1 --pretty=format:'%an,%ae' feature-branch": "John Doe,john@example.com",
+            deleteFeature: ""
+        ])
+        
+        let picker = MockPicker()
+        picker.selectionResponses["Select which branches to delete"] = 0 // Select the branch
+        
+        let configLoader = StubConfigLoader(initialConfig: config)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
+
+        _ = try Nngit.testRun(context: context, args: ["delete-branch", "feature"]) // Search triggers normal mode
+
+        #expect(shell.commands.contains(deleteFeature))
+        
+        // Verify the deleted branch was removed from myBranches
+        #expect(configLoader.savedConfig != nil)
+        let savedConfig = try #require(configLoader.savedConfig)
+        #expect(savedConfig.myBranches.count == 1) // One branch deleted
+        #expect(!savedConfig.myBranches.contains { $0.name == "feature-branch" })
+        #expect(savedConfig.myBranches.contains { $0.name == "other-branch" })
+    }
+    
+    @Test("falls back to normal behavior when MyBranch conditions not met")
+    func fallsBackWhenMyBranchConditionsNotMet() throws {
+        let deleteFeature = makeGitCommand(.deleteBranch(name: "feature", forced: false), path: nil)
+        
+        // Config with MyBranches but using --include-all should fall back
+        var config = GitConfig.defaultConfig
+        config.myBranches = [MyBranch(name: "feature", description: "My feature")]
+        
+        let branch1 = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        let branch2 = GitBranch(name: "feature", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let branchLoader = StubBranchLoader(branches: [branch1, branch2])
+        
+        let shell = MockGitShell(responses: [
+            makeGitCommand(.localGitCheck, path: nil): "true",
+            deleteFeature: ""
+        ])
+        
+        let picker = MockPicker()
+        picker.selectionResponses["Select which branches to delete"] = 0
+        
+        let configLoader = StubConfigLoader(initialConfig: config)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
+
+        _ = try Nngit.testRun(context: context, args: ["delete-branch", "--include-all"])
+
+        #expect(shell.commands.contains(deleteFeature))
+        // Should not use MyBranches picker message - verified by testing normal flow
+        #expect(!shell.commands.contains(where: { $0.contains("git log -1") }))
+    }
 }
 
 private class StubBranchLoader: GitBranchLoader {
@@ -206,7 +318,11 @@ private class StubBranchLoader: GitBranchLoader {
 
 private class StubConfigLoader: GitConfigLoader {
     private let initialConfig: GitConfig
+    var savedConfig: GitConfig?
+    
     init(initialConfig: GitConfig) { self.initialConfig = initialConfig }
     func loadConfig(picker: Picker) throws -> GitConfig { initialConfig }
-    func save(_ config: GitConfig) throws { }
+    func save(_ config: GitConfig) throws { 
+        savedConfig = config
+    }
 }

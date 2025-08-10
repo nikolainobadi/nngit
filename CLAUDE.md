@@ -28,10 +28,12 @@ This is a Swift CLI tool built with `swift-argument-parser` that provides Git wo
 - Version: 0.3.6
 
 #### Command Categories
-1. **Branch Commands**: `NewBranch`, `SwitchBranch`, `DeleteBranch` (in `Sources/nngit/Commands/Branch/`)
-2. **Branch Prefix Commands**: `AddBranchPrefix`, `EditBranchPrefix`, `DeleteBranchPrefix`, `ListBranchPrefix` (in `Sources/nngit/Commands/BranchPrefix/`)
-3. **Utility Commands**: `Discard`, `UndoCommit` (in `Sources/nngit/Commands/Utility/`)
-4. **Configuration**: `EditConfig` (in `Sources/nngit/Commands/Config/`)
+1. **Branch Commands**: `NewBranch`, `SwitchBranch`, `DeleteBranch`, `CheckoutRemote` (in `Sources/nngit/Commands/Branch/`)
+2. **Branch Management**: `MyBranches` (parent command with `Add`, `Remove`, `List` subcommands in `Sources/nngit/Commands/MyBranch/`)
+3. **Branch Prefix Commands**: `AddBranchPrefix`, `EditBranchPrefix`, `DeleteBranchPrefix`, `ListBranchPrefix` (in `Sources/nngit/Commands/BranchPrefix/`)
+4. **Staging Commands**: `Staging` (parent command with `Stage`, `Unstage` subcommands in `Sources/nngit/Commands/Staging/`)
+5. **Utility Commands**: `Discard`, `UndoCommit`, `SoftReset`, `BranchDiff` (in `Sources/nngit/Commands/Utility/`)
+6. **Configuration**: `EditConfig` (in `Sources/nngit/Commands/Config/`)
 
 #### Git Abstraction Layer
 - `GitShellAdapter` - Concrete implementation using SwiftShell
@@ -43,6 +45,7 @@ This is a Swift CLI tool built with `swift-argument-parser` that provides Git wo
 - `GitConfig` - Main configuration structure stored in `~/.config/nngit/config.json`
 - `BranchPrefix` - Branch naming prefix configuration
 - `GitBranch`, `CommitInfo`, `BranchLocation` - Git-related data models
+- `FileStatus` - Represents git file status with staging information, used by Staging and Discard commands
 
 ### Configuration System
 - Configuration stored at `~/.config/nngit/config.json`
@@ -62,8 +65,23 @@ This is a Swift CLI tool built with `swift-argument-parser` that provides Git wo
 - `SwiftPicker` - User interaction prompts
 - `swift-argument-parser` - CLI parsing
 
-### Branch Prefix Workflow
+### Key Workflows
+
+#### Branch Prefix Workflow
 Branch prefixes are stored in the configuration and can optionally require issue numbers. The system combines prefix + issue number + description to generate branch names (e.g., `feature/ISS-42-add-login-screen`).
+
+#### Staging Workflow
+The `Staging` command provides interactive file staging/unstaging:
+- `Stage` subcommand: Lists unstaged and untracked files for multi-selection staging
+- `Unstage` subcommand: Lists staged files for multi-selection unstaging
+- Uses `SwiftPicker` for interactive multi-selection interface
+- Executes individual `git add` and `git reset HEAD` commands per selected file
+
+#### MyBranches Workflow
+The `MyBranches` command manages a tracked list of user's branches for easier access:
+- `Add` subcommand: Add current branch to tracked list
+- `Remove` subcommand: Remove branches from tracked list
+- `List` subcommand (default): Show tracked branches for quick switching/deletion
 
 ## Development Notes
 

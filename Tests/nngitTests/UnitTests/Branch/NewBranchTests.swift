@@ -59,9 +59,9 @@ struct NewBranchTests {
     func appliesPrefixAndPromptsIssue() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let checkRemote = makeGitCommand(.checkForRemote, path: nil)
-        let newBranchCmd = makeGitCommand(.newBranch(branchName: "feat/ISS-42/test-branch"), path: nil)
+        let newBranchCmd = makeGitCommand(.newBranch(branchName: "feat/42/test-branch"), path: nil)
         var config = GitConfig.defaultConfig
-        config.branchPrefixList = [BranchPrefix(name: "feat", requiresIssueNumber: true, issueNumberPrefix: "ISS-")]
+        config.branchPrefixList = [BranchPrefix(name: "feat", requiresIssueNumber: true)]
         let loader = StubNewBranchConfigLoader(initialConfig: config)
         let shell = MockGitShell(responses: [
             localGitCheck: "true",
@@ -78,7 +78,7 @@ struct NewBranchTests {
         #expect(shell.commands.contains(checkRemote))
         #expect(picker.requiredPermissions.isEmpty)
         #expect(shell.commands.contains(newBranchCmd))
-        #expect(output.contains("✅ Created and switched to branch: feat/ISS-42/test-branch"))
+        #expect(output.contains("✅ Created and switched to branch: feat/42/test-branch"))
     }
 
     @Test("creates branch with no prefix when flag is used")
@@ -87,7 +87,7 @@ struct NewBranchTests {
         let checkRemote = makeGitCommand(.checkForRemote, path: nil)
         let newBranchCmd = makeGitCommand(.newBranch(branchName: "foo"), path: nil)
         var config = GitConfig.defaultConfig
-        config.branchPrefixList = [BranchPrefix(name: "feat", requiresIssueNumber: false, issueNumberPrefix: nil)]
+        config.branchPrefixList = [BranchPrefix(name: "feat", requiresIssueNumber: false)]
         let loader = StubNewBranchConfigLoader(initialConfig: config)
         let shell = MockGitShell(responses: [
             localGitCheck: "true",
@@ -110,7 +110,7 @@ struct NewBranchTests {
         let checkRemote = makeGitCommand(.checkForRemote, path: nil)
         let newBranchCmd = makeGitCommand(.newBranch(branchName: "bar"), path: nil)
         var config = GitConfig.defaultConfig
-        config.branchPrefixList = [BranchPrefix(name: "feat", requiresIssueNumber: false, issueNumberPrefix: nil)]
+        config.branchPrefixList = [BranchPrefix(name: "feat", requiresIssueNumber: false)]
         let loader = StubNewBranchConfigLoader(initialConfig: config)
         let shell = MockGitShell(responses: [
             localGitCheck: "true",

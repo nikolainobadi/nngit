@@ -21,8 +21,8 @@ struct ListBranchPrefixTests {
     @Test("lists all saved branch prefixes with their requirement flags")
     func listsAllPrefixes() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
-        let p1 = BranchPrefix(name: "feature", requiresIssueNumber: false, issueNumberPrefix: nil)
-        let p2 = BranchPrefix(name: "bugfix", requiresIssueNumber: true, issueNumberPrefix: nil)
+        let p1 = BranchPrefix(name: "feature", requiresIssueNumber: false)
+        let p2 = BranchPrefix(name: "bugfix", requiresIssueNumber: true)
         var initial = GitConfig.defaultConfig
         initial.branchPrefixList = [p1, p2]
         let loader = StubConfigLoader(initialConfig: initial)

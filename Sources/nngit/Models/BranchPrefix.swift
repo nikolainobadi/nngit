@@ -12,7 +12,6 @@ import SwiftPicker
 struct BranchPrefix: Codable {
     let name: String
     let requiresIssueNumber: Bool
-    let issueNumberPrefix: String?
 }
 
 extension BranchPrefix: DisplayablePickerItem {
@@ -22,7 +21,6 @@ extension BranchPrefix: DisplayablePickerItem {
             return name
         }
 
-        let prefix = issueNumberPrefix ?? ""
-        return "\(name)/\(prefix)<issueNumber>"
+        return "\(name)/<issueNumber>"
     }
 }

@@ -22,8 +22,6 @@ extension Nngit {
         @Flag(name: .long, help: "Require an issue number when using this prefix")
         var requiresIssueNumber: Bool = false
 
-        @Option(name: .long, help: "Optional prefix string to prepend before the issue number")
-        var issueNumberPrefixOption: String?
 
         /// Executes the command using the shared context components.
         func run() throws {
@@ -46,24 +44,14 @@ extension Nngit {
                 requireIssue = picker.getPermission("Require an issue number when using this prefix?")
             }
 
-            // Prompt for an optional issue-number prefix if needed
-            var issueNumberPrefix = issueNumberPrefixOption
-            if requireIssue && (issueNumberPrefix == nil || issueNumberPrefix?.isEmpty == true) {
-                let input = picker.getInput("Enter an issue number prefix (leave blank for none)")
-                issueNumberPrefix = input.isEmpty ? nil : input
-            }
 
             let prefix = BranchPrefix(
                 name: name,
-                requiresIssueNumber: requireIssue,
-                issueNumberPrefix: issueNumberPrefix
+                requiresIssueNumber: requireIssue
             )
 
             print("Name: \(name)")
             print("Requires Issue Number: \(requireIssue)")
-            if requireIssue {
-                print("Issue Number Prefix: \(issueNumberPrefix ?? "")")
-            }
             try picker.requiredPermission("Add this branch prefix?")
 
             config.branchPrefixList.append(prefix)

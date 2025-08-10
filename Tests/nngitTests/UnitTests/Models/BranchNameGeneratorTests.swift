@@ -21,8 +21,8 @@ struct BranchNameGeneratorTests {
         #expect(result == "feature/add-login")
     }
 
-    @Test("adds issue number and prefix")
-    func addsIssueNumberAndPrefix() throws {
+    @Test("adds issue number")
+    func addsIssueNumber() throws {
         let result = BranchNameGenerator.generate(
             name: "Critical fix",
             branchPrefix: "bugfix",
@@ -37,14 +37,4 @@ struct BranchNameGeneratorTests {
         #expect(result == "add-login2")
     }
     
-    @Test("applies custom issue-number prefix when provided")
-    func appliesIssueNumberPrefix() throws {
-        let result = BranchNameGenerator.generate(
-            name: "Critical fix",
-            branchPrefix: "bugfix",
-            issueNumber: "42",
-            issueNumberPrefix: "ISS-"
-        )
-        #expect(result == "bugfix/ISS-42/critical-fix")
-    }
 }

@@ -38,30 +38,19 @@ extension Nngit {
             let newName = try picker.getRequiredInput("Enter a new name for the prefix")
             let requiresIssue = picker.getPermission("Require an issue number when using this prefix?")
 
-            // Prompt for an optional issue-number prefix
-            let issuePrefixInput = picker.getInput("Enter a new issue number prefix (leave blank to keep existing or none)")
-            let newIssueNumberPrefix: String?
-            if issuePrefixInput.isEmpty {
-                newIssueNumberPrefix = selected.issueNumberPrefix
-            } else {
-                newIssueNumberPrefix = issuePrefixInput
-            }
 
             if let index = config.branchPrefixList.firstIndex(where: { $0.name == selected.name }) {
                 let updatedPrefix = BranchPrefix(
                     name: newName,
-                    requiresIssueNumber: requiresIssue,
-                    issueNumberPrefix: newIssueNumberPrefix
+                    requiresIssueNumber: requiresIssue
                 )
 
                 print("Current:")
                 print("  Name: \(selected.name)")
                 print("  Requires Issue Number: \(selected.requiresIssueNumber)")
-                print("  Issue Number Prefix: \(selected.issueNumberPrefix ?? "")")
                 print("Updated:")
                 print("  Name: \(updatedPrefix.name)")
                 print("  Requires Issue Number: \(updatedPrefix.requiresIssueNumber)")
-                print("  Issue Number Prefix: \(updatedPrefix.issueNumberPrefix ?? "")")
                 try picker.requiredPermission("Save these changes?")
 
                 config.branchPrefixList[index] = updatedPrefix

@@ -22,8 +22,8 @@ struct DeleteBranchPrefixTests {
     @Test("deletes selected branch prefix when confirmed")
     func deletesSelectedPrefix() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
-        let prefix1 = BranchPrefix(name: "feature", requiresIssueNumber: false, issueNumberPrefix: nil)
-        let prefix2 = BranchPrefix(name: "bugfix", requiresIssueNumber: true, issueNumberPrefix: nil)
+        let prefix1 = BranchPrefix(name: "feature", requiresIssueNumber: false)
+        let prefix2 = BranchPrefix(name: "bugfix", requiresIssueNumber: true)
         var initial = GitConfig.defaultConfig
         initial.branchPrefixList = [prefix1, prefix2]
         let loader = StubConfigLoader(initialConfig: initial)
@@ -46,7 +46,7 @@ struct DeleteBranchPrefixTests {
     @Test("aborts deletion when permission denied")
     func abortsWhenPermissionDenied() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
-        let prefix = BranchPrefix(name: "release", requiresIssueNumber: false, issueNumberPrefix: nil)
+        let prefix = BranchPrefix(name: "release", requiresIssueNumber: false)
         var initial = GitConfig.defaultConfig
         initial.branchPrefixList = [prefix]
         let loader = StubConfigLoader(initialConfig: initial)

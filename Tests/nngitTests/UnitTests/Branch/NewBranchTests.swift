@@ -127,12 +127,40 @@ struct NewBranchTests {
         #expect(shell.commands.contains(newBranchCmd))
         #expect(output.contains("✅ Created and switched to branch: bar"))
     }
+    
+    @Test("adds created branch to myBranches array and saves config")
+    func addsBranchToMyBranchesArray() throws {
+        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
+        let checkRemote = makeGitCommand(.checkForRemote, path: nil)
+        let newBranchCmd = makeGitCommand(.newBranch(branchName: "test-branch"), path: nil)
+        let loader = StubNewBranchConfigLoader(initialConfig: .defaultConfig)
+        let shell = MockGitShell(responses: [
+            localGitCheck: "true",
+            checkRemote: "",
+            newBranchCmd: ""
+        ])
+        let picker = MockPicker()
+        let context = MockContext(picker: picker, shell: shell, configLoader: loader)
+
+        _ = try Nngit.testRun(context: context, args: ["new-branch", "test-branch"])
+        
+        // Verify the config was saved with the new branch
+        #expect(loader.savedConfig != nil)
+        let savedConfig = try #require(loader.savedConfig)
+        #expect(savedConfig.myBranches.count == 1)
+        #expect(savedConfig.myBranches[0].name == "test-branch")
+        #expect(savedConfig.myBranches[0].description == "test-branch")
+    }
 }
 
 // MARK: - Helpers
 private class StubNewBranchConfigLoader: GitConfigLoader {
     private let initialConfig: GitConfig
+    var savedConfig: GitConfig?
+    
     init(initialConfig: GitConfig) { self.initialConfig = initialConfig }
     func loadConfig(picker: Picker) throws -> GitConfig { initialConfig }
-    func save(_ config: GitConfig) throws { }
+    func save(_ config: GitConfig) throws { 
+        savedConfig = config
+    }
 }

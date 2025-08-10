@@ -5,38 +5,6 @@
 //  Created by Nikolai Nobadi on 6/8/25.
 //
 
-struct BranchSettings: Codable {
-    var defaultBranch: String
-    var requireIssueForPrefixes: Bool
-    
-    init(defaultBranch: String, requireIssueForPrefixes: Bool = false) {
-        self.defaultBranch = defaultBranch
-        self.requireIssueForPrefixes = requireIssueForPrefixes
-    }
-}
-
-struct LoadingOptions: Codable {
-    var loadMergeStatus: Bool
-    var loadCreationDate: Bool
-    var loadSyncStatus: Bool
-    
-    init(loadMergeStatus: Bool = true, loadCreationDate: Bool = true, loadSyncStatus: Bool = true) {
-        self.loadMergeStatus = loadMergeStatus
-        self.loadCreationDate = loadCreationDate
-        self.loadSyncStatus = loadSyncStatus
-    }
-}
-
-struct BehaviorOptions: Codable {
-    var rebaseWhenBranchingFromDefault: Bool
-    var pruneWhenDeleting: Bool
-    
-    init(rebaseWhenBranchingFromDefault: Bool = true, pruneWhenDeleting: Bool = false) {
-        self.rebaseWhenBranchingFromDefault = rebaseWhenBranchingFromDefault
-        self.pruneWhenDeleting = pruneWhenDeleting
-    }
-}
-
 struct GitConfig: Codable {
     var branches: BranchSettings
     var loading: LoadingOptions

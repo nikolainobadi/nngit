@@ -6,10 +6,12 @@
 //
 
 import GitShellKit
+@testable import nngit
 
 final class MockGitShell {
     private(set) var commands: [String] = []
     var responses: [String: String]
+    var shouldThrowOnMissingCommand: Bool = false
     
     init(responses: [String: String]) {
         self.responses = responses
@@ -22,6 +24,12 @@ extension MockGitShell: GitShell {
     func runWithOutput(_ command: String) throws -> String {
         commands.append(command)
         
-        return responses[command] ?? ""
+        if let response = responses[command] {
+            return response
+        } else if shouldThrowOnMissingCommand {
+            throw GitShellError.commandFailed(code: 1, command: command, output: "Command not found")
+        } else {
+            return ""
+        }
     }
 }

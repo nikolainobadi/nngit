@@ -25,46 +25,35 @@ extension Nngit {
             try shell.verifyLocalGitExists()
             var config = try loader.loadConfig(picker: picker)
 
-            guard !config.branchPrefixList.isEmpty else {
+            guard !config.branchPrefixes.isEmpty else {
                 print("No branch prefixes exist.")
                 return
             }
 
             let selected = try picker.requiredSingleSelection(
                 "Select a branch prefix to edit",
-                items: config.branchPrefixList
+                items: config.branchPrefixes
             )
 
             let newName = try picker.getRequiredInput("Enter a new name for the prefix")
             let requiresIssue = picker.getPermission("Require an issue number when using this prefix?")
 
-            // Prompt for an optional issue-number prefix
-            let issuePrefixInput = picker.getInput("Enter a new issue number prefix (leave blank to keep existing or none)")
-            let newIssueNumberPrefix: String?
-            if issuePrefixInput.isEmpty {
-                newIssueNumberPrefix = selected.issueNumberPrefix
-            } else {
-                newIssueNumberPrefix = issuePrefixInput
-            }
 
-            if let index = config.branchPrefixList.firstIndex(where: { $0.name == selected.name }) {
+            if let index = config.branchPrefixes.firstIndex(where: { $0.name == selected.name }) {
                 let updatedPrefix = BranchPrefix(
                     name: newName,
-                    requiresIssueNumber: requiresIssue,
-                    issueNumberPrefix: newIssueNumberPrefix
+                    requiresIssueNumber: requiresIssue
                 )
 
                 print("Current:")
                 print("  Name: \(selected.name)")
                 print("  Requires Issue Number: \(selected.requiresIssueNumber)")
-                print("  Issue Number Prefix: \(selected.issueNumberPrefix ?? "")")
                 print("Updated:")
                 print("  Name: \(updatedPrefix.name)")
                 print("  Requires Issue Number: \(updatedPrefix.requiresIssueNumber)")
-                print("  Issue Number Prefix: \(updatedPrefix.issueNumberPrefix ?? "")")
                 try picker.requiredPermission("Save these changes?")
 
-                config.branchPrefixList[index] = updatedPrefix
+                config.branchPrefixes[index] = updatedPrefix
                 try loader.save(config)
                 print("✅ Updated branch prefix: \(selected.name) -> \(newName)")
             }

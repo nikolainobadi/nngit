@@ -25,16 +25,15 @@ extension Nngit {
             try shell.verifyLocalGitExists()
             let config = try loader.loadConfig(picker: picker)
 
-            guard !config.branchPrefixList.isEmpty else {
+            guard !config.branchPrefixes.isEmpty else {
                 print("No branch prefixes exist.")
                 return
             }
 
             print("Branch prefixes:")
-            for prefix in config.branchPrefixList {
+            for prefix in config.branchPrefixes {
                 let requiresText = prefix.requiresIssueNumber ? "yes" : "no"
-                let prefixPart = prefix.issueNumberPrefix.map { ", prefix: \($0)" } ?? ""
-                print("  - \(prefix.name) (requires issue number: \(requiresText)\(prefixPart))")
+                print("  - \(prefix.name) (requires issue number: \(requiresText))")
             }
         }
     }

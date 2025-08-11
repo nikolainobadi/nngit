@@ -34,7 +34,7 @@ struct NewBranchTests {
         let pullRebase = "git pull --rebase"
         let newBranchCmd = makeGitCommand(.newBranch(branchName: "bar"), path: nil)
         var config = GitConfig.defaultConfig
-        config.rebaseWhenBranchingFromDefaultBranch = true
+        config.behaviors.rebaseWhenBranchingFromDefault = true
         let loader = StubNewBranchConfigLoader(initialConfig: config)
         let shell = MockGitShell(responses: [
             localGitCheck: "true",
@@ -59,9 +59,9 @@ struct NewBranchTests {
     func appliesPrefixAndPromptsIssue() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let checkRemote = makeGitCommand(.checkForRemote, path: nil)
-        let newBranchCmd = makeGitCommand(.newBranch(branchName: "feat/ISS-42/test-branch"), path: nil)
+        let newBranchCmd = makeGitCommand(.newBranch(branchName: "feat/42/test-branch"), path: nil)
         var config = GitConfig.defaultConfig
-        config.branchPrefixList = [BranchPrefix(name: "feat", requiresIssueNumber: true, issueNumberPrefix: "ISS-")]
+        config.branchPrefixes = [BranchPrefix(name: "feat", requiresIssueNumber: true)]
         let loader = StubNewBranchConfigLoader(initialConfig: config)
         let shell = MockGitShell(responses: [
             localGitCheck: "true",
@@ -78,7 +78,7 @@ struct NewBranchTests {
         #expect(shell.commands.contains(checkRemote))
         #expect(picker.requiredPermissions.isEmpty)
         #expect(shell.commands.contains(newBranchCmd))
-        #expect(output.contains("✅ Created and switched to branch: feat/ISS-42/test-branch"))
+        #expect(output.contains("✅ Created and switched to branch: feat/42/test-branch"))
     }
 
     @Test("creates branch with no prefix when flag is used")
@@ -87,7 +87,7 @@ struct NewBranchTests {
         let checkRemote = makeGitCommand(.checkForRemote, path: nil)
         let newBranchCmd = makeGitCommand(.newBranch(branchName: "foo"), path: nil)
         var config = GitConfig.defaultConfig
-        config.branchPrefixList = [BranchPrefix(name: "feat", requiresIssueNumber: false, issueNumberPrefix: nil)]
+        config.branchPrefixes = [BranchPrefix(name: "feat", requiresIssueNumber: false)]
         let loader = StubNewBranchConfigLoader(initialConfig: config)
         let shell = MockGitShell(responses: [
             localGitCheck: "true",
@@ -110,7 +110,7 @@ struct NewBranchTests {
         let checkRemote = makeGitCommand(.checkForRemote, path: nil)
         let newBranchCmd = makeGitCommand(.newBranch(branchName: "bar"), path: nil)
         var config = GitConfig.defaultConfig
-        config.branchPrefixList = [BranchPrefix(name: "feat", requiresIssueNumber: false, issueNumberPrefix: nil)]
+        config.branchPrefixes = [BranchPrefix(name: "feat", requiresIssueNumber: false)]
         let loader = StubNewBranchConfigLoader(initialConfig: config)
         let shell = MockGitShell(responses: [
             localGitCheck: "true",
@@ -127,12 +127,40 @@ struct NewBranchTests {
         #expect(shell.commands.contains(newBranchCmd))
         #expect(output.contains("✅ Created and switched to branch: bar"))
     }
+    
+    @Test("adds created branch to myBranches array and saves config")
+    func addsBranchToMyBranchesArray() throws {
+        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
+        let checkRemote = makeGitCommand(.checkForRemote, path: nil)
+        let newBranchCmd = makeGitCommand(.newBranch(branchName: "test-branch"), path: nil)
+        let loader = StubNewBranchConfigLoader(initialConfig: .defaultConfig)
+        let shell = MockGitShell(responses: [
+            localGitCheck: "true",
+            checkRemote: "",
+            newBranchCmd: ""
+        ])
+        let picker = MockPicker()
+        let context = MockContext(picker: picker, shell: shell, configLoader: loader)
+
+        _ = try Nngit.testRun(context: context, args: ["new-branch", "test-branch"])
+        
+        // Verify the config was saved with the new branch
+        #expect(loader.savedConfig != nil)
+        let savedConfig = try #require(loader.savedConfig)
+        #expect(savedConfig.myBranches.count == 1)
+        #expect(savedConfig.myBranches[0].name == "test-branch")
+        #expect(savedConfig.myBranches[0].description == "test-branch")
+    }
 }
 
 // MARK: - Helpers
 private class StubNewBranchConfigLoader: GitConfigLoader {
     private let initialConfig: GitConfig
+    var savedConfig: GitConfig?
+    
     init(initialConfig: GitConfig) { self.initialConfig = initialConfig }
     func loadConfig(picker: Picker) throws -> GitConfig { initialConfig }
-    func save(_ config: GitConfig) throws { }
+    func save(_ config: GitConfig) throws { 
+        savedConfig = config
+    }
 }

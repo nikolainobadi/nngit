@@ -16,14 +16,11 @@ enum BranchNameGenerator {
     ///   - branchPrefix: Optional prefix describing the branch type, e.g.
     ///     `feature` or `bugfix`.
     ///   - issueNumber: Optional issue identifier to include in the branch name.
-    ///   - issueNumberPrefix: Optional string that is prepended to the issue
-    ///     number if one is provided.
     /// - Returns: A sanitized branch name joined using `/` separators.
     static func generate(
         name: String,
         branchPrefix: String? = nil,
-        issueNumber: String? = nil,
-        issueNumberPrefix: String? = nil
+        issueNumber: String? = nil
     ) -> String {
         var components: [String] = []
 
@@ -32,11 +29,7 @@ enum BranchNameGenerator {
         }
 
         if let issueNumber, !issueNumber.isEmpty {
-            if let prefix = issueNumberPrefix, !prefix.isEmpty {
-                components.append(prefix + issueNumber)
-            } else {
-                components.append(issueNumber)
-            }
+            components.append(issueNumber)
         }
 
         let formattedBranchName = name

@@ -68,20 +68,20 @@ extension Nngit {
                 loadSyncStatus != nil
 
             if argsProvided {
-                if let branch = defaultBranch { updated.defaultBranch = branch }
-                if let rebase = rebaseWhenBranching { updated.rebaseWhenBranchingFromDefaultBranch = rebase }
-                if let prune = pruneWhenDeleting { updated.pruneWhenDeletingBranches = prune }
-                if let merge = loadMergeStatus { updated.loadMergeStatusWhenLoadingBranches = merge }
-                if let creation = loadCreationDate { updated.loadCreationDateWhenLoadingBranches = creation }
-                if let sync = loadSyncStatus { updated.loadSyncStatusWhenLoadingBranches = sync }
+                if let branch = defaultBranch { updated.branches.defaultBranch = branch }
+                if let rebase = rebaseWhenBranching { updated.behaviors.rebaseWhenBranchingFromDefault = rebase }
+                if let prune = pruneWhenDeleting { updated.behaviors.pruneWhenDeleting = prune }
+                if let merge = loadMergeStatus { updated.loading.loadMergeStatus = merge }
+                if let creation = loadCreationDate { updated.loading.loadCreationDate = creation }
+                if let sync = loadSyncStatus { updated.loading.loadSyncStatus = sync }
             } else {
                 let options: [FieldChoice] = [
-                    .init(field: .defaultBranch, current: config.defaultBranch),
-                    .init(field: .rebaseWhenBranching, current: String(config.rebaseWhenBranchingFromDefaultBranch)),
-                    .init(field: .pruneWhenDeleting, current: String(config.pruneWhenDeletingBranches)),
-                    .init(field: .loadMergeStatus, current: String(config.loadMergeStatusWhenLoadingBranches)),
-                    .init(field: .loadCreationDate, current: String(config.loadCreationDateWhenLoadingBranches)),
-                    .init(field: .loadSyncStatus, current: String(config.loadSyncStatusWhenLoadingBranches))
+                    .init(field: .defaultBranch, current: config.branches.defaultBranch),
+                    .init(field: .rebaseWhenBranching, current: String(config.behaviors.rebaseWhenBranchingFromDefault)),
+                    .init(field: .pruneWhenDeleting, current: String(config.behaviors.pruneWhenDeleting)),
+                    .init(field: .loadMergeStatus, current: String(config.loading.loadMergeStatus)),
+                    .init(field: .loadCreationDate, current: String(config.loading.loadCreationDate)),
+                    .init(field: .loadSyncStatus, current: String(config.loading.loadSyncStatus))
                 ]
 
                 let selected = picker.multiSelection("Select which values you would like to edit", items: options)
@@ -89,51 +89,51 @@ extension Nngit {
                 for item in selected {
                     switch item.field {
                     case .defaultBranch:
-                        let input = picker.getInput("Enter a new default branch name (leave blank to keep '\(config.defaultBranch)')")
-                        if !input.isEmpty { updated.defaultBranch = input }
+                        let input = picker.getInput("Enter a new default branch name (leave blank to keep '\(config.branches.defaultBranch)')")
+                        if !input.isEmpty { updated.branches.defaultBranch = input }
                     case .rebaseWhenBranching:
-                        let prompt = "Rebase when branching from default branch? (current: \(config.rebaseWhenBranchingFromDefaultBranch ? "yes" : "no"))"
-                        updated.rebaseWhenBranchingFromDefaultBranch = picker.getPermission(prompt)
+                        let prompt = "Rebase when branching from default branch? (current: \(config.behaviors.rebaseWhenBranchingFromDefault ? "yes" : "no"))"
+                        updated.behaviors.rebaseWhenBranchingFromDefault = picker.getPermission(prompt)
                     case .pruneWhenDeleting:
-                        let prompt = "Automatically prune origin when deleting branches? (current: \(config.pruneWhenDeletingBranches ? "yes" : "no"))"
-                        updated.pruneWhenDeletingBranches = picker.getPermission(prompt)
+                        let prompt = "Automatically prune origin when deleting branches? (current: \(config.behaviors.pruneWhenDeleting ? "yes" : "no"))"
+                        updated.behaviors.pruneWhenDeleting = picker.getPermission(prompt)
                     case .loadMergeStatus:
-                        let prompt = "Load merge status when listing branches? (current: \(config.loadMergeStatusWhenLoadingBranches ? "yes" : "no"))"
-                        updated.loadMergeStatusWhenLoadingBranches = picker.getPermission(prompt)
+                        let prompt = "Load merge status when listing branches? (current: \(config.loading.loadMergeStatus ? "yes" : "no"))"
+                        updated.loading.loadMergeStatus = picker.getPermission(prompt)
                     case .loadCreationDate:
-                        let prompt = "Load branch creation date when listing branches? (current: \(config.loadCreationDateWhenLoadingBranches ? "yes" : "no"))"
-                        updated.loadCreationDateWhenLoadingBranches = picker.getPermission(prompt)
+                        let prompt = "Load branch creation date when listing branches? (current: \(config.loading.loadCreationDate ? "yes" : "no"))"
+                        updated.loading.loadCreationDate = picker.getPermission(prompt)
                     case .loadSyncStatus:
-                        let prompt = "Load sync status when listing branches? (current: \(config.loadSyncStatusWhenLoadingBranches ? "yes" : "no"))"
-                        updated.loadSyncStatusWhenLoadingBranches = picker.getPermission(prompt)
+                        let prompt = "Load sync status when listing branches? (current: \(config.loading.loadSyncStatus ? "yes" : "no"))"
+                        updated.loading.loadSyncStatus = picker.getPermission(prompt)
                     }
                 }
             }
 
-            guard updated.defaultBranch != config.defaultBranch ||
-                  updated.rebaseWhenBranchingFromDefaultBranch != config.rebaseWhenBranchingFromDefaultBranch ||
-                  updated.pruneWhenDeletingBranches != config.pruneWhenDeletingBranches ||
-                  updated.loadMergeStatusWhenLoadingBranches != config.loadMergeStatusWhenLoadingBranches ||
-                  updated.loadCreationDateWhenLoadingBranches != config.loadCreationDateWhenLoadingBranches ||
-                  updated.loadSyncStatusWhenLoadingBranches != config.loadSyncStatusWhenLoadingBranches else {
+            guard updated.branches.defaultBranch != config.branches.defaultBranch ||
+                  updated.behaviors.rebaseWhenBranchingFromDefault != config.behaviors.rebaseWhenBranchingFromDefault ||
+                  updated.behaviors.pruneWhenDeleting != config.behaviors.pruneWhenDeleting ||
+                  updated.loading.loadMergeStatus != config.loading.loadMergeStatus ||
+                  updated.loading.loadCreationDate != config.loading.loadCreationDate ||
+                  updated.loading.loadSyncStatus != config.loading.loadSyncStatus else {
                 print("No changes to save.")
                 return
             }
 
             print("Current:")
-            print("  Default Branch: \(config.defaultBranch.lightRed)")
-            print("  Rebase When Branching: \(String(config.rebaseWhenBranchingFromDefaultBranch).lightRed)")
-            print("  Prune When Deleting: \(String(config.pruneWhenDeletingBranches).lightRed)")
-            print("  Load Merge Status: \(String(config.loadMergeStatusWhenLoadingBranches).lightRed)")
-            print("  Load Creation Date: \(String(config.loadCreationDateWhenLoadingBranches).lightRed)")
-            print("  Load Sync Status: \(String(config.loadSyncStatusWhenLoadingBranches).lightRed)")
+            print("  Default Branch: \(config.branches.defaultBranch.lightRed)")
+            print("  Rebase When Branching: \(String(config.behaviors.rebaseWhenBranchingFromDefault).lightRed)")
+            print("  Prune When Deleting: \(String(config.behaviors.pruneWhenDeleting).lightRed)")
+            print("  Load Merge Status: \(String(config.loading.loadMergeStatus).lightRed)")
+            print("  Load Creation Date: \(String(config.loading.loadCreationDate).lightRed)")
+            print("  Load Sync Status: \(String(config.loading.loadSyncStatus).lightRed)")
             print("Updated:")
-            print("  Default Branch: \(updated.defaultBranch.green)")
-            print("  Rebase When Branching: \(String(updated.rebaseWhenBranchingFromDefaultBranch).green)")
-            print("  Prune When Deleting: \(String(updated.pruneWhenDeletingBranches).green)")
-            print("  Load Merge Status: \(String(updated.loadMergeStatusWhenLoadingBranches).green)")
-            print("  Load Creation Date: \(String(updated.loadCreationDateWhenLoadingBranches).green)")
-            print("  Load Sync Status: \(String(updated.loadSyncStatusWhenLoadingBranches).green)")
+            print("  Default Branch: \(updated.branches.defaultBranch.green)")
+            print("  Rebase When Branching: \(String(updated.behaviors.rebaseWhenBranchingFromDefault).green)")
+            print("  Prune When Deleting: \(String(updated.behaviors.pruneWhenDeleting).green)")
+            print("  Load Merge Status: \(String(updated.loading.loadMergeStatus).green)")
+            print("  Load Creation Date: \(String(updated.loading.loadCreationDate).green)")
+            print("  Load Sync Status: \(String(updated.loading.loadSyncStatus).green)")
             try picker.requiredPermission("Save these changes?")
 
             try loader.save(updated)

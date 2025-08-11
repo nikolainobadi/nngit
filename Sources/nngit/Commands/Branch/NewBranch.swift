@@ -43,20 +43,20 @@ extension Nngit {
 
             var selectedPrefix: BranchPrefix?
 
-            if !config.branchPrefixList.isEmpty && !noPrefix {
+            if !config.branchPrefixes.isEmpty && !noPrefix {
                 if selectBranchPrefix {
-                    selectedPrefix = try choosePrefix(from: config.branchPrefixList, picker: picker)
+                    selectedPrefix = try choosePrefix(from: config.branchPrefixes, picker: picker)
                 } else if let providedName = branchPrefixName {
-                    if let match = config.branchPrefixList.first(where: { $0.name == providedName }) {
+                    if let match = config.branchPrefixes.first(where: { $0.name == providedName }) {
                         selectedPrefix = match
                     } else if providedName.lowercased() == "no-prefix" {
                         selectedPrefix = nil
                     } else {
                         print("No branch prefix named '\(providedName)'.")
-                        selectedPrefix = try choosePrefix(from: config.branchPrefixList, picker: picker)
+                        selectedPrefix = try choosePrefix(from: config.branchPrefixes, picker: picker)
                     }
                 } else {
-                    selectedPrefix = try choosePrefix(from: config.branchPrefixList, picker: picker)
+                    selectedPrefix = try choosePrefix(from: config.branchPrefixes, picker: picker)
                 }
             }
 
@@ -71,11 +71,17 @@ extension Nngit {
             let fullBranchName = BranchNameGenerator.generate(
                 name: branchName,
                 branchPrefix: selectedPrefix?.name,
-                issueNumber: issue,
-                issueNumberPrefix: selectedPrefix?.issueNumberPrefix
+                issueNumber: issue
             )
 
             try shell.runGitCommandWithOutput(.newBranch(branchName: fullBranchName), path: nil)
+            
+            // Add the new branch to myBranches and save config
+            let newBranch = MyBranch(name: fullBranchName, description: branchName)
+            var updatedConfig = config
+            updatedConfig.myBranches.append(newBranch)
+            try loader.save(updatedConfig)
+            
             print("✅ Created and switched to branch: \(fullBranchName)")
         }
     }
@@ -89,9 +95,9 @@ extension Nngit.NewBranch {
         }
         
         let currentBranch = try shell.runWithOutput(makeGitCommand(.getCurrentBranchName, path: nil)).trimmingCharacters(in: .whitespacesAndNewlines)
-        let isOnMainBranch = currentBranch.lowercased() == config.defaultBranch.lowercased()
+        let isOnMainBranch = currentBranch.lowercased() == config.branches.defaultBranch.lowercased()
         
-        guard isOnMainBranch && config.rebaseWhenBranchingFromDefaultBranch else {
+        guard isOnMainBranch && config.behaviors.rebaseWhenBranchingFromDefault else {
             return
         }
         

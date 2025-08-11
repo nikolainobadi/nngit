@@ -22,7 +22,8 @@ struct SwitchBranchTests {
             switchCmd: ""
         ])
         let picker = MockPicker()
-        let context = MockContext(picker: picker, shell: shell, branchLoader: loader)
+        let configLoader = StubSwitchBranchConfigLoader(initialConfig: .defaultConfig)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
         let output = try Nngit.testRun(context: context, args: ["switch-branch", "dev"])
         #expect(shell.commands.contains(localGitCheck))
@@ -43,7 +44,8 @@ struct SwitchBranchTests {
             "git log -1 --pretty=format:'%an,%ae' dev": "John Doe,john@example.com"
         ])
         let picker = MockPicker()
-        let context = MockContext(picker: picker, shell: shell, branchLoader: loader)
+        let configLoader = StubSwitchBranchConfigLoader(initialConfig: .defaultConfig)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
         let output = try Nngit.testRun(context: context, args: ["switch-branch", "xyz"])
         #expect(shell.commands.contains(localGitCheck))
@@ -66,7 +68,8 @@ struct SwitchBranchTests {
         ])
         let picker = MockPicker()
         picker.selectionResponses["Select a branch (switching from main)"] = 0
-        let context = MockContext(picker: picker, shell: shell, branchLoader: loader)
+        let configLoader = StubSwitchBranchConfigLoader(initialConfig: .defaultConfig)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
         let output = try Nngit.testRun(context: context, args: ["switch-branch"])
         #expect(shell.commands.contains(localGitCheck))
@@ -90,7 +93,8 @@ struct SwitchBranchTests {
             switchCmd: ""
         ])
         let picker = MockPicker()
-        let context = MockContext(picker: picker, shell: shell, branchLoader: loader)
+        let configLoader = StubSwitchBranchConfigLoader(initialConfig: .defaultConfig)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
         let output = try Nngit.testRun(context: context, args: ["switch-branch", "dev"])
 
@@ -113,13 +117,81 @@ struct SwitchBranchTests {
         ])
         let picker = MockPicker()
         picker.selectionResponses["Select a branch (switching from main)"] = 1
-        let context = MockContext(picker: picker, shell: shell, branchLoader: loader)
+        let configLoader = StubSwitchBranchConfigLoader(initialConfig: .defaultConfig)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
         let output = try Nngit.testRun(context: context, args: ["switch-branch", "--include-all"])
 
         #expect(shell.commands.contains(localGitCheck))
         #expect(shell.commands.contains(switchCmd))
         #expect(!shell.commands.contains(where: { $0.contains("git log -1") }))
+        #expect(output.isEmpty)
+    }
+    
+    @Test("uses MyBranch array for selection when available")
+    func usesMyBranchesForSelection() throws {
+        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
+        let getCurrentBranch = makeGitCommand(.getCurrentBranchName, path: nil)
+        let switchCmd = makeGitCommand(.switchBranch(branchName: "feature-branch"), path: nil)
+        
+        // Create config with MyBranches
+        var config = GitConfig.defaultConfig
+        config.myBranches = [
+            MyBranch(name: "feature-branch", description: "My feature"),
+            MyBranch(name: "main", description: "Main branch"), // This should be filtered out as current
+            MyBranch(name: "deleted-branch", description: "Gone") // This should be filtered out as non-existent
+        ]
+        let configLoader = StubSwitchBranchConfigLoader(initialConfig: config)
+        
+        let branch1 = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        let branch2 = GitBranch(name: "feature-branch", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let branchLoader = StubBranchLoader(branches: [branch1, branch2])
+        let shell = MockGitShell(responses: [
+            localGitCheck: "true",
+            getCurrentBranch: "main",
+            switchCmd: ""
+        ])
+        
+        let picker = MockPicker()
+        picker.selectionResponses["Select a branch"] = 0 // Select first MyBranch
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
+
+        let output = try Nngit.testRun(context: context, args: ["switch-branch"])
+
+        #expect(shell.commands.contains(localGitCheck))
+        #expect(shell.commands.contains(getCurrentBranch))
+        #expect(shell.commands.contains(switchCmd))
+        #expect(output.isEmpty)
+    }
+    
+    @Test("falls back to normal behavior when MyBranch conditions not met")
+    func fallsBackWhenMyBranchConditionsNotMet() throws {
+        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
+        let switchCmd = makeGitCommand(.switchBranch(branchName: "feature"), path: nil)
+        
+        // Config with MyBranches but using remote location should fall back
+        var config = GitConfig.defaultConfig
+        config.myBranches = [MyBranch(name: "feature-branch", description: "My feature")]
+        let configLoader = StubSwitchBranchConfigLoader(initialConfig: config)
+        
+        let branch1 = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        let branch2 = GitBranch(name: "feature", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let branchLoader = StubBranchLoader(branches: [branch1, branch2])
+        let shell = MockGitShell(responses: [
+            localGitCheck: "true",
+            "git config user.name": "John Doe",
+            "git config user.email": "john@example.com", 
+            "git log -1 --pretty=format:'%an,%ae' feature": "John Doe,john@example.com",
+            switchCmd: ""
+        ])
+        let picker = MockPicker()
+        picker.selectionResponses["Select a branch (switching from main)"] = 0
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
+
+        let output = try Nngit.testRun(context: context, args: ["switch-branch", "--branch-location", "remote"])
+
+        #expect(shell.commands.contains(localGitCheck))
+        #expect(shell.commands.contains(switchCmd))
         #expect(output.isEmpty)
     }
 }
@@ -156,5 +228,21 @@ private class StubBranchLoader: GitBranchLoader {
         loadSyncStatus: Bool
     ) throws -> [GitBranch] {
         return branches.filter { names.contains($0.isCurrentBranch ? "* \($0.name)" : $0.name) }
+    }
+}
+
+private class StubSwitchBranchConfigLoader: GitConfigLoader {
+    private let initialConfig: GitConfig
+    
+    init(initialConfig: GitConfig) {
+        self.initialConfig = initialConfig
+    }
+    
+    func loadConfig(picker: Picker) throws -> GitConfig {
+        return initialConfig
+    }
+    
+    func save(_ config: GitConfig) throws {
+        // No-op for testing
     }
 }

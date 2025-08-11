@@ -5,13 +5,15 @@
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ## Overview
-A command-line utility for managing Git branches and history. `nngit` offers helpers for creating, switching, and deleting branches, as well as discarding local changes and undoing commits.
+A command-line utility for managing Git branches and history. `nngit` offers helpers for creating, switching, and deleting branches, interactive file staging/unstaging, discarding local changes, and undoing commits.
 
 ## Features
 - Create branches with optional prefixes and issue numbers
 - Manage branch prefixes (add, edit, delete, list)
 - Switch between local and remote branches
 - Delete merged branches with optional origin pruning
+- **Interactive file staging and unstaging** with multi-selection
+- Track and manage your frequently used branches
 - Discard staged/unstaged changes
 - Undo commits with safety checks
 - Edit overall nngit configuration
@@ -27,9 +29,28 @@ Run commands via `swift run` or the built binary. A few examples:
 ```bash
 $ nngit new-branch feature "Add login"
 $ nngit switch-branch
+$ nngit staging stage              # Interactive file staging
+$ nngit staging unstage            # Interactive file unstaging  
+$ nngit my-branches add            # Track current branch
 $ nngit discard --files both
 $ nngit undo-commit 2
 $ nngit edit-config --default-branch develop
+```
+
+### Interactive Staging Workflow
+Use the staging commands to selectively stage or unstage files:
+
+```bash
+# Stage specific files interactively
+$ nngit staging stage
+# (shows list of unstaged/untracked files for multi-selection)
+
+# Unstage specific files interactively  
+$ nngit staging unstage
+# (shows list of staged files for multi-selection)
+
+# Default subcommand is 'stage'
+$ nngit staging  # same as 'nngit staging stage'
 ```
 
 ### Branch Prefix Workflow
@@ -38,6 +59,15 @@ Below is an example showing how to add a prefix that requires an issue number an
 ```bash
 $ nngit add-branch-prefix feature --requires-issue-number --issue-number-prefix ISS-
 $ nngit new-branch --prefix feature --issue 42 "Add login screen"
+```
+
+### MyBranches Workflow
+Track your frequently used branches for easier access:
+
+```bash
+$ nngit my-branches add        # Add current branch to tracked list
+$ nngit my-branches            # List tracked branches (default subcommand)
+$ nngit my-branches remove     # Remove branches from tracked list
 ```
 
 ## Configuration

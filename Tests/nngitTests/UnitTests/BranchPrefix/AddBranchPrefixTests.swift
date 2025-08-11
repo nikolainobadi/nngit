@@ -11,7 +11,6 @@ struct AddBranchPrefixTests {
         let picker = MockPicker()
         picker.requiredInputResponses["Enter a branch prefix name"] = "hotfix"
         picker.permissionResponses["Require an issue number when using this prefix?"] = true
-        picker.requiredInputResponses["Enter an issue number prefix (leave blank for none)"] = "ISS-"
         picker.permissionResponses["Add this branch prefix?"] = true
         let loader = StubConfigLoader(initialConfig: .defaultConfig)
         let shell = MockGitShell(responses: [localGitCheck: "true"])
@@ -21,12 +20,10 @@ struct AddBranchPrefixTests {
         #expect(shell.commands.contains(localGitCheck))
         #expect(picker.requiredPermissions.contains("Add this branch prefix?"))
         #expect(loader.savedConfigs.count == 1)
-        let saved = loader.savedConfigs.first!.branchPrefixList.first!
+        let saved = loader.savedConfigs.first!.branchPrefixes.first!
         #expect(saved.name == "hotfix")
         #expect(saved.requiresIssueNumber)
-        #expect(saved.issueNumberPrefix == "ISS-")
         #expect(output.contains("Requires Issue Number: true"))
-        #expect(output.contains("Issue Number Prefix: ISS-"))
         #expect(output.contains("✅ Added branch prefix: hotfix"))
     }
 
@@ -36,7 +33,6 @@ struct AddBranchPrefixTests {
         let picker = MockPicker()
         picker.permissionResponses["Require an issue number when using this prefix?"] = false
         picker.permissionResponses["Add this branch prefix?"] = true
-        picker.requiredInputResponses["Enter an issue number prefix (leave blank for none)"] = "BUG-"
         let loader = StubConfigLoader(initialConfig: .defaultConfig)
         let shell = MockGitShell(responses: [localGitCheck: "true"])
         let context = MockContext(picker: picker, shell: shell, configLoader: loader)
@@ -46,9 +42,9 @@ struct AddBranchPrefixTests {
         #expect(picker.requiredPermissions.contains("Add this branch prefix?"))
         #expect(loader.savedConfigs.count == 1)
         let saved = loader.savedConfigs.first!
-        #expect(saved.branchPrefixList.count == 1)
-        #expect(saved.branchPrefixList[0].name == "bugfix")
-        #expect(saved.branchPrefixList[0].requiresIssueNumber)
+        #expect(saved.branchPrefixes.count == 1)
+        #expect(saved.branchPrefixes[0].name == "bugfix")
+        #expect(saved.branchPrefixes[0].requiresIssueNumber)
         #expect(output.contains("Name: bugfix"))
         #expect(output.contains("Requires Issue Number: true"))
         #expect(output.contains("✅ Added branch prefix: bugfix"))
@@ -57,9 +53,9 @@ struct AddBranchPrefixTests {
     @Test("warns and does not add when prefix already exists")
     func warnsForDuplicate() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
-        let existing = BranchPrefix(name: "feature", requiresIssueNumber: false, issueNumberPrefix: nil)
+        let existing = BranchPrefix(name: "feature", requiresIssueNumber: false)
         var initial = GitConfig.defaultConfig
-        initial.branchPrefixList = [existing]
+        initial.branchPrefixes = [existing]
         let loader = StubConfigLoader(initialConfig: initial)
         let picker = MockPicker()
         let shell = MockGitShell(responses: [localGitCheck: "true"])

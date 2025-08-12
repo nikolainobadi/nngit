@@ -119,7 +119,7 @@ struct SoftResetTests {
 // MARK: - Helper Methods
 private extension SoftResetTests {
     func runCommand(_ testFactory: NnGitContext, number: Int = 1, force: Bool = false) throws {
-        var args = ["soft-reset", "\(number)"]
+        var args = ["undo", "soft", "\(number)"]
         
         if force {
             args.append("--force")

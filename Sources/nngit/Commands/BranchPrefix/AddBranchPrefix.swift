@@ -21,6 +21,13 @@ extension Nngit {
 
         @Flag(name: .long, help: "Require an issue number when using this prefix")
         var requiresIssueNumber: Bool = false
+        
+        @Option(name: .long, parsing: .upToNextOption,
+                help: "Issue prefixes to use with this branch prefix (comma-separated, e.g., 'FRA-,RAPP-')")
+        var issuePrefixes: [String] = []
+        
+        @Option(name: .long, help: "Default value to use when no issue is provided (e.g., 'NO-JIRA')")
+        var defaultIssue: String?
 
 
         /// Executes the command using the shared context components.
@@ -40,18 +47,50 @@ extension Nngit {
             }
 
             var requireIssue = requiresIssueNumber
-            if !requireIssue {
+            if !requireIssue && issuePrefixes.isEmpty {
                 requireIssue = picker.getPermission("Require an issue number when using this prefix?")
             }
-
+            
+            // Parse issue prefixes from comma-separated input
+            var parsedIssuePrefixes: [String] = []
+            if !issuePrefixes.isEmpty {
+                // Handle comma-separated values
+                parsedIssuePrefixes = issuePrefixes.flatMap { $0.split(separator: ",") }
+                    .map { $0.trimmingCharacters(in: .whitespaces) }
+                    .filter { !$0.isEmpty }
+            }
+            
+            // If issue prefixes are provided but none via CLI, prompt for them
+            if requireIssue && parsedIssuePrefixes.isEmpty {
+                let prefixInput = picker.getInput("Enter issue prefixes (comma-separated, e.g., 'FRA-,RAPP-') or leave empty for no prefix")
+                if !prefixInput.isEmpty {
+                    parsedIssuePrefixes = prefixInput.split(separator: ",")
+                        .map { $0.trimmingCharacters(in: .whitespaces) }
+                        .filter { !$0.isEmpty }
+                }
+            }
+            
+            var defaultValue = defaultIssue
+            if requireIssue && defaultValue == nil {
+                let input = picker.getInput("Enter a default issue value (e.g., 'NO-JIRA') or leave empty")
+                defaultValue = input.isEmpty ? nil : input
+            }
 
             let prefix = BranchPrefix(
                 name: name,
-                requiresIssueNumber: requireIssue
+                requiresIssueNumber: requireIssue,
+                issuePrefixes: parsedIssuePrefixes,
+                defaultIssueValue: defaultValue
             )
 
             print("Name: \(name)")
             print("Requires Issue Number: \(requireIssue)")
+            if !parsedIssuePrefixes.isEmpty {
+                print("Issue Prefixes: \(parsedIssuePrefixes.joined(separator: ", "))")
+            }
+            if let defaultValue {
+                print("Default Issue: \(defaultValue)")
+            }
             try picker.requiredPermission("Add this branch prefix?")
 
             config.branchPrefixes.append(prefix)

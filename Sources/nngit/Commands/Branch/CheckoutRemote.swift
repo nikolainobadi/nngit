@@ -21,6 +21,14 @@ extension Nngit {
                 help: "Additional author names or emails to include when filtering branches")
         var includeAuthor: [String] = []
         
+        @Option(name: .long,
+                help: "Only show branches created within the last N days (default: 15)")
+        var days: Int = 15
+        
+        @Flag(name: .long,
+              help: "Disable date filtering and show all branches regardless of age")
+        var noFilter: Bool = false
+        
         /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
@@ -38,8 +46,16 @@ extension Nngit {
             // Filter by author (automatically includes current git user)
             remoteBranchNames = branchLoader.filterBranchNamesByAuthor(remoteBranchNames, shell: shell, includeAuthor: includeAuthor)
             
+            // Filter by date unless --no-filter flag is used
+            if !noFilter {
+                remoteBranchNames = branchLoader.filterBranchNamesByDate(remoteBranchNames, shell: shell, withinDays: days)
+            }
+            
             if remoteBranchNames.isEmpty {
-                print("No remote branches found that you authored.")
+                let message = noFilter 
+                    ? "No remote branches found that you authored."
+                    : "No remote branches found that you authored within the last \(days) days. Use --no-filter to show all branches."
+                print(message)
                 return
             }
             

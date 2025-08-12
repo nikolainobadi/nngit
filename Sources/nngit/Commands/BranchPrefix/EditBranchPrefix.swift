@@ -37,20 +37,52 @@ extension Nngit {
 
             let newName = try picker.getRequiredInput("Enter a new name for the prefix")
             let requiresIssue = picker.getPermission("Require an issue number when using this prefix?")
+            
+            // Get issue prefixes
+            var parsedIssuePrefixes: [String] = selected.issuePrefixes
+            let prefixInput = picker.getInput("Enter issue prefixes (comma-separated, e.g., 'FRA-,RAPP-') or leave empty to keep current")
+            if !prefixInput.isEmpty {
+                parsedIssuePrefixes = prefixInput.split(separator: ",")
+                    .map { $0.trimmingCharacters(in: .whitespaces) }
+                    .filter { !$0.isEmpty }
+            }
+            
+            // Get default issue value
+            var defaultValue = selected.defaultIssueValue
+            if requiresIssue {
+                let defaultInput = picker.getInput("Enter a default issue value (e.g., 'NO-JIRA') or leave empty to keep current")
+                if !defaultInput.isEmpty {
+                    defaultValue = defaultInput
+                }
+            }
 
 
             if let index = config.branchPrefixes.firstIndex(where: { $0.name == selected.name }) {
                 let updatedPrefix = BranchPrefix(
                     name: newName,
-                    requiresIssueNumber: requiresIssue
+                    requiresIssueNumber: requiresIssue,
+                    issuePrefixes: parsedIssuePrefixes,
+                    defaultIssueValue: defaultValue
                 )
 
                 print("Current:")
                 print("  Name: \(selected.name)")
                 print("  Requires Issue Number: \(selected.requiresIssueNumber)")
+                if !selected.issuePrefixes.isEmpty {
+                    print("  Issue Prefixes: \(selected.issuePrefixes.joined(separator: ", "))")
+                }
+                if let defaultIssue = selected.defaultIssueValue {
+                    print("  Default Issue: \(defaultIssue)")
+                }
                 print("Updated:")
                 print("  Name: \(updatedPrefix.name)")
                 print("  Requires Issue Number: \(updatedPrefix.requiresIssueNumber)")
+                if !updatedPrefix.issuePrefixes.isEmpty {
+                    print("  Issue Prefixes: \(updatedPrefix.issuePrefixes.joined(separator: ", "))")
+                }
+                if let defaultIssue = updatedPrefix.defaultIssueValue {
+                    print("  Default Issue: \(defaultIssue)")
+                }
                 try picker.requiredPermission("Save these changes?")
 
                 config.branchPrefixes[index] = updatedPrefix

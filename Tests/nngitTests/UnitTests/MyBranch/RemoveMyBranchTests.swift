@@ -98,7 +98,6 @@ struct RemoveMyBranchTests {
         picker.selectionResponses["Select MyBranches to remove from tracking"] = 0 // Select first branch
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
-
         let output = try Nngit.testRun(context: context, args: ["my-branches", "remove"])
 
         #expect(output.contains("✅ Removed 1 branches from MyBranches: feature-1"))
@@ -111,8 +110,7 @@ struct RemoveMyBranchTests {
     @Test("handles empty MyBranches gracefully")
     func handlesEmptyMyBranches() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
-        var config = GitConfig.defaultConfig // Empty myBranches by default
-        
+        let config = GitConfig.defaultConfig // Empty myBranches by default
         let shell = MockGitShell(responses: [
             localGitCheck: "true"
         ])

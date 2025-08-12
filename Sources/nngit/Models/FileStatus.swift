@@ -2,7 +2,7 @@
 //  FileStatus.swift
 //  nngit
 //
-//  Created by Claude on 7/9/25.
+//  Created by Nikolai Nobadi on 7/9/25.
 //
 
 import Foundation

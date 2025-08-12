@@ -69,7 +69,7 @@ struct CheckoutRemoteTests {
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
 
-        let output = try Nngit.testRun(context: context, args: ["checkout-remote"])
+        let output = try Nngit.testRun(context: context, args: ["checkout-remote", "--no-filter"])
 
         #expect(output.contains("No remote branches found that you authored."))
         #expect(configLoader.savedConfig == nil) // Should not save config if no action taken

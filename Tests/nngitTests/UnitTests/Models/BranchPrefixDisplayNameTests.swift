@@ -20,5 +20,17 @@ struct BranchPrefixDisplayNameTests {
         let prefix = BranchPrefix(name: "feat", requiresIssueNumber: true)
         #expect(prefix.displayName == "feat/<issueNumber>")
     }
+    
+    @Test("shows issue prefixes when configured")
+    func showsIssuePrefixes() throws {
+        let prefix = BranchPrefix(name: "feature", requiresIssueNumber: true, issuePrefixes: ["FRA-", "RAPP-", "BUG-"])
+        #expect(prefix.displayName == "feature/[FRA-|RAPP-]<issue>")
+    }
+    
+    @Test("handles single issue prefix")
+    func handlesSingleIssuePrefix() throws {
+        let prefix = BranchPrefix(name: "bugfix", requiresIssueNumber: true, issuePrefixes: ["FRA-"])
+        #expect(prefix.displayName == "bugfix/[FRA-]<issue>")
+    }
 
 }

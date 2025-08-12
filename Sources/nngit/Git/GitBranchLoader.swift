@@ -258,4 +258,25 @@ extension GitBranchLoader {
         let filteredNames = filterBranchNamesBySearch(names, search: search)
         return branches.filter { filteredNames.contains($0.name) }
     }
+    
+    /// Filters branch names by creation date, returning only branches created within the specified number of days.
+    func filterBranchNamesByDate(_ names: [String], shell: GitShell, withinDays days: Int) -> [String] {
+        let cutoffDate = Date().addingTimeInterval(-Double(days * 24 * 60 * 60))
+        let dateFormatter = ISO8601DateFormatter()
+        
+        return names.filter { name in
+            let cleanName = name.hasPrefix("*") ? String(name.dropFirst(2)) : name
+            
+            // Get the creation date of the branch using git log
+            if let output = try? shell.runWithOutput("git log -1 --format=%cI \(cleanName)") {
+                let dateString = output.trimmingCharacters(in: .whitespacesAndNewlines)
+                if let branchDate = dateFormatter.date(from: dateString) {
+                    return branchDate >= cutoffDate
+                }
+            }
+            
+            // If we can't get the date, include the branch (fail open)
+            return true
+        }
+    }
 }

@@ -15,7 +15,7 @@ A command-line utility for managing Git branches and history. `nngit` offers hel
 - **Interactive file staging and unstaging** with multi-selection
 - Track and manage your frequently used branches
 - Discard staged/unstaged changes
-- Undo commits with safety checks
+- Undo commits with soft/hard reset options and safety checks
 - Edit overall nngit configuration
 
 ## Installation
@@ -33,7 +33,7 @@ $ nngit staging stage              # Interactive file staging
 $ nngit staging unstage            # Interactive file unstaging  
 $ nngit my-branches add            # Track current branch
 $ nngit discard --files both
-$ nngit undo-commit 2
+$ nngit undo hard 2
 $ nngit edit-config --default-branch develop
 ```
 
@@ -57,8 +57,8 @@ $ nngit staging  # same as 'nngit staging stage'
 Below is an example showing how to add a prefix that requires an issue number and then create a branch using it:
 
 ```bash
-$ nngit add-branch-prefix feature --requires-issue-number --issue-number-prefix ISS-
-$ nngit new-branch --prefix feature --issue 42 "Add login screen"
+$ nngit add-branch-prefix feature --requires-issue-number --issue-prefixes "ISS-,TASK-" --default-issue "NO-JIRA"
+$ nngit new-branch "Add login screen" --branch-prefix-name feature --issue-number 42 --issue-prefix "ISS-"
 ```
 
 ### MyBranches Workflow
@@ -70,6 +70,16 @@ $ nngit my-branches            # List tracked branches (default subcommand)
 $ nngit my-branches remove     # Remove branches from tracked list
 ```
 
+### Undo Workflow
+Undo commits using soft or hard reset strategies:
+
+```bash
+$ nngit undo 3                 # Soft reset 3 commits (moves to staging area, default)
+$ nngit undo soft 2 --force    # Soft reset 2 commits, including from other authors
+$ nngit undo hard 1            # Hard reset 1 commit (completely discards changes)
+$ nngit undo hard 2 --force    # Hard reset 2 commits, including from other authors
+```
+
 ## Configuration
 `nngit` stores its settings in a JSON file located at
 `~/.config/nngit/config.json`.  This file is created automatically the first time
@@ -78,11 +88,12 @@ opening the file in your editor of choice.
 
 Branch prefixes are kept inside this same file.  A prefix represents the first
 segment of a branch name such as `feature` or `bugfix`.  Prefixes can optionally
-require an issue number and may provide a small string to prepend before the
-number.  Use the `add-branch-prefix`, `edit-branch-prefix`, `delete-branch-prefix`
-and `list-branch-prefix` commands to manage them.  When creating a new branch,
-`nngit` will combine the selected prefix, the issue number (if any) and your
-branch description to generate the final name.
+require an issue number and support multiple issue prefixes (e.g., "FRA-", "RAPP-") 
+with default values (e.g., "NO-JIRA").  Use the `add-branch-prefix`, `edit-branch-prefix`, 
+`delete-branch-prefix` and `list-branch-prefix` commands to manage them.  When creating 
+a new branch, `nngit` will combine the selected prefix, the issue prefix and number 
+(if any) and your branch description to generate the final name (e.g., 
+`feature/FRA-123/login-screen`).
 
 Non-Homebrew users can build the executable manually:
 

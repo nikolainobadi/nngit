@@ -67,7 +67,7 @@ def456 - Update README (John Doe, 1 day ago)
         let output = try runCommand(context, numberOfCommits: 0)
 
         #expect(shell.commands.isEmpty)
-        #expect(output.contains("number of commits to undo must be greater than 1"))
+        #expect(output.contains("number of commits to undo must be greater than 0"))
     }
 }
 
@@ -75,7 +75,7 @@ def456 - Update README (John Doe, 1 day ago)
 // MARK: - Helper Methods
 private extension UndoCommitCommandTests {
     func runCommand(_ context: NnGitContext, numberOfCommits: Int, force: Bool = false) throws -> String {
-        var args = ["undo-commit", String(numberOfCommits)]
+        var args = ["undo", "hard", String(numberOfCommits)]
         if force {
             args.append("--force")
         }

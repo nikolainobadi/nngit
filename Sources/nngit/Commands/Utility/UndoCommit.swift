@@ -7,11 +7,11 @@
 
 import ArgumentParser
 
-extension Nngit {
+extension Nngit.Undo {
     /// Command that discards one or more commits from the current branch.
-    struct UndoCommit: ParsableCommand {
+    struct Hard: ParsableCommand {
         static let configuration = CommandConfiguration(
-            abstract: "Runs 'git reset --hard HEAD, essentially discarding any number of commits."
+            abstract: "Runs 'git reset --hard HEAD~N', completely discarding commits and their changes."
         )
         
         @Argument(help: "The number of commits to discard. (default is 1)")
@@ -25,7 +25,7 @@ extension Nngit {
             let manager = Nngit.makeCommitManager()
             
             guard number > 0 else {
-                print("number of commits to undo must be greater than 1")
+                print("number of commits to undo must be greater than 0")
                 return
             }
             

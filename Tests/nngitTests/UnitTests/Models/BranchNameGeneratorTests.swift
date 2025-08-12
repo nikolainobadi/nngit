@@ -37,4 +37,37 @@ struct BranchNameGeneratorTests {
         #expect(result == "add-login2")
     }
     
+    @Test("adds issue prefix to issue number")
+    func addsIssuePrefix() throws {
+        let result = BranchNameGenerator.generate(
+            name: "login screen",
+            branchPrefix: "feature",
+            issueNumber: "36848",
+            issuePrefix: "FRA-"
+        )
+        #expect(result == "feature/FRA-36848/login-screen")
+    }
+    
+    @Test("handles empty branch name with issue")
+    func handlesEmptyBranchName() throws {
+        let result = BranchNameGenerator.generate(
+            name: "",
+            branchPrefix: "bugfix",
+            issueNumber: "123",
+            issuePrefix: "RAPP-"
+        )
+        #expect(result == "bugfix/RAPP-123")
+    }
+    
+    @Test("handles issue without prefix")
+    func handlesIssueWithoutPrefix() throws {
+        let result = BranchNameGenerator.generate(
+            name: "quick fix",
+            branchPrefix: "feature",
+            issueNumber: "NO-JIRA",
+            issuePrefix: ""
+        )
+        #expect(result == "feature/NO-JIRA/quick-fix")
+    }
+    
 }

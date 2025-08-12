@@ -24,6 +24,9 @@ extension Nngit {
 
         @Option(name: .shortAndLong, help: "Issue number to include in the branch name.")
         var issueNumber: String?
+        
+        @Option(name: .long, help: "Issue prefix to use (e.g., 'FRA-', 'RAPP-'). Use empty string for no prefix.")
+        var issuePrefix: String?
 
         @Flag(name: .long, help: "Select the branch prefix from a list of options.")
         var selectBranchPrefix: Bool = false
@@ -61,17 +64,37 @@ extension Nngit {
             }
 
             var issue = issueNumber
+            var selectedIssuePrefix: String? = issuePrefix
 
-            if let prefix = selectedPrefix, prefix.requiresIssueNumber {
-                if issue == nil || issue?.isEmpty == true {
-                    issue = try picker.getRequiredInput("Enter an issue number")
+            if let prefix = selectedPrefix {
+                // Handle issue prefix selection
+                if selectedIssuePrefix == nil && !prefix.issuePrefixes.isEmpty {
+                    if prefix.issuePrefixes.count == 1 {
+                        selectedIssuePrefix = prefix.issuePrefixes.first
+                    } else {
+                        selectedIssuePrefix = try selectIssuePrefix(from: prefix.issuePrefixes, picker: picker)
+                    }
+                }
+                
+                // Handle issue number requirement
+                if prefix.requiresIssueNumber {
+                    if issue == nil || issue?.isEmpty == true {
+                        if let defaultValue = prefix.defaultIssueValue,
+                           picker.getPermission("Use default issue value '\(defaultValue)'?") {
+                            issue = defaultValue
+                            selectedIssuePrefix = "" // Don't add prefix to default values
+                        } else {
+                            issue = try picker.getRequiredInput("Enter an issue number")
+                        }
+                    }
                 }
             }
 
             let fullBranchName = BranchNameGenerator.generate(
                 name: branchName,
                 branchPrefix: selectedPrefix?.name,
-                issueNumber: issue
+                issueNumber: issue,
+                issuePrefix: selectedIssuePrefix
             )
 
             try shell.runGitCommandWithOutput(.newBranch(branchName: fullBranchName), path: nil)
@@ -112,10 +135,25 @@ extension Nngit.NewBranch {
         let selection = try picker.requiredSingleSelection("Select a branch prefix", items: items)
         return selection.prefix
     }
+    
+    /// Prompts the user to choose an issue prefix from available options.
+    func selectIssuePrefix(from prefixes: [String], picker: Picker) throws -> String? {
+        let items = prefixes.map { IssuePrefixChoice(prefix: $0) }
+        let selection = try picker.requiredSingleSelection("Select an issue prefix", items: items)
+        return selection.prefix.isEmpty ? nil : selection.prefix
+    }
 }
 
 /// Wrapper allowing optional branch prefixes in picker selections.
 private struct BranchPrefixChoice: DisplayablePickerItem {
     let prefix: BranchPrefix?
     var displayName: String { prefix?.displayName ?? "No Prefix" }
+}
+
+/// Wrapper for issue prefix selection.
+private struct IssuePrefixChoice: DisplayablePickerItem {
+    let prefix: String
+    var displayName: String {
+        prefix.isEmpty ? "No issue prefix" : prefix
+    }
 }

@@ -149,7 +149,7 @@ extension Nngit.DeleteBranch {
     }
     
     /// Deletes multiple branches and returns the names of successfully deleted branches.
-    func deleteBranches(_ branches: [GitBranch], shell: GitShell, picker: Picker, defaultBranch: String) throws -> [String] {
+    func deleteBranches(_ branches: [GitBranch], shell: GitShell, picker: CommandLinePicker, defaultBranch: String) throws -> [String] {
         var deletedBranchNames: [String] = []
         
         for branch in branches {
@@ -183,7 +183,7 @@ extension Nngit.DeleteBranch {
     }
     
     /// Runs branch deletion using MyBranches array
-    private func runWithMyBranches(shell: GitShell, picker: Picker, config: inout GitConfig, configLoader: GitConfigLoader) throws {
+    private func runWithMyBranches(shell: GitShell, picker: CommandLinePicker, config: inout GitConfig, configLoader: GitConfigLoader) throws {
         // Get current branch to exclude it from deletion
         let currentBranchName = try shell.runWithOutput(makeGitCommand(.getCurrentBranchName, path: nil))
             .trimmingCharacters(in: .whitespacesAndNewlines)

@@ -112,7 +112,7 @@ extension Nngit {
 
 extension Nngit.NewBranch {
     /// Rebases the default branch if configured and the user approves.
-    func rebaseIfNecessary(shell: GitShell, config: GitConfig, picker: Picker) throws {
+    func rebaseIfNecessary(shell: GitShell, config: GitConfig, picker: CommandLinePicker) throws {
         guard try shell.remoteExists(path: nil) else {
             return
         }
@@ -130,14 +130,14 @@ extension Nngit.NewBranch {
     }
 
     /// Prompts the user to choose a branch prefix or none.
-    func choosePrefix(from list: [BranchPrefix], picker: Picker) throws -> BranchPrefix? {
+    func choosePrefix(from list: [BranchPrefix], picker: CommandLinePicker) throws -> BranchPrefix? {
         let items = list.map { BranchPrefixChoice(prefix: $0) } + [BranchPrefixChoice(prefix: nil)]
         let selection = try picker.requiredSingleSelection("Select a branch prefix", items: items)
         return selection.prefix
     }
     
     /// Prompts the user to choose an issue prefix from available options.
-    func selectIssuePrefix(from prefixes: [String], picker: Picker) throws -> String? {
+    func selectIssuePrefix(from prefixes: [String], picker: CommandLinePicker) throws -> String? {
         let items = prefixes.map { IssuePrefixChoice(prefix: $0) }
         let selection = try picker.requiredSingleSelection("Select an issue prefix", items: items)
         return selection.prefix.isEmpty ? nil : selection.prefix

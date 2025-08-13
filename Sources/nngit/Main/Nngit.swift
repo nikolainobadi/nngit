@@ -29,8 +29,8 @@ struct Nngit: ParsableCommand {
 }
 
 extension Nngit {
-    /// Returns the picker used for user interaction. Defaults to ``SwiftPicker``.
-    static func makePicker() -> Picker {
+    /// Returns the picker used for user interaction. Defaults to ``InteractivePicker``.
+    static func makePicker() -> CommandLinePicker {
         return context.makePicker()
     }
 
@@ -57,7 +57,7 @@ extension Nngit {
 
 protocol NnGitContext {
     /// Creates the picker used for user interaction.
-    func makePicker() -> Picker
+    func makePicker() -> CommandLinePicker
     /// Creates the shell used for executing git commands.
     func makeShell() -> GitShell
     /// Provides a commit manager for commit related operations.
@@ -69,9 +69,9 @@ protocol NnGitContext {
 }
 
 struct DefaultContext: NnGitContext {
-    /// Default implementation returning ``SwiftPicker``.
-    func makePicker() -> Picker {
-        return SwiftPicker()
+    /// Default implementation returning ``InteractivePicker``.
+    func makePicker() -> CommandLinePicker {
+        return InteractivePicker()
     }
     
     /// Default implementation returning ``GitShellAdapter``.

@@ -321,7 +321,7 @@ private class StubConfigLoader: GitConfigLoader {
     var savedConfig: GitConfig?
     
     init(initialConfig: GitConfig) { self.initialConfig = initialConfig }
-    func loadConfig(picker: Picker) throws -> GitConfig { initialConfig }
+    func loadConfig(picker: CommandLinePicker) throws -> GitConfig { initialConfig }
     func save(_ config: GitConfig) throws { 
         savedConfig = config
     }

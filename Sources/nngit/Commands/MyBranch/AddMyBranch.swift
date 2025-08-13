@@ -92,7 +92,7 @@ extension Nngit.MyBranches {
         }
         
         /// Prompts user to select branches to add
-        private func selectAndAddBranch(shell: GitShell, picker: Picker, config: inout GitConfig, configLoader: GitConfigLoader, branchLoader: GitBranchLoader) throws {
+        private func selectAndAddBranch(shell: GitShell, picker: CommandLinePicker, config: inout GitConfig, configLoader: GitConfigLoader, branchLoader: GitBranchLoader) throws {
             let existingBranches = try branchLoader.loadBranchNames(from: .local, shell: shell)
                 .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "* ", with: "") }
             

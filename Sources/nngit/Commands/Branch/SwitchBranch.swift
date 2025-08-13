@@ -118,7 +118,7 @@ extension Nngit {
         }
         
         /// Runs branch switching using MyBranches array
-        private func runWithMyBranches(shell: GitShell, picker: Picker, config: GitConfig) throws {
+        private func runWithMyBranches(shell: GitShell, picker: CommandLinePicker, config: GitConfig) throws {
             // Get current branch to exclude it from selection
             let currentBranchName = try shell.runWithOutput(makeGitCommand(.getCurrentBranchName, path: nil))
                 .trimmingCharacters(in: .whitespacesAndNewlines)

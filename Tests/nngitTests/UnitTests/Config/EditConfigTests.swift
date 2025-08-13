@@ -102,7 +102,7 @@ private extension EditConfigTests {
             self.initialConfig = initialConfig
         }
 
-        func loadConfig(picker: Picker) throws -> GitConfig {
+        func loadConfig(picker: CommandLinePicker) throws -> GitConfig {
             return initialConfig
         }
 

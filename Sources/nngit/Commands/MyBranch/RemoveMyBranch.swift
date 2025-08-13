@@ -69,7 +69,7 @@ extension Nngit.MyBranches {
         }
         
         /// Prompts user to select MyBranches to remove
-        private func selectAndRemoveMyBranches(picker: Picker, config: inout GitConfig, configLoader: GitConfigLoader) throws {
+        private func selectAndRemoveMyBranches(picker: CommandLinePicker, config: inout GitConfig, configLoader: GitConfigLoader) throws {
             let selectedBranches = picker.multiSelection("Select MyBranches to remove from tracking", items: config.myBranches)
             
             if selectedBranches.isEmpty {

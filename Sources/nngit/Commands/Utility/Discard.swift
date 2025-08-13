@@ -67,7 +67,7 @@ extension Nngit.Discard {
     }
     
     /// Handles file selection mode for discarding specific files.
-    func handleFileSelection(shell: GitShell, picker: Picker) throws {
+    func handleFileSelection(shell: GitShell, picker: CommandLinePicker) throws {
         let gitOutput = try shell.runGitCommandWithOutput(.getLocalChanges, path: nil)
         let allFiles = FileStatus.parseFromGitStatus(gitOutput)
         

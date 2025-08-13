@@ -17,8 +17,8 @@ final class MockPicker {
 }
 
 
-// MARK: - Picker
-extension MockPicker: Picker {
+// MARK: - CommandLinePicker
+extension MockPicker: CommandLinePicker {
     func getInput(prompt: PickerPrompt) -> String {
         return requiredInputResponses[prompt.title] ?? ""
     }

@@ -29,7 +29,7 @@ final class MockContext {
 
 // MARK: - Context
 extension MockContext: NnGitContext {
-    func makePicker() -> Picker {
+    func makePicker() -> CommandLinePicker {
         if let picker {
             return picker
         }

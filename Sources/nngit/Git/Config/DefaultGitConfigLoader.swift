@@ -22,7 +22,7 @@ extension DefaultGitConfigLoader {
     }
 
     /// Loads the configuration from disk or creates a new one by prompting the user.
-    func loadConfig(picker: Picker) throws -> GitConfig {
+    func loadConfig(picker: CommandLinePicker) throws -> GitConfig {
         do {
             return try load()
         } catch {

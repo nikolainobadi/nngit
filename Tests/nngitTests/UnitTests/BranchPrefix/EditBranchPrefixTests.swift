@@ -84,7 +84,7 @@ private class StubConfigLoader: GitConfigLoader {
         self.initialConfig = initialConfig
     }
 
-    func loadConfig(picker: Picker) throws -> GitConfig {
+    func loadConfig(picker: CommandLinePicker) throws -> GitConfig {
         return initialConfig
     }
 

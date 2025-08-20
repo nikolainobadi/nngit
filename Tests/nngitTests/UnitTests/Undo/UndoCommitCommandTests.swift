@@ -69,6 +69,26 @@ def456 - Update README (John Doe, 1 day ago)
         #expect(shell.commands.isEmpty)
         #expect(output.contains("number of commits to undo must be greater than 0"))
     }
+
+    @Test("does not undo commits when permission is denied")
+    func doesNotUndoWhenPermissionDenied() throws {
+        let responses = [
+            "git config user.name": "John Doe",
+            "git log -n 1 --pretty=format:'%h - %s (%an, %ar)'": "abc123 - Initial commit (John Doe, 2 days ago)"
+        ]
+
+        let shell = MockGitShell(responses: responses)
+        let picker = MockPicker()
+        picker.permissionResponses["Are you sure you want to hard reset 1 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."] = false
+        let context = MockContext(picker: picker, shell: shell)
+
+        #expect(throws: (any Error).self) {
+            _ = try runCommand(context, numberOfCommits: 1)
+        }
+
+        #expect(!shell.commands.contains("git reset --hard HEAD~1"))
+        #expect(picker.requiredPermissions.contains("Are you sure you want to hard reset 1 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
+    }
 }
 
 

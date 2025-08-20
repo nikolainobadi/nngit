@@ -38,6 +38,7 @@ extension MockContext: NnGitContext {
         picker = newPicker
         return newPicker
     }
+    
     func makeShell() -> GitShell {
         if let shell {
             return shell

@@ -11,21 +11,12 @@
       }
     },
     {
-      "identity" : "files",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/JohnSundell/Files.git",
-      "state" : {
-        "revision" : "e85f2b4a8dfa0f242889f45236f3867d16e40480",
-        "version" : "4.3.0"
-      }
-    },
-    {
       "identity" : "nnconfigkit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nikolainobadi/NnConfigKit.git",
       "state" : {
         "branch" : "nnshellkit",
-        "revision" : "feff558c65577a5660a710db4d08db5a2b443b07"
+        "revision" : "22ecdf26012e6898f318c29f3bce4a5773d90c8a"
       }
     },
     {

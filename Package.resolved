@@ -1,5 +1,5 @@
 {
-  "originHash" : "7801a2692aeea4e72aeda9efacba7068bd7062681713b19760ad637638eaddc4",
+  "originHash" : "d5d0a68c969f99da38c069fcc7bd59f80a3638d9fe0a54f16ab168aa43f01c39",
   "pins" : [
     {
       "identity" : "ansiterminalmodified",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nikolainobadi/NnConfigKit.git",
       "state" : {
-        "branch" : "nnshellkit",
-        "revision" : "22ecdf26012e6898f318c29f3bce4a5773d90c8a"
+        "revision" : "05f13ae8b8feb02e8d980c01757a27446cfa2367",
+        "version" : "1.1.0"
       }
     },
     {

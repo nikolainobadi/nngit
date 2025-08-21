@@ -14,9 +14,9 @@ let package = Package(
             targets: ["nngit"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/kareman/SwiftShell", from: "5.0.0"),
         .package(url: "https://github.com/nikolainobadi/NnGitKit.git", from: "0.5.0"),
-        .package(url: "https://github.com/nikolainobadi/NnConfigKit.git", from: "1.0.0"),
+        .package(url: "https://github.com/nikolainobadi/NnShellKit.git", from: "1.0.0"),
+        .package(url: "https://github.com/nikolainobadi/NnConfigKit.git", from: "1.1.0"),
         .package(url: "https://github.com/nikolainobadi/SwiftPicker.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.0"),
     ],
@@ -24,7 +24,7 @@ let package = Package(
         .executableTarget(
             name: "nngit",
             dependencies: [
-                "SwiftShell",
+                "NnShellKit",
                 "NnConfigKit",
                 "SwiftPicker",
                 .product(name: "GitShellKit", package: "NnGitKit"),

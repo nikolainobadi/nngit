@@ -1,5 +1,5 @@
 {
-  "originHash" : "331f1ec8845caa130493768fef66421d4c060d8ebb26789fd3e4650c842d3006",
+  "originHash" : "d5d0a68c969f99da38c069fcc7bd59f80a3638d9fe0a54f16ab168aa43f01c39",
   "pins" : [
     {
       "identity" : "ansiterminalmodified",
@@ -11,21 +11,12 @@
       }
     },
     {
-      "identity" : "files",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/JohnSundell/Files.git",
-      "state" : {
-        "revision" : "e85f2b4a8dfa0f242889f45236f3867d16e40480",
-        "version" : "4.3.0"
-      }
-    },
-    {
       "identity" : "nnconfigkit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nikolainobadi/NnConfigKit.git",
       "state" : {
-        "revision" : "d7f1a0291b81bcd91fbbdbb6a5a8e13a822f4a10",
-        "version" : "1.0.0"
+        "revision" : "05f13ae8b8feb02e8d980c01757a27446cfa2367",
+        "version" : "1.1.0"
       }
     },
     {
@@ -35,6 +26,15 @@
       "state" : {
         "revision" : "8311eaa6da2b62672935ec386d67f32d8bf9d1a6",
         "version" : "0.6.1"
+      }
+    },
+    {
+      "identity" : "nnshellkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nikolainobadi/NnShellKit.git",
+      "state" : {
+        "revision" : "8348d74b829a5815dc9890413606c98951e6d759",
+        "version" : "1.0.0"
       }
     },
     {
@@ -53,15 +53,6 @@
       "state" : {
         "revision" : "4071f15d77b87c32a33b7ae7ac5dc789a59169c3",
         "version" : "1.0.0"
-      }
-    },
-    {
-      "identity" : "swiftshell",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kareman/SwiftShell",
-      "state" : {
-        "revision" : "99680b2efc7c7dbcace1da0b3979d266f02e213c",
-        "version" : "5.1.0"
       }
     }
   ],

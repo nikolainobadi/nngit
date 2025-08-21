@@ -93,25 +93,6 @@ struct BranchDiffTests {
         #expect(output.contains("📊 Showing diff between 'develop' and 'feature/test-branch':"))
         #expect(shell.commands.contains("git diff develop...HEAD"))
     }
-    
-    @Test("shows copy confirmation when copy flag is used")
-    func showsCopyConfirmationWhenCopyFlagUsed() throws {
-        let responses = [
-            makeGitCommand(.localGitCheck, path: nil): "true",
-            "git branch --show-current": "feature/test-branch",
-            "git show-ref --verify --quiet refs/heads/main": "",
-            "git diff main...HEAD": "diff --git a/file.swift b/file.swift\nindex 1234567..abcdefg 100644\n--- a/file.swift\n+++ b/file.swift\n@@ -1,3 +1,4 @@\n line 1\n line 2\n+added line\n line 3"
-        ]
-        
-        let shell = MockGitShell(responses: responses)
-        let picker = MockPicker()
-        let context = MockContext(picker: picker, shell: shell)
-        
-        let output = try runCommand(context, copy: true)
-        
-        #expect(output.contains("✅ Diff copied to clipboard"))
-        #expect(output.contains("📊 Showing diff between 'main' and 'feature/test-branch':"))
-    }
 }
 
 

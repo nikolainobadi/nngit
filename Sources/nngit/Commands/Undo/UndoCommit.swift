@@ -23,6 +23,7 @@ extension Nngit.Undo {
         /// Executes the command using the shared context components.
         func run() throws {
             let manager = Nngit.makeCommitManager()
+            let picker = Nngit.makePicker()
             
             guard number > 0 else {
                 print("number of commits to undo must be greater than 0")
@@ -44,7 +45,8 @@ extension Nngit.Undo {
                 }
             }
             
-            print("should undo \(number) commits by running the command: git reset --hard HEAD~\(number)")
+            try picker.requiredPermission("Are you sure you want to hard reset \(number) commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action.")
+            
             try manager.undoCommits(count: number)
         }
     }

@@ -5,24 +5,35 @@
 //  Created by Nikolai Nobadi on 6/8/25.
 //
 
-import SwiftShell
+import NnShellKit
 import GitShellKit
 
 /// Concrete implementation of ``GitShell`` that executes commands using
-/// ``SwiftShell``.
+/// ``NnShellKit``.
 struct GitShellAdapter: GitShell {
+    private let shell: Shell
+    
+    /// Initializes the adapter with a shell implementation.
+    ///
+    /// - Parameter shell: The shell to use for command execution. Defaults to NnShell().
+    init(shell: Shell = NnShell()) {
+        self.shell = shell
+    }
+    
     /// Runs the provided command via the underlying shell and returns the
     /// standard output produced by the command.
     ///
     /// - Parameter command: The git command to execute.
     /// - Returns: The standard output from the shell.
     func runWithOutput(_ command: String) throws -> String {
-        let result = SwiftShell.run(bash: command)
-        if result.exitcode != 0 {
-            let output = (result.stdout + result.stderror).trimmingCharacters(in: .whitespacesAndNewlines)
-            throw GitShellError.commandFailed(code: Int32(result.exitcode), command: command, output: output)
+        do {
+            return try shell.bash(command)
+        } catch let shellError as ShellError {
+            switch shellError {
+            case .failed(_, let code, let output):
+                throw GitShellError.commandFailed(code: code, command: command, output: output)
+            }
         }
-        return result.stdout
     }
 }
 

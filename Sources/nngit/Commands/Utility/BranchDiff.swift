@@ -5,7 +5,7 @@
 //  Created by Nikolai Nobadi on 7/9/25.
 //
 
-import AppKit
+import Foundation
 import GitShellKit
 import SwiftPicker
 import ArgumentParser
@@ -67,25 +67,8 @@ extension Nngit {
                 return
             }
             
-            if copy {
-                try copyToClipboard(diffOutput)
-                print("✅ Diff copied to clipboard")
-                print("📊 Showing diff between '\(targetBaseBranch)' and '\(currentBranch)':")
-                print(diffOutput)
-            } else {
-                print("📊 Showing diff between '\(targetBaseBranch)' and '\(currentBranch)':")
-                print(diffOutput)
-            }
-        }
-        
-        /// Copies the provided string to the system clipboard.
-        private func copyToClipboard(_ text: String) throws {
-            let pasteboard = NSPasteboard.general
-            pasteboard.clearContents()
-            
-            guard pasteboard.setString(text, forType: .string) else {
-                throw BranchDiffError.clipboardFailed
-            }
+            print("📊 Showing diff between '\(targetBaseBranch)' and '\(currentBranch)':")
+            print(diffOutput)
         }
     }
 }

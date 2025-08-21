@@ -1,4 +1,5 @@
 import Testing
+import NnShellKit
 @testable import nngit
 
 struct GitShellAdapterTests {
@@ -20,5 +21,16 @@ struct GitShellAdapterTests {
                 return false
             }
         }
+    }
+    
+    @Test("uses injected shell for command execution")
+    func usesInjectedShell() throws {
+        let mockShell = MockShell(results: ["test output"])
+        let adapter = GitShellAdapter(shell: mockShell)
+        
+        let result = try adapter.runWithOutput("git status")
+        
+        #expect(result == "test output")
+        #expect(mockShell.executedCommands.first == "git status")
     }
 }

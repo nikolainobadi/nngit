@@ -32,7 +32,7 @@ extension Nngit {
             let config = try Nngit.makeConfigLoader().loadConfig(picker: picker)
             let manager = SwitchBranchManager(branchLocation: branchLocation, shell: shell, picker: picker, branchLoader: branchLoader, config: config)
             
-            try manager.executeSwitchWorkflow(search: search)
+            try manager.switchBranch(search: search)
         }
     }
 }

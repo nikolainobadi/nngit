@@ -28,6 +28,26 @@ struct SwitchBranchManager {
 
 // MARK: - Branch Switching Operations
 extension SwitchBranchManager {
+    func switchBranch(search: String?) throws {
+        let branchNames = try branchLoader.loadBranchNames(from: branchLocation, shell: shell)
+        
+        guard let filteredNames = try handleSearchAndFiltering(branchNames: branchNames, search: search) else {
+            return
+        }
+        
+        let branches = try loadBranchData(branchNames: filteredNames)
+        let (currentBranch, availableBranches) = prepareBranchSelection(branches: branches)
+        
+        try selectAndSwitchBranch(
+            availableBranches: availableBranches, 
+            currentBranch: currentBranch
+        )
+    }
+}
+
+
+// MARK: - Private Methods
+private extension SwitchBranchManager {
     func handleSearchAndFiltering(branchNames: [String], search: String?) throws -> [String]? {
         var filteredNames = branchNames
         
@@ -77,21 +97,5 @@ extension SwitchBranchManager {
         let selectedBranch = try self.picker.requiredSingleSelection("Select a branch \(details)", items: availableBranches)
 
         try self.shell.runGitCommandWithOutput(.switchBranch(branchName: selectedBranch.name), path: nil)
-    }
-    
-    func executeSwitchWorkflow(search: String?) throws {
-        let branchNames = try branchLoader.loadBranchNames(from: branchLocation, shell: shell)
-        
-        guard let filteredNames = try handleSearchAndFiltering(branchNames: branchNames, search: search) else {
-            return
-        }
-        
-        let branches = try loadBranchData(branchNames: filteredNames)
-        let (currentBranch, availableBranches) = prepareBranchSelection(branches: branches)
-        
-        try selectAndSwitchBranch(
-            availableBranches: availableBranches, 
-            currentBranch: currentBranch
-        )
     }
 }

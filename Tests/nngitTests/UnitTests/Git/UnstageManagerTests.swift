@@ -17,7 +17,7 @@ struct UnstageManagerTests {
         let shell = MockShell(results: ["A  added.txt\nM  modified.txt", ""])
         let picker = MockPicker(selectionResponses: ["Select files to unstage:": 0])
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeUnstageWorkflow()
+        try manager.unstageFiles()
         
         #expect(shell.executedCommands.contains("git status --porcelain"))
         #expect(shell.executedCommands.contains("git reset HEAD \"added.txt\""))
@@ -28,7 +28,7 @@ struct UnstageManagerTests {
         let shell = MockShell(results: [" M modified.txt\n?? untracked.txt"])
         let picker = MockPicker()
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeUnstageWorkflow()
+        try manager.unstageFiles()
         
         #expect(shell.executedCommands.contains("git status --porcelain"))
         #expect(!shell.executedCommands.contains { $0.contains("git reset HEAD") })
@@ -39,7 +39,7 @@ struct UnstageManagerTests {
         let shell = MockShell(results: [" M unstaged_only.txt"])
         let picker = MockPicker()
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeUnstageWorkflow()
+        try manager.unstageFiles()
         
         #expect(shell.executedCommands.contains("git status --porcelain"))
         #expect(!shell.executedCommands.contains { $0.contains("git reset HEAD") })
@@ -50,7 +50,7 @@ struct UnstageManagerTests {
         let shell = MockShell(results: ["A  added.txt"])
         let picker = MockPicker() // No selection responses = cancellation
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeUnstageWorkflow()
+        try manager.unstageFiles()
         
         #expect(shell.executedCommands.contains("git status --porcelain"))
         #expect(!shell.executedCommands.contains { $0.contains("git reset HEAD") })
@@ -61,7 +61,7 @@ struct UnstageManagerTests {
         let shell = MockShell(results: ["A  file1.txt\nM  file2.txt\nD  file3.txt", ""])
         let picker = MockPicker(selectionResponses: ["Select files to unstage:": 0]) // MockPicker only selects first
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeUnstageWorkflow()
+        try manager.unstageFiles()
         
         #expect(shell.executedCommands.contains("git status --porcelain"))
         #expect(shell.executedCommands.contains("git reset HEAD \"file1.txt\""))
@@ -72,7 +72,7 @@ struct UnstageManagerTests {
         let shell = MockShell(results: [" M unstaged.txt\nA  staged.txt\n?? untracked.txt", ""])
         let picker = MockPicker(selectionResponses: ["Select files to unstage:": 0])
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeUnstageWorkflow()
+        try manager.unstageFiles()
         
         // Should only offer staged.txt for unstaging (not unstaged or untracked files)
         #expect(shell.executedCommands.contains("git reset HEAD \"staged.txt\""))
@@ -83,7 +83,7 @@ struct UnstageManagerTests {
         let shell = MockShell(results: ["A  \"file with spaces.txt\"\nM  \"file'with'quotes.txt\"", ""])
         let picker = MockPicker(selectionResponses: ["Select files to unstage:": 0])
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeUnstageWorkflow()
+        try manager.unstageFiles()
         
         #expect(shell.executedCommands.contains { $0.contains("git reset HEAD") && $0.contains("file with spaces.txt") })
     }
@@ -93,7 +93,7 @@ struct UnstageManagerTests {
         let shell = MockShell(results: ["MM both_modified.txt\nA  new_staged.txt\n M unstaged_only.txt\n?? untracked.txt", ""])
         let picker = MockPicker(selectionResponses: ["Select files to unstage:": 0])
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeUnstageWorkflow()
+        try manager.unstageFiles()
         
         // Should unstage the first available file (both_modified.txt has staged changes)
         #expect(shell.executedCommands.contains("git reset HEAD \"both_modified.txt\""))
@@ -104,7 +104,7 @@ struct UnstageManagerTests {
         let shell = MockShell(results: ["A  file1.txt\nM  file2.txt", ""])
         let picker = MockPicker(selectionResponses: ["Select files to unstage:": 0])
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeUnstageWorkflow()
+        try manager.unstageFiles()
         
         // Verify git status is called first
         #expect(shell.executedCommands.first == "git status --porcelain")

@@ -22,7 +22,7 @@ struct UnstageManager {
 
 // MARK: - File Unstaging Operations
 extension UnstageManager {
-    func executeUnstageWorkflow() throws {
+    func unstageFiles() throws {
         let allFiles = try loadAllFiles()
         let stagedFiles = filterStagedFiles(allFiles)
         

@@ -17,7 +17,7 @@ struct StageManagerTests {
         let shell = MockShell(results: [" M modified.txt\n?? untracked.txt", ""])
         let picker = MockPicker(selectionResponses: ["Select files to stage:": 0])
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeStageWorkflow()
+        try manager.stageFiles()
         
         #expect(shell.executedCommands.contains("git status --porcelain"))
         #expect(shell.executedCommands.contains("git add \"modified.txt\""))
@@ -28,7 +28,7 @@ struct StageManagerTests {
         let shell = MockShell(results: [""]) // Empty git status
         let picker = MockPicker()
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeStageWorkflow()
+        try manager.stageFiles()
         
         #expect(shell.executedCommands.contains("git status --porcelain"))
         #expect(!shell.executedCommands.contains { $0.contains("git add") })
@@ -39,7 +39,7 @@ struct StageManagerTests {
         let shell = MockShell(results: ["A  already_staged.txt"]) // Only staged files
         let picker = MockPicker()
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeStageWorkflow()
+        try manager.stageFiles()
         
         #expect(shell.executedCommands.contains("git status --porcelain"))
         #expect(!shell.executedCommands.contains { $0.contains("git add") })
@@ -50,7 +50,7 @@ struct StageManagerTests {
         let shell = MockShell(results: [" M modified.txt"])
         let picker = MockPicker() // No selection responses = cancellation
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeStageWorkflow()
+        try manager.stageFiles()
         
         #expect(shell.executedCommands.contains("git status --porcelain"))
         #expect(!shell.executedCommands.contains { $0.contains("git add") })
@@ -61,7 +61,7 @@ struct StageManagerTests {
         let shell = MockShell(results: [" M file1.txt\n?? file2.txt\n M file3.txt", ""])
         let picker = MockPicker(selectionResponses: ["Select files to stage:": 0]) // MockPicker only selects first
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeStageWorkflow()
+        try manager.stageFiles()
         
         #expect(shell.executedCommands.contains("git status --porcelain"))
         #expect(shell.executedCommands.contains("git add \"file1.txt\""))
@@ -72,7 +72,7 @@ struct StageManagerTests {
         let shell = MockShell(results: ["A  staged.txt\n M modified.txt\n?? untracked.txt", ""])
         let picker = MockPicker(selectionResponses: ["Select files to stage:": 0])
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeStageWorkflow()
+        try manager.stageFiles()
         
         // Should only offer modified.txt and untracked.txt for staging (not already staged files)
         #expect(shell.executedCommands.contains("git add \"modified.txt\""))
@@ -83,7 +83,7 @@ struct StageManagerTests {
         let shell = MockShell(results: [" M \"file with spaces.txt\"\n?? \"file'with'quotes.txt\"", ""])
         let picker = MockPicker(selectionResponses: ["Select files to stage:": 0])
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeStageWorkflow()
+        try manager.stageFiles()
         
         #expect(shell.executedCommands.contains { $0.contains("git add") && $0.contains("file with spaces.txt") })
     }
@@ -93,7 +93,7 @@ struct StageManagerTests {
         let shell = MockShell(results: ["?? new_file.txt\n?? another_new.txt", ""])
         let picker = MockPicker(selectionResponses: ["Select files to stage:": 0])
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeStageWorkflow()
+        try manager.stageFiles()
         
         #expect(shell.executedCommands.contains("git add \"new_file.txt\""))
     }
@@ -103,7 +103,7 @@ struct StageManagerTests {
         let shell = MockShell(results: ["MM both_modified.txt\n M staged_modified.txt\nA  new_staged.txt\n?? untracked.txt", ""])
         let picker = MockPicker(selectionResponses: ["Select files to stage:": 0])
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeStageWorkflow()
+        try manager.stageFiles()
         
         // Should stage the first available file (both_modified.txt has unstaged changes)
         #expect(shell.executedCommands.contains("git add \"both_modified.txt\""))
@@ -114,7 +114,7 @@ struct StageManagerTests {
         let shell = MockShell(results: [" M file1.txt\n M file2.txt", ""])
         let picker = MockPicker(selectionResponses: ["Select files to stage:": 0])
         let manager = makeSUT(shell: shell, picker: picker)
-        try manager.executeStageWorkflow()
+        try manager.stageFiles()
         
         // Verify git status is called first
         #expect(shell.executedCommands.first == "git status --porcelain")

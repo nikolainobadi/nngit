@@ -31,7 +31,7 @@ extension Nngit {
             let config = try Nngit.makeConfigLoader().loadConfig(picker: picker)
             let manager = DeleteBranchManager(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
             
-            try manager.executeDeleteWorkflow(search: search, allMerged: allMerged)
+            try manager.deleteBranches(search: search, allMerged: allMerged)
         }
     }
 }

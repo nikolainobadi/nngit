@@ -30,7 +30,7 @@ extension Nngit.Undo {
             let manager = SoftResetManager(helper: helper, commitManager: commitManager)
             
             do {
-                try manager.executeSoftResetWorkflow(select: select, number: number, force: force)
+                try manager.performSoftReset(select: select, number: number, force: force)
             } catch GitResetError.invalidCount {
                 print("Number of commits to reset must be greater than 0")
             }

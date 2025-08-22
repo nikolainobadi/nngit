@@ -21,7 +21,7 @@ struct SoftResetManager {
 
 // MARK: - Soft Reset Operations
 extension SoftResetManager {
-    func executeSoftResetWorkflow(select: Bool, number: Int, force: Bool) throws {
+    func performSoftReset(select: Bool, number: Int, force: Bool) throws {
         guard let result = try handleCommitSelection(select: select, number: number) else { return }
         let (resetCount, commitInfo) = (result.count, result.commits)
         

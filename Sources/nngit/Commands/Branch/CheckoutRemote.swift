@@ -24,7 +24,7 @@ extension Nngit {
             let branchLoader = Nngit.makeBranchLoader()
             let manager = CheckoutRemoteManager(shell: shell, picker: picker, branchLoader: branchLoader)
             
-            try manager.executeCheckoutWorkflow()
+            try manager.checkoutRemote()
         }
     }
 }

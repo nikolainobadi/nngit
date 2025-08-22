@@ -26,6 +26,27 @@ struct DeleteBranchManager {
 
 // MARK: - Branch Deletion Operations
 extension DeleteBranchManager {
+    func deleteBranches(search: String?, allMerged: Bool) throws {
+        let branchNames = try loadEligibleBranchNames()
+        
+        guard let filteredNames = try handleSearchAndFiltering(branchNames: branchNames, search: search) else {
+            return
+        }
+        
+        let eligibleBranches = try loadBranchData(branchNames: filteredNames)
+        
+        guard let branchesToDelete = selectBranchesToDelete(eligibleBranches: eligibleBranches, allMerged: allMerged) else {
+            return
+        }
+        
+        let _ = try performDeletion(branchesToDelete)
+        try pruneOriginIfExists()
+    }
+}
+
+
+// MARK: - Private Methods
+private extension DeleteBranchManager {
     func loadEligibleBranchNames() throws -> [String] {
         return try branchLoader.loadBranchNames(from: .local, shell: shell)
             .filter { name in
@@ -76,7 +97,7 @@ extension DeleteBranchManager {
         let _ = try shell.runWithOutput(makeGitCommand(.deleteBranch(name: branch.name, forced: forced), path: nil))
     }
     
-    func deleteBranches(_ branches: [GitBranch]) throws -> [String] {
+    func performDeletion(_ branches: [GitBranch]) throws -> [String] {
         var deletedBranchNames: [String] = []
         
         for branch in branches {
@@ -100,22 +121,5 @@ extension DeleteBranchManager {
         if (try? shell.remoteExists(path: nil)) == true {
             let _ = try shell.runWithOutput(makeGitCommand(.pruneOrigin, path: nil))
         }
-    }
-    
-    func executeDeleteWorkflow(search: String?, allMerged: Bool) throws {
-        let branchNames = try loadEligibleBranchNames()
-        
-        guard let filteredNames = try handleSearchAndFiltering(branchNames: branchNames, search: search) else {
-            return
-        }
-        
-        let eligibleBranches = try loadBranchData(branchNames: filteredNames)
-        
-        guard let branchesToDelete = selectBranchesToDelete(eligibleBranches: eligibleBranches, allMerged: allMerged) else {
-            return
-        }
-        
-        let _ = try deleteBranches(branchesToDelete)
-        try pruneOriginIfExists()
     }
 }

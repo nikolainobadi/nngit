@@ -24,7 +24,7 @@ struct CheckoutRemoteManager {
 
 // MARK: - Remote Branch Checkout Operations
 extension CheckoutRemoteManager {
-    func executeCheckoutWorkflow() throws {
+    func checkoutRemote() throws {
         let remoteBranchNames = try loadRemoteBranchNames()
         
         if remoteBranchNames.isEmpty {

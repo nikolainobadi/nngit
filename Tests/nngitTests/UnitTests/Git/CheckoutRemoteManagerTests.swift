@@ -20,7 +20,7 @@ struct CheckoutRemoteManagerTests {
         let localBranch = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
         let branchLoader = StubBranchLoader(remoteBranches: remoteBranches, localBranches: [localBranch])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
-        try manager.executeCheckoutWorkflow()
+        try manager.checkoutRemote()
         
         #expect(shell.executedCommands.contains("git checkout -b feature-1 origin/feature-1"))
     }
@@ -31,7 +31,7 @@ struct CheckoutRemoteManagerTests {
         let picker = MockPicker()
         let branchLoader = StubBranchLoader(remoteBranches: [], localBranches: [])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
-        try manager.executeCheckoutWorkflow()
+        try manager.checkoutRemote()
         
         #expect(!shell.executedCommands.contains { $0.contains("git checkout") })
     }
@@ -45,7 +45,7 @@ struct CheckoutRemoteManagerTests {
         let localBranch2 = GitBranch(name: "feature-1", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         let branchLoader = StubBranchLoader(remoteBranches: remoteBranches, localBranches: [localBranch1, localBranch2])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
-        try manager.executeCheckoutWorkflow()
+        try manager.checkoutRemote()
         
         #expect(!shell.executedCommands.contains { $0.contains("git checkout") })
     }
@@ -58,7 +58,7 @@ struct CheckoutRemoteManagerTests {
         let localBranch = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
         let branchLoader = StubBranchLoader(remoteBranches: remoteBranches, localBranches: [localBranch])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
-        try manager.executeCheckoutWorkflow()
+        try manager.checkoutRemote()
         
         // Should checkout feature-1 (first available branch after filtering out 'main')
         #expect(shell.executedCommands.contains("git checkout -b feature-1 origin/feature-1"))
@@ -71,7 +71,7 @@ struct CheckoutRemoteManagerTests {
         let remoteBranches = ["origin/feature-1", "origin/feature-2", "origin/main"]
         let branchLoader = StubBranchLoader(remoteBranches: remoteBranches, localBranches: [])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
-        try manager.executeCheckoutWorkflow()
+        try manager.checkoutRemote()
         
         // Should checkout feature-2 (second branch in alphabetical order)
         #expect(shell.executedCommands.contains("git checkout -b feature-2 origin/feature-2"))
@@ -84,7 +84,7 @@ struct CheckoutRemoteManagerTests {
         let remoteBranches = ["upstream/feature-1", "origin/feature-2"]
         let branchLoader = StubBranchLoader(remoteBranches: remoteBranches, localBranches: [])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
-        try manager.executeCheckoutWorkflow()
+        try manager.checkoutRemote()
         
         // Should always use origin/ prefix in git command regardless of remote prefix
         #expect(shell.executedCommands.contains("git checkout -b feature-1 origin/feature-1"))
@@ -97,7 +97,7 @@ struct CheckoutRemoteManagerTests {
         let remoteBranches = ["origin/zebra", "origin/alpha", "origin/beta"]
         let branchLoader = StubBranchLoader(remoteBranches: remoteBranches, localBranches: [])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
-        try manager.executeCheckoutWorkflow()
+        try manager.checkoutRemote()
         
         // Should checkout 'alpha' as it's first alphabetically
         #expect(shell.executedCommands.contains("git checkout -b alpha origin/alpha"))
@@ -110,7 +110,7 @@ struct CheckoutRemoteManagerTests {
         let remoteBranches = ["  origin/feature-branch  "] // Extra whitespace
         let branchLoader = StubBranchLoader(remoteBranches: remoteBranches, localBranches: [])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
-        try manager.executeCheckoutWorkflow()
+        try manager.checkoutRemote()
         
         #expect(shell.executedCommands.contains("git checkout -b feature-branch origin/feature-branch"))
     }
@@ -122,7 +122,7 @@ struct CheckoutRemoteManagerTests {
         let remoteBranches = ["feature-branch"] // No prefix
         let branchLoader = StubBranchLoader(remoteBranches: remoteBranches, localBranches: [])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
-        try manager.executeCheckoutWorkflow()
+        try manager.checkoutRemote()
         
         #expect(shell.executedCommands.contains("git checkout -b feature-branch origin/feature-branch"))
     }

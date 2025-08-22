@@ -23,7 +23,7 @@ extension Nngit.Staging {
             try shell.verifyLocalGitExists()
             let manager = UnstageManager(shell: shell, picker: picker)
             
-            try manager.executeUnstageWorkflow()
+            try manager.unstageFiles()
         }
     }
 }

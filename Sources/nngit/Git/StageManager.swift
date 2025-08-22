@@ -22,7 +22,7 @@ struct StageManager {
 
 // MARK: - File Staging Operations
 extension StageManager {
-    func executeStageWorkflow() throws {
+    func stageFiles() throws {
         let allFiles = try loadAllFiles()
         let unstageableFiles = filterUnstageableFiles(allFiles)
         

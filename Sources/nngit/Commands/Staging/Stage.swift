@@ -23,7 +23,7 @@ extension Nngit.Staging {
             try shell.verifyLocalGitExists()
             let manager = StageManager(shell: shell, picker: picker)
             
-            try manager.executeStageWorkflow()
+            try manager.stageFiles()
         }
     }
 }

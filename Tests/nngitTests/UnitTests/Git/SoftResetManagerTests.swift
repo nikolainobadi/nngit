@@ -11,11 +11,11 @@ import GitShellKit
 
 struct SoftResetManagerTests {
     @Test("Successfully executes soft reset workflow with number")
-    func executeSoftResetWorkflowWithNumberSuccess() throws {
+    func performSoftResetWithNumberSuccess() throws {
         let helper = MockGitResetHelper(prepareResetResult: mockCommits(count: 2), verifyAuthorPermissionsResult: true)
         let commitManager = MockCommitManager()
         let manager = makeSUT(helper: helper, commitManager: commitManager)
-        try manager.executeSoftResetWorkflow(select: false, number: 2, force: false)
+        try manager.performSoftReset(select: false, number: 2, force: false)
         
         #expect(helper.prepareResetCount == 2)
         #expect(helper.displayCommitsCommits != nil)
@@ -28,11 +28,11 @@ struct SoftResetManagerTests {
     }
     
     @Test("Successfully executes soft reset workflow with select")
-    func executeSoftResetWorkflowWithSelectSuccess() throws {
+    func performSoftResetWithSelectSuccess() throws {
         let helper = MockGitResetHelper(selectCommitForResetResult: (count: 3, commits: mockCommits(count: 3)), verifyAuthorPermissionsResult: true)
         let commitManager = MockCommitManager()
         let manager = makeSUT(helper: helper, commitManager: commitManager)
-        try manager.executeSoftResetWorkflow(select: true, number: 1, force: true)
+        try manager.performSoftReset(select: true, number: 1, force: true)
         
         #expect(helper.displayCommitsCommits != nil)
         #expect(helper.verifyAuthorPermissionsCommits != nil)
@@ -44,11 +44,11 @@ struct SoftResetManagerTests {
     }
     
     @Test("Handles user cancellation during commit selection")
-    func executeSoftResetWorkflowSelectCancelled() throws {
+    func performSoftResetSelectCancelled() throws {
         let helper = MockGitResetHelper(selectCommitForResetResult: nil)
         let commitManager = MockCommitManager()
         let manager = makeSUT(helper: helper, commitManager: commitManager)
-        try manager.executeSoftResetWorkflow(select: true, number: 1, force: false)
+        try manager.performSoftReset(select: true, number: 1, force: false)
         
         #expect(helper.displayCommitsCommits == nil)
         #expect(helper.verifyAuthorPermissionsCommits == nil)
@@ -57,11 +57,11 @@ struct SoftResetManagerTests {
     }
     
     @Test("Handles permission denied without force flag")
-    func executeSoftResetWorkflowPermissionDenied() throws {
+    func performSoftResetPermissionDenied() throws {
         let helper = MockGitResetHelper(prepareResetResult: mockCommits(count: 1), verifyAuthorPermissionsResult: false)
         let commitManager = MockCommitManager()
         let manager = makeSUT(helper: helper, commitManager: commitManager)
-        try manager.executeSoftResetWorkflow(select: false, number: 1, force: false)
+        try manager.performSoftReset(select: false, number: 1, force: false)
         
         #expect(helper.prepareResetCount == 1)
         #expect(helper.displayCommitsCommits != nil)
@@ -72,11 +72,11 @@ struct SoftResetManagerTests {
     }
     
     @Test("Executes workflow with force flag overriding permissions")
-    func executeSoftResetWorkflowWithForceFlag() throws {
+    func performSoftResetWithForceFlag() throws {
         let helper = MockGitResetHelper(prepareResetResult: mockCommits(count: 1), verifyAuthorPermissionsResult: true)
         let commitManager = MockCommitManager()
         let manager = makeSUT(helper: helper, commitManager: commitManager)
-        try manager.executeSoftResetWorkflow(select: false, number: 1, force: true)
+        try manager.performSoftReset(select: false, number: 1, force: true)
         
         #expect(helper.prepareResetCount == 1)
         #expect(helper.verifyAuthorPermissionsForce == true)
@@ -85,13 +85,13 @@ struct SoftResetManagerTests {
     }
     
     @Test("Handles invalid commit count (zero)")
-    func executeSoftResetWorkflowInvalidCountZero() throws {
+    func performSoftResetInvalidCountZero() throws {
         let helper = MockGitResetHelper()
         let commitManager = MockCommitManager()
         let manager = makeSUT(helper: helper, commitManager: commitManager)
         
         do {
-            try manager.executeSoftResetWorkflow(select: false, number: 0, force: false)
+            try manager.performSoftReset(select: false, number: 0, force: false)
             #expect(Bool(false), "Should have thrown an error")
         } catch {
             #expect(error is GitResetError)
@@ -100,13 +100,13 @@ struct SoftResetManagerTests {
     }
     
     @Test("Handles invalid commit count (negative)")
-    func executeSoftResetWorkflowInvalidCountNegative() throws {
+    func performSoftResetInvalidCountNegative() throws {
         let helper = MockGitResetHelper()
         let commitManager = MockCommitManager()
         let manager = makeSUT(helper: helper, commitManager: commitManager)
         
         do {
-            try manager.executeSoftResetWorkflow(select: false, number: -1, force: false)
+            try manager.performSoftReset(select: false, number: -1, force: false)
             #expect(Bool(false), "Should have thrown an error")
         } catch {
             #expect(error is GitResetError)
@@ -115,23 +115,23 @@ struct SoftResetManagerTests {
     }
     
     @Test("Displays commits with correct action message")
-    func executeSoftResetWorkflowDisplaysCommitsCorrectly() throws {
+    func performSoftResetDisplaysCommitsCorrectly() throws {
         let commits = mockCommits(count: 2)
         let helper = MockGitResetHelper(prepareResetResult: commits, verifyAuthorPermissionsResult: true)
         let commitManager = MockCommitManager()
         let manager = makeSUT(helper: helper, commitManager: commitManager)
-        try manager.executeSoftResetWorkflow(select: false, number: 2, force: false)
+        try manager.performSoftReset(select: false, number: 2, force: false)
         
         #expect(helper.displayCommitsAction == "moved back to staging area")
         #expect(helper.displayCommitsCommits?.count == 2)
     }
     
     @Test("Executes complete workflow in correct order")
-    func executeSoftResetWorkflowCorrectOrder() throws {
+    func performSoftResetCorrectOrder() throws {
         let helper = MockGitResetHelper(prepareResetResult: mockCommits(count: 1), verifyAuthorPermissionsResult: true)
         let commitManager = MockCommitManager()
         let manager = makeSUT(helper: helper, commitManager: commitManager)
-        try manager.executeSoftResetWorkflow(select: false, number: 1, force: false)
+        try manager.performSoftReset(select: false, number: 1, force: false)
         
         // Verify the workflow steps were executed
         #expect(helper.prepareResetCount == 1) // 1. Load commits

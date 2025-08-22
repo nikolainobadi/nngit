@@ -12,7 +12,7 @@ extension Nngit {
     struct Undo: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Undo commits using soft or hard reset strategies.",
-            subcommands: [Soft.self, Hard.self],
+            subcommands: [Soft.self, HardReset.self],
             defaultSubcommand: Soft.self
         )
     }

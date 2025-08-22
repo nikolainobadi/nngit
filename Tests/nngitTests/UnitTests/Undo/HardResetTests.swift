@@ -4,7 +4,7 @@ import NnShellKit
 @testable import nngit
 
 @MainActor
-struct UndoCommitCommandTests {
+struct HardResetTests {
     @Test("Undoes commits when all authored by current user")
     func undoesCommitsForCurrentUser() throws {
         let shellResults = [
@@ -369,7 +369,7 @@ struct UndoCommitCommandTests {
 
 
 // MARK: - Helper Methods
-private extension UndoCommitCommandTests {
+private extension HardResetTests {
     func runCommand(_ context: NnGitContext, numberOfCommits: Int = 1, force: Bool = false, select: Bool = false) throws -> String {
         var args = ["undo", "hard", String(numberOfCommits)]
         if force {

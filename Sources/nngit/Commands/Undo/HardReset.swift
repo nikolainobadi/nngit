@@ -1,5 +1,5 @@
 //
-//  UndoCommit.swift
+//  HardReset.swift
 //  nngit
 //
 //  Created by Nikolai Nobadi on 6/22/25.
@@ -9,8 +9,9 @@ import ArgumentParser
 
 extension Nngit.Undo {
     /// Command that discards one or more commits from the current branch.
-    struct Hard: ParsableCommand {
+    struct HardReset: ParsableCommand {
         static let configuration = CommandConfiguration(
+            commandName: "hard",
             abstract: "Runs 'git reset --hard HEAD~N', completely discarding commits and their changes. Use --select to choose from recent commits."
         )
         

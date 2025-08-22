@@ -23,25 +23,6 @@ extension Nngit {
         @Option(name: .shortAndLong, help: "Where to search for branches: local, remote, or both")
         var branchLocation: BranchLocation = .local
 
-        @Option(name: .long, parsing: .upToNextOption,
-                help: "Additional author names or emails to include when filtering branches")
-        var includeAuthor: [String] = []
-
-        @Flag(name: .long, help: "Include branches from all authors when listing")
-        var includeAll: Bool = false
-
-        @Option(name: .customLong("load-merge-status"),
-                help: "Load merge status when listing branches (true/false)")
-        var loadMergeStatus: Bool?
-
-        @Option(name: .customLong("load-creation-date"),
-                help: "Load branch creation date when listing branches (true/false)")
-        var loadCreationDate: Bool?
-
-        @Option(name: .customLong("load-sync-status"),
-                help: "Load sync status when listing branches (true/false)")
-        var loadSyncStatus: Bool?
-
         /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
@@ -51,14 +32,6 @@ extension Nngit {
             let config = try Nngit.makeConfigLoader().loadConfig(picker: picker)
             
             var branchNames = try branchLoader.loadBranchNames(from: branchLocation, shell: shell)
-
-            let loadMerge = loadMergeStatus ?? config.loading.loadMergeStatus
-            let loadCreation = loadCreationDate ?? config.loading.loadCreationDate
-            let loadSync = loadSyncStatus ?? config.loading.loadSyncStatus
-
-            if !includeAll {
-                branchNames = branchLoader.filterBranchNamesByAuthor(branchNames, shell: shell, includeAuthor: includeAuthor)
-            }
 
             if let search,
                !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -80,9 +53,9 @@ extension Nngit {
                 for: branchNames,
                 shell: shell,
                 mainBranchName: config.branches.defaultBranch,
-                loadMergeStatus: loadMerge,
-                loadCreationDate: loadCreation,
-                loadSyncStatus: loadSync
+                loadMergeStatus: true,
+                loadCreationDate: true,
+                loadSyncStatus: true
             )
             let currentBranch = branchList.first(where: { $0.isCurrentBranch })
             let availableBranches = branchList.filter { !$0.isCurrentBranch }

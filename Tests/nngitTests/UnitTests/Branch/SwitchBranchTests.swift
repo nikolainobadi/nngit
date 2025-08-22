@@ -29,7 +29,7 @@ struct SwitchBranchTests {
         let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
-        let output = try Nngit.testRun(context: context, args: ["switch-branch", "dev", "--include-all"])
+        let output = try Nngit.testRun(context: context, args: ["switch-branch", "dev"])
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(shell.executedCommands.contains(switchCmd))
         #expect(output.isEmpty)
@@ -48,7 +48,7 @@ struct SwitchBranchTests {
         let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
-        let output = try Nngit.testRun(context: context, args: ["switch-branch", "xyz", "--include-all"])
+        let output = try Nngit.testRun(context: context, args: ["switch-branch", "xyz"])
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(output.contains("No branches found matching 'xyz'"))
     }
@@ -72,7 +72,7 @@ struct SwitchBranchTests {
         let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
-        let output = try Nngit.testRun(context: context, args: ["switch-branch", "--include-all"])
+        let output = try Nngit.testRun(context: context, args: ["switch-branch"])
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(shell.executedCommands.contains(switchCmd))
         #expect(output.isEmpty)
@@ -87,21 +87,16 @@ struct SwitchBranchTests {
         let loader = StubBranchLoader(localBranches: [branch1, branch2])
         let shell = MockShell(results: [
             "true",  // localGitCheck
-            "",      // git config user.name
-            "",      // git config --global user.name
-            "",      // git config user.email
-            "",      // git config --global user.email
             ""       // switchCmd
         ])
         let picker = MockPicker()
         let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
-        let output = try Nngit.testRun(context: context, args: ["switch-branch", "dev", "--include-all"])
+        let output = try Nngit.testRun(context: context, args: ["switch-branch", "dev"])
 
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(shell.executedCommands.contains(switchCmd))
-        #expect(!shell.executedCommands.contains(where: { $0.contains("git log -1") }))
         #expect(output.isEmpty)
     }
 
@@ -124,11 +119,10 @@ struct SwitchBranchTests {
         let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
-        let output = try Nngit.testRun(context: context, args: ["switch-branch", "--include-all"])
+        let output = try Nngit.testRun(context: context, args: ["switch-branch"])
 
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(shell.executedCommands.contains(switchCmd))
-        #expect(!shell.executedCommands.contains(where: { $0.contains("git log -1") }))
         #expect(output.isEmpty)
     }
 }

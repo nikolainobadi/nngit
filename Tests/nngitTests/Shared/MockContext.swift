@@ -18,12 +18,12 @@ final class MockContext {
     private var resetHelper: GitResetHelper?
     
     init(picker: MockPicker? = nil,
-         shellResults: [String] = [],
+         shell: MockShell? = nil,
          configLoader: GitConfigLoader? = nil,
          branchLoader: GitBranchLoader? = nil,
          resetHelper: GitResetHelper? = nil) {
         self.picker = picker
-        self.shell = shellResults.isEmpty ? nil : MockShell(results: shellResults)
+        self.shell = shell
         self.configLoader = configLoader
         self.branchLoader = branchLoader
         self.resetHelper = resetHelper

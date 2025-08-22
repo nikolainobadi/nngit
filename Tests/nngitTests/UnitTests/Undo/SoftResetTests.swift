@@ -1,5 +1,6 @@
 import Testing
 import GitShellKit
+import NnShellKit
 @testable import nngit
 
 @MainActor
@@ -19,7 +20,7 @@ struct SoftResetTests {
         )
         
         // Setup mock shell for the actual reset command
-        let context = MockContext(shellResults: [""], resetHelper: mockResetHelper)
+        let context = MockContext(shell: MockShell(results: [""]), resetHelper: mockResetHelper)
         
         try runCommand(context, number: 1)
         
@@ -45,7 +46,7 @@ struct SoftResetTests {
         let picker = MockPicker(permissionResponses: [
             "Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area.": true
         ])
-        let context = MockContext(picker: picker, shellResults: shellResults)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults))
         
         try runCommand(context, number: 3)
         
@@ -60,7 +61,7 @@ struct SoftResetTests {
         ]
         
         let picker = MockPicker()
-        let context = MockContext(picker: picker, shellResults: shellResults)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults))
         
         try runCommand(context, number: 2, force: false)
         
@@ -80,7 +81,7 @@ struct SoftResetTests {
         let picker = MockPicker(permissionResponses: [
             "Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area.": true
         ])
-        let context = MockContext(picker: picker, shellResults: shellResults)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults))
         
         try runCommand(context, number: 2, force: true)
         
@@ -91,7 +92,7 @@ struct SoftResetTests {
     @Test("validates number is greater than zero")
     func validatesNumberGreaterThanZero() throws {
         let picker = MockPicker()
-        let context = MockContext(picker: picker, shellResults: [])
+        let context = MockContext(picker: picker, shell: MockShell(results: []))
         
         try runCommand(context, number: 0)
         
@@ -110,7 +111,7 @@ struct SoftResetTests {
         let picker = MockPicker(permissionResponses: [
             "Are you sure you want to soft reset 1 commit(s)? The changes will be moved to staging area.": false
         ])
-        let context = MockContext(picker: picker, shellResults: shellResults)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults))
         
         do {
             try runCommand(context, number: 1)
@@ -143,7 +144,7 @@ struct SoftResetTests {
             permissionResponses: ["Are you sure you want to soft reset 1 commit(s)? The changes will be moved to staging area.": true],
             selectionResponses: ["Select a commit to soft reset to:": 0] // Select first commit
         )
-        let context = MockContext(picker: picker, shellResults: shellResults)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults))
         
         try runCommand(context, select: true)
         
@@ -172,7 +173,7 @@ struct SoftResetTests {
             permissionResponses: ["Are you sure you want to soft reset 4 commit(s)? The changes will be moved to staging area.": true],
             selectionResponses: ["Select a commit to soft reset to:": 3] // Select 4th commit (index 3)
         )
-        let context = MockContext(picker: picker, shellResults: shellResults)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults))
         
         try runCommand(context, select: true)
         
@@ -200,7 +201,7 @@ struct SoftResetTests {
             permissionResponses: ["Are you sure you want to soft reset 7 commit(s)? The changes will be moved to staging area.": true],
             selectionResponses: ["Select a commit to soft reset to:": 6] // Select 7th commit (index 6)
         )
-        let context = MockContext(picker: picker, shellResults: shellResults)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults))
         
         try runCommand(context, select: true)
         
@@ -230,7 +231,7 @@ struct SoftResetTests {
             permissionResponses: ["Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area.": true],
             selectionResponses: ["Select a commit to soft reset to:": 1] // Select 2nd commit (has other author)
         )
-        let context = MockContext(picker: picker, shellResults: shellResults)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults))
         
         try runCommand(context, force: true, select: true)
         
@@ -256,7 +257,7 @@ struct SoftResetTests {
         let picker = MockPicker(
             selectionResponses: ["Select a commit to soft reset to:": 1] // Select 2nd commit (has other author)
         )
-        let context = MockContext(picker: picker, shellResults: shellResults)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults))
         
         try runCommand(context, select: true)
         
@@ -284,7 +285,7 @@ struct SoftResetTests {
             permissionResponses: ["Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area.": false],
             selectionResponses: ["Select a commit to soft reset to:": 2] // Select 3rd commit
         )
-        let context = MockContext(picker: picker, shellResults: shellResults)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults))
         
         do {
             try runCommand(context, select: true)
@@ -305,7 +306,7 @@ struct SoftResetTests {
         ]
         
         let picker = MockPicker()
-        let context = MockContext(picker: picker, shellResults: shellResults)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults))
         
         try runCommand(context, select: true)
         
@@ -330,7 +331,7 @@ struct SoftResetTests {
             permissionResponses: ["Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area.": true],
             selectionResponses: ["Select a commit to soft reset to:": 1] // Select 2nd commit (out of 3 available)
         )
-        let context = MockContext(picker: picker, shellResults: shellResults)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults))
         
         try runCommand(context, select: true)
         
@@ -359,7 +360,7 @@ struct SoftResetTests {
             permissionResponses: ["Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area.": true],
             selectionResponses: ["Select a commit to soft reset to:": 2] // Select 3rd commit
         )
-        let context = MockContext(picker: picker, shellResults: shellResults)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults))
         
         // Pass number argument 5, but it should be ignored in select mode
         try runCommand(context, number: 5, select: true)

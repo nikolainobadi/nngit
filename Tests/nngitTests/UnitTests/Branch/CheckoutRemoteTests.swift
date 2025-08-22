@@ -1,6 +1,7 @@
 import Testing
 import SwiftPicker
 import GitShellKit
+import NnShellKit
 @testable import nngit
 
 @MainActor
@@ -25,7 +26,7 @@ struct CheckoutRemoteTests {
         )
         
         let shellResults = [
-            "true",                                     // git rev-parse --is-inside-work-tree
+            "true",                                    // git rev-parse --is-inside-work-tree
             "Test User",                               // git config user.name
             "test@example.com",                        // git config user.email
             "Test User,test@example.com",              // git log -1 --pretty=format:'%an,%ae' origin/feature-1
@@ -41,8 +42,7 @@ struct CheckoutRemoteTests {
         ])
         
         let configLoader = StubConfigLoader(initialConfig: config)
-        let context = MockContext(picker: picker, shellResults: shellResults, configLoader: configLoader, branchLoader: branchLoader)
-
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults), configLoader: configLoader, branchLoader: branchLoader)
         let output = try Nngit.testRun(context: context, args: ["checkout-remote"])
 
         #expect(context.mockShell?.executedCommands.contains(localGitCheck) == true)
@@ -68,7 +68,7 @@ struct CheckoutRemoteTests {
         
         let picker = MockPicker()
         let configLoader = StubConfigLoader(initialConfig: config)
-        let context = MockContext(picker: picker, shellResults: shellResults, configLoader: configLoader, branchLoader: branchLoader)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults), configLoader: configLoader, branchLoader: branchLoader)
 
         let output = try Nngit.testRun(context: context, args: ["checkout-remote", "--no-filter"])
 
@@ -98,7 +98,7 @@ struct CheckoutRemoteTests {
         
         let picker = MockPicker()
         let configLoader = StubConfigLoader(initialConfig: config)
-        let context = MockContext(picker: picker, shellResults: shellResults, configLoader: configLoader, branchLoader: branchLoader)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults), configLoader: configLoader, branchLoader: branchLoader)
         let output = try Nngit.testRun(context: context, args: ["checkout-remote"])
 
         #expect(output.contains("All your remote branches already exist locally."))
@@ -126,7 +126,7 @@ struct CheckoutRemoteTests {
         ])
         
         let configLoader = StubConfigLoader(initialConfig: config)
-        let context = MockContext(picker: picker, shellResults: shellResults, configLoader: configLoader, branchLoader: branchLoader)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults), configLoader: configLoader, branchLoader: branchLoader)
 
         let output = try Nngit.testRun(context: context, args: ["checkout-remote", "--include-author", "Other Author"])
 
@@ -154,7 +154,7 @@ struct CheckoutRemoteTests {
         ])
         
         let configLoader = StubConfigLoader(initialConfig: config)
-        let context = MockContext(picker: picker, shellResults: shellResults, configLoader: configLoader, branchLoader: branchLoader)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults), configLoader: configLoader, branchLoader: branchLoader)
 
         let output = try Nngit.testRun(context: context, args: ["checkout-remote"])
 
@@ -183,7 +183,7 @@ struct CheckoutRemoteTests {
         ])
         
         let configLoader = StubConfigLoader(initialConfig: config)
-        let context = MockContext(picker: picker, shellResults: shellResults, configLoader: configLoader, branchLoader: branchLoader)
+        let context = MockContext(picker: picker, shell: MockShell(results: shellResults), configLoader: configLoader, branchLoader: branchLoader)
 
         let output = try Nngit.testRun(context: context, args: ["checkout-remote"])
 

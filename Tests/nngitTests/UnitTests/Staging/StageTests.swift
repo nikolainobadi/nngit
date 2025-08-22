@@ -1,4 +1,12 @@
+//
+//  StageTests.swift
+//  nngitTests
+//
+//  Created by Nikolai Nobadi on 8/22/25.
+//
+
 import Testing
+import NnShellKit
 import GitShellKit
 @testable import nngit
 
@@ -8,68 +16,67 @@ struct StageTests {
     func stagesSelectedFiles() throws {
         let localGitCheckCommand = makeGitCommand(.localGitCheck, path: nil)
         let localChangesCommand = makeGitCommand(.getLocalChanges, path: nil)
-        let responses = [
-            localGitCheckCommand: "true",
-            localChangesCommand: " M file1.swift\n?? file2.swift\n D file3.swift",
-            "git add \"file1.swift\"": "",
-            "git add \"file2.swift\"": ""
+        let results = [
+            "true",  // localGitCheckCommand
+            " M file1.swift\n?? file2.swift\n D file3.swift",  // localChangesCommand
+            "",  // git add "file1.swift"
+            ""   // git add "file2.swift"
         ]
         
-        let shell = MockGitShell(responses: responses)
-        let picker = MockPicker()
+        let shell = MockShell(results: results)
         // Mock multi-selection to select first two files (unstaged and untracked)
-        picker.selectionResponses["Select files to stage:"] = 0
+        let picker = MockPicker(selectionResponses: ["Select files to stage:": 0])
         let context = MockContext(picker: picker, shell: shell)
         
         try runCommand(context)
         
-        #expect(shell.commands.contains(localGitCheckCommand))
-        #expect(shell.commands.contains(localChangesCommand))
-        #expect(shell.commands.contains("git add \"file1.swift\""))
+        #expect(shell.executedCommands.contains(localGitCheckCommand))
+        #expect(shell.executedCommands.contains(localChangesCommand))
+        #expect(shell.executedCommands.contains("git add \"file1.swift\""))
     }
     
     @Test("filters only unstaged and untracked files")
     func filtersOnlyUnstagedAndUntrackedFiles() throws {
-        let responses = [
-            makeGitCommand(.localGitCheck, path: nil): "true",
-            makeGitCommand(.getLocalChanges, path: nil): "A  staged.swift\n M unstaged.swift\n?? untracked.swift"
+        let results = [
+            "true",  // localGitCheck
+            "A  staged.swift\n M unstaged.swift\n?? untracked.swift"  // getLocalChanges
         ]
         
-        let shell = MockGitShell(responses: responses)
+        let shell = MockShell(results: results)
         let picker = MockPicker()
         let context = MockContext(picker: picker, shell: shell)
         
         try runCommand(context)
         
         // Should only show unstaged.swift and untracked.swift in picker
-        #expect(shell.commands.contains(makeGitCommand(.getLocalChanges, path: nil)))
+        #expect(shell.executedCommands.contains(makeGitCommand(.getLocalChanges, path: nil)))
     }
     
     @Test("prints no files available when all files are staged")
     func printsNoFilesAvailableWhenAllStaged() throws {
-        let responses = [
-            makeGitCommand(.localGitCheck, path: nil): "true",
-            makeGitCommand(.getLocalChanges, path: nil): "A  staged1.swift\nM  staged2.swift"
+        let results = [
+            "true",  // localGitCheck
+            "A  staged1.swift\nM  staged2.swift"  // getLocalChanges
         ]
         
-        let shell = MockGitShell(responses: responses)
+        let shell = MockShell(results: results)
         let picker = MockPicker()
         let context = MockContext(picker: picker, shell: shell)
         
         let output = try Nngit.testRun(context: context, args: ["staging", "stage"])
         
         #expect(output.contains("No files available to stage."))
-        #expect(!shell.commands.contains { $0.starts(with: "git add") })
+        #expect(!shell.executedCommands.contains { $0.starts(with: "git add") })
     }
     
     @Test("prints no files selected when user cancels selection")
     func printsNoFilesSelectedWhenCanceled() throws {
-        let responses = [
-            makeGitCommand(.localGitCheck, path: nil): "true",
-            makeGitCommand(.getLocalChanges, path: nil): " M file1.swift"
+        let results = [
+            "true",  // localGitCheck
+            " M file1.swift"  // getLocalChanges
         ]
         
-        let shell = MockGitShell(responses: responses)
+        let shell = MockShell(results: results)
         let picker = MockPicker()
         // MockPicker returns empty array when no selection response is set
         let context = MockContext(picker: picker, shell: shell)
@@ -77,23 +84,22 @@ struct StageTests {
         let output = try Nngit.testRun(context: context, args: ["staging", "stage"])
         
         #expect(output.contains("No files selected."))
-        #expect(!shell.commands.contains { $0.starts(with: "git add") })
+        #expect(!shell.executedCommands.contains { $0.starts(with: "git add") })
     }
     
     @Test("stages multiple selected files")
     func stagesMultipleSelectedFiles() throws {
-        let responses = [
-            makeGitCommand(.localGitCheck, path: nil): "true",
-            makeGitCommand(.getLocalChanges, path: nil): " M file1.swift\n?? file2.swift\n D file3.swift",
-            "git add \"file1.swift\"": "",
-            "git add \"file2.swift\"": "",
-            "git add \"file3.swift\"": ""
+        let results = [
+            "true",  // localGitCheck
+            " M file1.swift\n?? file2.swift\n D file3.swift",  // getLocalChanges
+            "",  // git add "file1.swift"
+            "",  // git add "file2.swift"
+            ""   // git add "file3.swift"
         ]
         
-        let shell = MockGitShell(responses: responses)
-        let picker = MockPicker()
+        let shell = MockShell(results: results)
         // Mock multi-selection returns multiple files
-        picker.selectionResponses["Select files to stage:"] = 0
+        let picker = MockPicker(selectionResponses: ["Select files to stage:": 0])
         let context = MockContext(picker: picker, shell: shell)
         
         let output = try Nngit.testRun(context: context, args: ["staging", "stage"])
@@ -103,37 +109,36 @@ struct StageTests {
     
     @Test("handles untracked files correctly")
     func handlesUntrackedFilesCorrectly() throws {
-        let responses = [
-            makeGitCommand(.localGitCheck, path: nil): "true",
-            makeGitCommand(.getLocalChanges, path: nil): "?? newfile.swift",
-            "git add \"newfile.swift\"": ""
+        let results = [
+            "true",  // localGitCheck
+            "?? newfile.swift",  // getLocalChanges
+            ""  // git add "newfile.swift"
         ]
         
-        let shell = MockGitShell(responses: responses)
-        let picker = MockPicker()
-        picker.selectionResponses["Select files to stage:"] = 0
+        let shell = MockShell(results: results)
+        let picker = MockPicker(selectionResponses: ["Select files to stage:": 0])
         let context = MockContext(picker: picker, shell: shell)
         
         try runCommand(context)
         
-        #expect(shell.commands.contains("git add \"newfile.swift\""))
+        #expect(shell.executedCommands.contains("git add \"newfile.swift\""))
     }
     
     @Test("prints no files available when working directory is clean")
     func printsNoFilesWhenClean() throws {
-        let responses = [
-            makeGitCommand(.localGitCheck, path: nil): "true",
-            makeGitCommand(.getLocalChanges, path: nil): ""
+        let results = [
+            "true",  // localGitCheck
+            ""  // getLocalChanges
         ]
         
-        let shell = MockGitShell(responses: responses)
+        let shell = MockShell(results: results)
         let picker = MockPicker()
         let context = MockContext(picker: picker, shell: shell)
         
         let output = try Nngit.testRun(context: context, args: ["staging", "stage"])
         
         #expect(output.contains("No files available to stage."))
-        #expect(!shell.commands.contains { $0.starts(with: "git add") })
+        #expect(!shell.executedCommands.contains { $0.starts(with: "git add") })
     }
 }
 

@@ -52,14 +52,7 @@ extension Nngit {
 
             try shell.verifyLocalGitExists()
 
-            var config = try configLoader.loadConfig(picker: picker)
-            
-            // First, check if we should use MyBranches for selection
-            if shouldUseMyBranches(config: config) {
-                try runWithMyBranches(shell: shell, picker: picker, config: &config, configLoader: configLoader)
-                return
-            }
-            
+            let config = try configLoader.loadConfig(picker: picker)
             let branchLoader = Nngit.makeBranchLoader()
             var branchNames = try loadEligibleBranchNames(shell: shell, config: config)
 
@@ -100,15 +93,8 @@ extension Nngit {
                 branchesToDelete = picker.multiSelection("Select which branches to delete", items: eligibleBranches)
             }
         
-            let deletedBranchNames = try deleteBranches(branchesToDelete, shell: shell, picker: picker, defaultBranch: config.branches.defaultBranch)
-            
-            // Remove deleted branches from myBranches array and save config
-            if !deletedBranchNames.isEmpty && !config.myBranches.isEmpty {
-                config.myBranches.removeAll { myBranch in
-                    deletedBranchNames.contains(myBranch.name)
-                }
-                try configLoader.save(config)
-            }
+            // TODO: - determine why deletedBranchNames needs to be returned
+            let _ = try deleteBranches(branchesToDelete, shell: shell, picker: picker, defaultBranch: config.branches.defaultBranch)
             
             if (pruneOrigin || config.behaviors.pruneWhenDeleting) && (try? shell.remoteExists(path: nil)) == true {
                 let _ = try shell.runWithOutput(makeGitCommand(.pruneOrigin, path: nil))
@@ -169,71 +155,4 @@ extension Nngit.DeleteBranch {
         return deletedBranchNames
     }
     
-    /// Determines if MyBranches should be used for branch selection
-    private func shouldUseMyBranches(config: GitConfig) -> Bool {
-        // Use MyBranches when:
-        // - No specific search term provided
-        // - Not using includeAll flag
-        // - Not using allMerged flag
-        // - MyBranches array is not empty
-        return search == nil &&
-               !includeAll &&
-               !allMerged &&
-               !config.myBranches.isEmpty
-    }
-    
-    /// Runs branch deletion using MyBranches array
-    private func runWithMyBranches(shell: GitShell, picker: CommandLinePicker, config: inout GitConfig, configLoader: GitConfigLoader) throws {
-        // Get current branch to exclude it from deletion
-        let currentBranchName = try shell.runWithOutput(makeGitCommand(.getCurrentBranchName, path: nil))
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        // Filter MyBranches to exclude current branch and default branch, verify they exist
-        let branchLoader = Nngit.makeBranchLoader()
-        let existingBranches = try branchLoader.loadBranchNames(from: .local, shell: shell)
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "* ", with: "") }
-        
-        let eligibleMyBranches = config.myBranches.filter { myBranch in
-            myBranch.name != currentBranchName &&
-            myBranch.name.lowercased() != config.branches.defaultBranch.lowercased() &&
-            existingBranches.contains(myBranch.name)
-        }
-        
-        if eligibleMyBranches.isEmpty {
-            print("No tracked branches available to delete.")
-            return
-        }
-        
-        let branchesToDelete = picker.multiSelection("Select which tracked branches to delete", items: eligibleMyBranches)
-        
-        if branchesToDelete.isEmpty {
-            return
-        }
-        
-        // Convert MyBranch objects to GitBranch objects for deletion
-        let loadMerge = loadMergeStatus ?? config.loading.loadMergeStatus
-        let loadCreation = loadCreationDate ?? config.loading.loadCreationDate
-        let loadSync = loadSyncStatus ?? config.loading.loadSyncStatus
-        
-        let gitBranches = try branchLoader.loadBranches(
-            for: branchesToDelete.map { $0.name },
-            shell: shell,
-            mainBranchName: config.branches.defaultBranch,
-            loadMergeStatus: loadMerge,
-            loadCreationDate: loadCreation,
-            loadSyncStatus: loadSync
-        )
-        
-        let deletedBranchNames = try deleteBranches(gitBranches, shell: shell, picker: picker, defaultBranch: config.branches.defaultBranch)
-        
-        // Remove deleted branches from myBranches array and save config
-        config.myBranches.removeAll { myBranch in
-            deletedBranchNames.contains(myBranch.name)
-        }
-        try configLoader.save(config)
-        
-        if (pruneOrigin || config.behaviors.pruneWhenDeleting) && (try? shell.remoteExists(path: nil)) == true {
-            let _ = try shell.runWithOutput(makeGitCommand(.pruneOrigin, path: nil))
-        }
-    }
 }

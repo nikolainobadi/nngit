@@ -18,8 +18,6 @@ struct Nngit: ParsableCommand {
         subcommands: [
             Discard.self, Undo.self, BranchDiff.self,
             NewBranch.self, SwitchBranch.self, DeleteBranch.self, CheckoutRemote.self,
-            MyBranches.self,
-            AddBranchPrefix.self, EditBranchPrefix.self, DeleteBranchPrefix.self, ListBranchPrefix.self,
             Staging.self,
             EditConfig.self
         ]
@@ -28,6 +26,8 @@ struct Nngit: ParsableCommand {
     nonisolated(unsafe) static var context: NnGitContext = DefaultContext()
 }
 
+
+// MARK: - Factory Methods
 extension Nngit {
     /// Returns the picker used for user interaction. Defaults to ``InteractivePicker``.
     static func makePicker() -> CommandLinePicker {
@@ -53,44 +53,9 @@ extension Nngit {
     static func makeBranchLoader() -> GitBranchLoader {
         return context.makeBranchLoader()
     }
-}
 
-protocol NnGitContext {
-    /// Creates the picker used for user interaction.
-    func makePicker() -> CommandLinePicker
-    /// Creates the shell used for executing git commands.
-    func makeShell() -> GitShell
-    /// Provides a commit manager for commit related operations.
-    func makeCommitManager() -> GitCommitManager
-    /// Provides access to the git configuration loader.
-    func makeConfigLoader() -> GitConfigLoader
-    /// Creates an object capable of loading git branches.
-    func makeBranchLoader() -> GitBranchLoader
-}
-
-struct DefaultContext: NnGitContext {
-    /// Default implementation returning ``InteractivePicker``.
-    func makePicker() -> CommandLinePicker {
-        return InteractivePicker()
-    }
-    
-    /// Default implementation returning ``GitShellAdapter``.
-    func makeShell() -> GitShell {
-        return GitShellAdapter()
-    }
-
-    /// Default ``GitCommitManager`` based on the shell from ``makeShell()``.
-    func makeCommitManager() -> GitCommitManager {
-        return DefaultGitCommitManager(shell: makeShell())
-    }
-
-    /// Returns a loader for the application's git configuration.
-    func makeConfigLoader() -> GitConfigLoader {
-        return DefaultGitConfigLoader()
-    }
-
-    /// Provides the default branch loader for the repository.
-    func makeBranchLoader() -> GitBranchLoader {
-        return DefaultGitBranchLoader(shell: makeShell())
+    /// Factory for obtaining the configured ``GitResetHelper`` instance.
+    static func makeResetHelper() -> GitResetHelper {
+        return context.makeResetHelper()
     }
 }

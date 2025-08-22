@@ -1,6 +1,7 @@
 import Testing
 import SwiftPicker
 import GitShellKit
+import NnShellKit
 @testable import nngit
 
 @MainActor
@@ -11,7 +12,7 @@ struct EditConfigTests {
         let initial = GitConfig.defaultConfig
         let loader = StubConfigLoader(initialConfig: initial)
         let picker = MockPicker()
-        let shell = MockGitShell(responses: [localCheck: "true"])
+        let shell = MockShell(results: ["true"])
         let context = MockContext(picker: picker, shell: shell, configLoader: loader)
 
         let output = try runCommand(context: context, args: [
@@ -23,7 +24,7 @@ struct EditConfigTests {
             "--load-sync-status", "false"
         ])
 
-        #expect(shell.commands.contains(localCheck))
+        #expect(shell.executedCommands.contains(localCheck))
         #expect(loader.savedConfigs.count == 1)
         let saved = loader.savedConfigs.first!
         #expect(saved.branches.defaultBranch == "dev")
@@ -40,16 +41,17 @@ struct EditConfigTests {
         let localCheck = makeGitCommand(.localGitCheck, path: nil)
         let initial = GitConfig.defaultConfig
         let loader = StubConfigLoader(initialConfig: initial)
-        let picker = MockPicker()
-        picker.selectionResponses["Select which values you would like to edit"] = 0
-        picker.requiredInputResponses["Enter a new default branch name (leave blank to keep 'main')"] = "develop"
-        picker.permissionResponses["Save these changes?"] = true
-        let shell = MockGitShell(responses: [localCheck: "true"])
+        let picker = MockPicker(
+            permissionResponses: ["Save these changes?": true],
+            requiredInputResponses: ["Enter a new default branch name (leave blank to keep 'main')": "develop"],
+            selectionResponses: ["Select which values you would like to edit": 0]
+        )
+        let shell = MockShell(results: ["true"])
         let context = MockContext(picker: picker, shell: shell, configLoader: loader)
 
         let output = try runCommand(context: context)
 
-        #expect(shell.commands.contains(localCheck))
+        #expect(shell.executedCommands.contains(localCheck))
         #expect(loader.savedConfigs.count == 1)
         let saved = loader.savedConfigs.first!
         #expect(saved.branches.defaultBranch == "develop")
@@ -69,7 +71,7 @@ struct EditConfigTests {
         let initial = GitConfig.defaultConfig
         let loader = StubConfigLoader(initialConfig: initial)
         let picker = MockPicker()
-        let shell = MockGitShell(responses: [localCheck: "true"])
+        let shell = MockShell(results: ["true"])
         let context = MockContext(picker: picker, shell: shell, configLoader: loader)
 
         let output = try runCommand(context: context, args: [
@@ -81,7 +83,7 @@ struct EditConfigTests {
             "--load-sync-status", String(initial.loading.loadSyncStatus)
         ])
 
-        #expect(shell.commands.contains(localCheck))
+        #expect(shell.executedCommands.contains(localCheck))
         #expect(loader.savedConfigs.isEmpty)
         #expect(output.contains("No changes to save."))
     }

@@ -50,11 +50,6 @@ extension Nngit {
             let branchLoader = Nngit.makeBranchLoader()
             let config = try Nngit.makeConfigLoader().loadConfig(picker: picker)
             
-            // First, check if we should use MyBranches for selection
-            if shouldUseMyBranches(config: config) {
-                try runWithMyBranches(shell: shell, picker: picker, config: config)
-                return
-            }
             
             var branchNames = try branchLoader.loadBranchNames(from: branchLocation, shell: shell)
 
@@ -104,42 +99,6 @@ extension Nngit {
             try shell.runGitCommandWithOutput(.switchBranch(branchName: selectedBranch.name), path: nil)
         }
         
-        /// Determines if MyBranches should be used for branch selection
-        private func shouldUseMyBranches(config: GitConfig) -> Bool {
-            // Use MyBranches when:
-            // - No specific search term provided
-            // - Using local branches only
-            // - Not including all authors
-            // - MyBranches array is not empty
-            return search == nil && 
-                   branchLocation == .local && 
-                   !includeAll && 
-                   !config.myBranches.isEmpty
-        }
-        
-        /// Runs branch switching using MyBranches array
-        private func runWithMyBranches(shell: GitShell, picker: CommandLinePicker, config: GitConfig) throws {
-            // Get current branch to exclude it from selection
-            let currentBranchName = try shell.runWithOutput(makeGitCommand(.getCurrentBranchName, path: nil))
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            // Filter MyBranches to exclude current branch and verify they exist
-            let branchLoader = Nngit.makeBranchLoader()
-            let existingBranches = try branchLoader.loadBranchNames(from: .local, shell: shell)
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "* ", with: "") }
-            
-            let availableMyBranches = config.myBranches.filter { myBranch in
-                myBranch.name != currentBranchName && existingBranches.contains(myBranch.name)
-            }
-            
-            if availableMyBranches.isEmpty {
-                print("No tracked branches available to switch to.")
-                return
-            }
-            
-            let selectedBranch = try picker.requiredSingleSelection("Select a branch", items: availableMyBranches)
-            try shell.runGitCommandWithOutput(.switchBranch(branchName: selectedBranch.name), path: nil)
-        }
     }
 }
 

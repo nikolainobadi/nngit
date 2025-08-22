@@ -11,9 +11,19 @@ final class MockPicker {
     private(set) var permissionPrompts: [String] = []
     private(set) var requiredPermissions: [String] = []
     
-    var permissionResponses: [String: Bool] = [:]
-    var requiredInputResponses: [String: String] = [:]
-    var selectionResponses: [String: Int] = [:]
+    private(set) var permissionResponses: [String: Bool]
+    private(set) var requiredInputResponses: [String: String]
+    private(set) var selectionResponses: [String: Int]
+    
+    init(
+        permissionResponses: [String: Bool] = [:],
+        requiredInputResponses: [String: String] = [:],
+        selectionResponses: [String: Int] = [:]
+    ) {
+        self.permissionResponses = permissionResponses
+        self.requiredInputResponses = requiredInputResponses
+        self.selectionResponses = selectionResponses
+    }
 }
 
 

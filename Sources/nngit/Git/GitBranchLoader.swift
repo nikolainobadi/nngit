@@ -20,31 +20,6 @@ struct DefaultGitBranchLoader {
 
 // MARK: - Load
 extension DefaultGitBranchLoader: GitBranchLoader {
-    /// Returns branch models enriched with merge and sync information.
-    ///
-    /// - Parameters:
-    ///   - location: The source of branches to load. Defaults to ``BranchLocation.local``.
-    ///   - shell: Shell instance used to execute git commands.
-    /// - Returns: Array of ``GitBranch`` representing the repository state.
-    func loadBranches(
-        from location: BranchLocation = .local,
-        shell: GitShell,
-        mainBranchName: String,
-        loadMergeStatus: Bool = true,
-        loadCreationDate: Bool = true,
-        loadSyncStatus: Bool = true
-    ) throws -> [GitBranch] {
-        try shell.verifyLocalGitExists()
-        let names = try loadBranchNames(from: location, shell: shell)
-        return try loadBranches(
-            for: names,
-            shell: shell,
-            mainBranchName: mainBranchName,
-            loadMergeStatus: loadMergeStatus,
-            loadCreationDate: loadCreationDate,
-            loadSyncStatus: loadSyncStatus
-        )
-    }
 
     func loadBranchNames(from location: BranchLocation, shell: GitShell) throws -> [String] {
         let output: String
@@ -177,17 +152,9 @@ private extension DefaultGitBranchLoader {
 // MARK: - Dependencies
 /// Protocol for loading Git branches, abstracted for testing.
 protocol GitBranchLoader {
-    /// Loads branches from the given location.
-    func loadBranches(
-        from location: BranchLocation,
-        shell: GitShell,
-        mainBranchName: String,
-        loadMergeStatus: Bool,
-        loadCreationDate: Bool,
-        loadSyncStatus: Bool
-    ) throws -> [GitBranch]
     /// Returns just the raw branch names from the given location.
     func loadBranchNames(from location: BranchLocation, shell: GitShell) throws -> [String]
+    
     /// Creates ``GitBranch`` models using the provided branch names.
     func loadBranches(
         for names: [String],

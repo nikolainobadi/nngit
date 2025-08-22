@@ -46,9 +46,10 @@ struct SoftResetTests {
     @Test("Soft resets multiple commits")
     func softResetsMultipleCommits() throws {
         let shellResults = [
-            "Test User",
-            "abc123 - Test commit 1 (Test User, 2 hours ago)\ndef456 - Test commit 2 (Test User, 3 hours ago)\nghi789 - Test commit 3 (Test User, 4 hours ago)",
-            ""
+            "Test User",                    // git config user.name
+            "test@example.com",             // git config user.email
+            "abc123 - Test commit 1 (Test User <test@example.com>, 2 hours ago)\ndef456 - Test commit 2 (Test User <test@example.com>, 3 hours ago)\nghi789 - Test commit 3 (Test User <test@example.com>, 4 hours ago)",  // git log
+            ""                              // git reset --soft HEAD~3
         ]
         
         let picker = MockPicker(permissionResponses: [
@@ -62,39 +63,44 @@ struct SoftResetTests {
         #expect(shell.executedCommands.contains("git reset --soft HEAD~3"))
     }
     
-    // TODO: - this may be an actual bug in the SoftReset command
-    @Test("Requires force flag for commits by other authors", .disabled())
+    @Test("Requires force flag for commits by other authors")
     func requiresForceForOtherAuthors() throws {
         let shellResults = [
-            "Test User",
-            "abc123 - Test commit 1 (Test User, 2 hours ago)\ndef456 - Test commit 2 (Other User, 3 hours ago)"
+            "Test User",                    // git config user.name (called by DefaultGitCommitManager)
+            "test@example.com",             // git config user.email (called by DefaultGitCommitManager)
+            "abc123 - Test commit 1 (Test User <test@example.com>, 2 hours ago)\ndef456 - Test commit 2 (Other User <other@example.com>, 3 hours ago)",  // git log (called by DefaultGitCommitManager)
+            ""                              // Should not reach git reset because verifyAuthorPermissions should block it
         ]
         
         let picker = MockPicker()
         let shell = MockShell(results: shellResults)
-        let context = MockContext(picker: picker, shell: shell)
+        let commitManager = DefaultGitCommitManager(shell: shell)
+        let resetHelper = DefaultGitResetHelper(manager: commitManager, picker: picker)
+        let context = MockContext(picker: picker, shell: shell, resetHelper: resetHelper)
         
         try runCommand(context, number: 2, force: false)
         
-        // Should not execute soft reset without force flag
+        // Should not execute soft reset without force flag when commits by other authors are present
         #expect(!shell.executedCommands.contains("git reset --soft HEAD~2"))
         #expect(!picker.requiredPermissions.contains("Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area."))
     }
     
-    // TODO: - will need to address this once the bug is fixed
-    @Test("allows soft reset with force flag for other authors", .disabled())
+    @Test("Allows soft reset with force flag for other authors")
     func allowsSoftResetWithForceForOtherAuthors() throws {
         let shellResults = [
-            "Test User",
-            "abc123 - Test commit 1 (Test User, 2 hours ago)\ndef456 - Test commit 2 (Other User, 3 hours ago)",
-            ""
+            "Test User",                    // git config user.name
+            "test@example.com",             // git config user.email  
+            "abc123 - Test commit 1 (Test User <test@example.com>, 2 hours ago)\ndef456 - Test commit 2 (Other User <other@example.com>, 3 hours ago)",  // git log
+            ""                              // git reset --soft HEAD~2
         ]
         
         let picker = MockPicker(permissionResponses: [
             "Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area.": true
         ])
         let shell = MockShell(results: shellResults)
-        let context = MockContext(picker: picker, shell: shell)
+        let commitManager = DefaultGitCommitManager(shell: shell)
+        let resetHelper = DefaultGitResetHelper(manager: commitManager, picker: picker)
+        let context = MockContext(picker: picker, shell: shell, resetHelper: resetHelper)
         
         try runCommand(context, number: 2, force: true)
         
@@ -117,30 +123,32 @@ struct SoftResetTests {
     
     @Test("Handles permission denial")
     func handlesPermissionDenial() throws {
-        let commitInfo = [
-            CommitInfo(hash: "abc123", message: "Test commit", author: "Test User", date: "2 hours ago", wasAuthoredByCurrentUser: true)
+        let shellResults = [
+            "Test User",                    // git config user.name
+            "test@example.com",             // git config user.email
+            "abc123 - Test commit (Test User <test@example.com>, 2 hours ago)"  // git log
         ]
-        let mockResetHelper = MockGitResetHelper(
-            prepareResetResult: commitInfo,
-            verifyAuthorPermissionsResult: false  // This will cause the permission denial
-        )
         
-        let picker = MockPicker()
-        let shell = MockShell(results: [""])
-        let context = MockContext(picker: picker, shell: shell, resetHelper: mockResetHelper)
+        let picker = MockPicker(permissionResponses: [
+            "Are you sure you want to soft reset 1 commit(s)? The changes will be moved to staging area.": false
+        ])
+        let shell = MockShell(results: shellResults)
+        let commitManager = DefaultGitCommitManager(shell: shell)
+        let resetHelper = DefaultGitResetHelper(manager: commitManager, picker: picker)
+        let context = MockContext(picker: picker, shell: shell, resetHelper: resetHelper)
         
-        try runCommand(context, number: 1)
-        
-        // Verify the reset helper was called but permission was denied
-        #expect(mockResetHelper.prepareResetCount == 1)
-        #expect(mockResetHelper.verifyAuthorPermissionsForce == false)
-        #expect(mockResetHelper.confirmResetCount == nil)  // Should not reach confirmation
-        #expect(!shell.executedCommands.contains("git reset --soft HEAD~1"))
+        do {
+            try runCommand(context, number: 1)
+            #expect(Bool(false), "Expected permission denied error")
+        } catch {
+            // Expected to throw due to permission denial
+            #expect(!shell.executedCommands.contains("git reset --soft HEAD~1"))
+        }
     }
     
     // MARK: - Selection Mode Tests
     
-    @Test("selects first commit in selection mode")
+    @Test("Selects first commit in selection mode")
     func selectsFirstCommitInSelectionMode() throws {
         let commitInfo = [
             CommitInfo(hash: "abc123", message: "Test commit 1", author: "Test User", date: "1 hour ago", wasAuthoredByCurrentUser: true)
@@ -165,7 +173,7 @@ struct SoftResetTests {
         #expect(shell.executedCommands.contains("git reset --soft HEAD~1"))
     }
     
-    @Test("selects middle commit in selection mode")
+    @Test("Selects middle commit in selection mode")
     func selectsMiddleCommitInSelectionMode() throws {
         let commitInfo = [
             CommitInfo(hash: "jkl012", message: "Test commit 4", author: "Test User", date: "4 hours ago", wasAuthoredByCurrentUser: true),
@@ -189,7 +197,7 @@ struct SoftResetTests {
         #expect(shell.executedCommands.contains("git reset --soft HEAD~4"))
     }
     
-    @Test("selects last available commit in selection mode")
+    @Test("Selects last available commit in selection mode")
     func selectsLastAvailableCommitInSelectionMode() throws {
         let commitInfo = (1...7).map { i in
             CommitInfo(hash: "hash\(i)", message: "Test commit \(i)", author: "Test User", date: "\(i) hours ago", wasAuthoredByCurrentUser: true)
@@ -212,7 +220,7 @@ struct SoftResetTests {
     
     // MARK: - Selection Integration Tests
     
-    @Test("selection mode works with force flag for other authors")
+    @Test("Selection mode works with force flag for other authors")
     func selectionModeWorksWithForceFlagForOtherAuthors() throws {
         let commitInfo = [
             CommitInfo(hash: "def456", message: "Test commit 2", author: "Other User", date: "2 hours ago", wasAuthoredByCurrentUser: false),
@@ -235,7 +243,7 @@ struct SoftResetTests {
         #expect(shell.executedCommands.contains("git reset --soft HEAD~2"))
     }
     
-    @Test("selection mode respects author validation")
+    @Test("Selection mode respects author validation")
     func selectionModeRespectsAuthorValidation() throws {
         let commitInfo = [
             CommitInfo(hash: "def456", message: "Test commit 2", author: "Other User", date: "2 hours ago", wasAuthoredByCurrentUser: false),
@@ -258,7 +266,7 @@ struct SoftResetTests {
         #expect(!shell.executedCommands.contains("git reset --soft HEAD~2"))
     }
     
-    @Test("selection mode handles permission denial", .disabled())
+    @Test("Selection mode handles permission denial", .disabled())
     func selectionModeHandlesPermissionDenial() throws {
         let commitInfo = [
             CommitInfo(hash: "ghi789", message: "Test commit 3", author: "Test User", date: "3 hours ago", wasAuthoredByCurrentUser: true),
@@ -288,7 +296,7 @@ struct SoftResetTests {
     
     // MARK: - Edge Case Tests
     
-    @Test("selection mode handles empty commit history")
+    @Test("Selection mode handles empty commit history")
     func selectionModeHandlesEmptyCommitHistory() throws {
         let mockResetHelper = MockGitResetHelper(
             selectCommitForResetResult: nil  // No commits selected
@@ -306,7 +314,7 @@ struct SoftResetTests {
         #expect(picker.requiredPermissions.isEmpty)
     }
     
-    @Test("selection mode with insufficient commits")
+    @Test("Selection mode with insufficient commits")
     func selectionModeWithInsufficientCommits() throws {
         let commitInfo = [
             CommitInfo(hash: "def456", message: "Test commit 2", author: "Test User", date: "2 hours ago", wasAuthoredByCurrentUser: true),
@@ -331,7 +339,7 @@ struct SoftResetTests {
     
     // MARK: - Argument Validation Tests
     
-    @Test("selection mode ignores number argument")
+    @Test("Selection mode ignores number argument")
     func selectionModeIgnoresNumberArgument() throws {
         let commitInfo = [
             CommitInfo(hash: "ghi789", message: "Test commit 3", author: "Test User", date: "3 hours ago", wasAuthoredByCurrentUser: true),

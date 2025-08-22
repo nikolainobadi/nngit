@@ -14,11 +14,12 @@ struct DefaultGitCommitManagerTests {
     @Test("parses commit logs returned from git")
     func parsesCommitLogs() throws {
         let results = [
-            "John Doe",  // git config user.name
+            "John Doe",                     // git config user.name
+            "john@example.com",             // git config user.email
             """
-abc123 - Initial commit (John Doe, 2 weeks ago)
-def456 - Update README (Jane Smith, 3 days ago)
-"""  // git log -n 2 --pretty=format:'%h - %s (%an, %ar)'
+abc123 - Initial commit (John Doe <john@example.com>, 2 weeks ago)
+def456 - Update README (Jane Smith <jane@example.com>, 3 days ago)
+"""  // git log -n 2 --pretty=format:'%h - %s (%an <%ae>, %ar)'
         ]
         
         let (sut, shell) = makeSUT(results: results)
@@ -26,7 +27,8 @@ def456 - Update README (Jane Smith, 3 days ago)
 
         #expect(shell.executedCommands == [
             "git config user.name",
-            "git log -n 2 --pretty=format:'%h - %s (%an, %ar)'"
+            "git config user.email",
+            "git log -n 2 --pretty=format:'%h - %s (%an <%ae>, %ar)'"
         ])
         #expect(info.count == 2)
         #expect(info[0].hash == "abc123")

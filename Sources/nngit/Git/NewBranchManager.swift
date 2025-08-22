@@ -34,6 +34,9 @@ extension NewBranchManager {
             return // TODO: -
         }
         
+        // Fetch latest remote changes to ensure accurate sync status
+        try shell.runGitCommandWithOutput(.fetchOrigin, path: nil)
+        
         if isDefaultBranch(currentBranch) {
             let mainBranchStatus = try branchLoader.getSyncStatus(branchName: currentBranch.name, comparingBranch: nil, remoteExists: true)
             

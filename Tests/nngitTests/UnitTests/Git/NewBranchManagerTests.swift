@@ -20,6 +20,7 @@ struct NewBranchManagerTests {
         
         try sut.handleRemoteRepository()
         
+        #expect(shell.executedCommands.contains("git fetch origin"))
         #expect(shell.executedCommands.contains("git push"))
         #expect(picker.requiredPermissions.count == 1)
     }
@@ -34,6 +35,7 @@ struct NewBranchManagerTests {
             try sut.handleRemoteRepository()
         }
         
+        #expect(shell.executedCommands.contains("git fetch origin"))
         #expect(!shell.executedCommands.contains("git push"))
         #expect(picker.requiredPermissions.count == 1)
     }
@@ -46,6 +48,7 @@ struct NewBranchManagerTests {
         
         try sut.handleRemoteRepository()
         
+        #expect(shell.executedCommands.contains("git fetch origin"))
         #expect(shell.executedCommands.contains("git pull"))
     }
     
@@ -57,6 +60,7 @@ struct NewBranchManagerTests {
         
         try sut.handleRemoteRepository()
         
+        #expect(shell.executedCommands.contains("git fetch origin"))
         #expect(shell.executedCommands.contains("git pull --rebase"))
     }
     
@@ -68,6 +72,7 @@ struct NewBranchManagerTests {
         
         try sut.handleRemoteRepository()
         
+        #expect(shell.executedCommands.contains("git fetch origin"))
         #expect(shell.executedCommands.contains("git push"))
         #expect(picker.requiredPermissions.contains("Your develop branch has unpushed changes. Would you like to push them before creating a new branch?"))
     }
@@ -81,7 +86,9 @@ struct NewBranchManagerTests {
             try sut.handleRemoteRepository()
         }
         
-        #expect(shell.executedCommands.isEmpty)
+        #expect(shell.executedCommands.contains("git fetch origin"))
+        #expect(!shell.executedCommands.contains("git push"))
+        #expect(!shell.executedCommands.contains("git pull"))
     }
     
     @Test("Throws error when branch status is undetermined.")
@@ -93,7 +100,9 @@ struct NewBranchManagerTests {
             try sut.handleRemoteRepository()
         }
         
-        #expect(shell.executedCommands.isEmpty)
+        #expect(shell.executedCommands.contains("git fetch origin"))
+        #expect(!shell.executedCommands.contains("git push"))
+        #expect(!shell.executedCommands.contains("git pull"))
     }
     
     @Test("Throws error when no remote branch exists.")
@@ -105,7 +114,9 @@ struct NewBranchManagerTests {
             try sut.handleRemoteRepository()
         }
         
-        #expect(shell.executedCommands.isEmpty)
+        #expect(shell.executedCommands.contains("git fetch origin"))
+        #expect(!shell.executedCommands.contains("git push"))
+        #expect(!shell.executedCommands.contains("git pull"))
     }
 }
 

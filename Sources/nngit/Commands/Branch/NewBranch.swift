@@ -27,6 +27,10 @@ extension Nngit {
             let branchName = try name ?? picker.getRequiredInput("Enter the name of your new branch.")
             let formattedBranchName = branchName.formattedBranchName
 
+            if try shell.remoteExists(path: nil) {
+                // TODO: Add logic for handling remote repository requirements
+            }
+
             try shell.runGitCommandWithOutput(.newBranch(branchName: formattedBranchName), path: nil)
             
             print("✅ Created and switched to branch: \(formattedBranchName)")

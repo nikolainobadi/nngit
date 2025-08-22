@@ -36,17 +36,16 @@ final class StubBranchLoader: GitBranchLoader {
         }
     }
 
-    func loadBranches(
-        for names: [String],
-        shell: GitShell,
-        mainBranchName: String,
-        loadMergeStatus: Bool,
-        loadCreationDate: Bool,
-        loadSyncStatus: Bool
-    ) throws -> [GitBranch] {
+    func loadBranches(for names: [String], shell: GitShell, mainBranchName: String) throws -> [GitBranch] {
         return localBranches.filter { branch in
             names.contains(branch.name) || names.contains("* \(branch.name)")
         }
+    }
+    
+    func getSyncStatus(branchName: String, comparingBranch: String?, shell: GitShell, remoteExists: Bool) throws -> BranchSyncStatus {
+        // For testing, return the sync status from the predefined branches
+        let cleanBranchName = branchName.hasPrefix("*") ? String(branchName.dropFirst(2)) : branchName
+        return localBranches.first { $0.name == cleanBranchName }?.syncStatus ?? .undetermined
     }
     
     // Override extension methods to avoid shell commands in tests

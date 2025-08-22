@@ -52,6 +52,26 @@ struct NewBranchTests {
         #expect(output.contains("✅ Created and switched to branch: prompted-branch"))
     }
 
+    @Test("checks for remote repository existence")
+    func checksForRemoteExistence() throws {
+        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
+        let checkForRemote = makeGitCommand(.checkForRemote, path: nil)
+        let newBranchCmd = makeGitCommand(.newBranch(branchName: "test-branch"), path: nil)
+        let shell = MockShell(results: [
+            "true",   // localGitCheck
+            "origin", // checkForRemote (remote exists)
+            ""        // newBranchCmd
+        ])
+        let picker = MockPicker()
+        let context = MockContext(picker: picker, shell: shell, configLoader: StubConfigLoader(initialConfig: .defaultConfig))
+
+        let output = try Nngit.testRun(context: context, args: ["new-branch", "test-branch"])
+        #expect(shell.executedCommands.contains(localGitCheck))
+        #expect(shell.executedCommands.contains(checkForRemote))
+        #expect(shell.executedCommands.contains(newBranchCmd))
+        #expect(output.contains("✅ Created and switched to branch: test-branch"))
+    }
+
     @Test("formats branch name by replacing spaces with dashes")
     func formatsBranchNameWithSpaces() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)

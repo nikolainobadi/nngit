@@ -14,15 +14,18 @@ final class MockContext {
     private var shell: MockGitShell?
     private var configLoader: GitConfigLoader?
     private var branchLoader: GitBranchLoader?
+    private var resetHelper: GitResetHelper?
     
     init(picker: MockPicker? = nil,
          shell: MockGitShell? = nil,
          configLoader: GitConfigLoader? = nil,
-         branchLoader: GitBranchLoader? = nil) {
+         branchLoader: GitBranchLoader? = nil,
+         resetHelper: GitResetHelper? = nil) {
         self.picker = picker
         self.shell = shell
         self.configLoader = configLoader
         self.branchLoader = branchLoader
+        self.resetHelper = resetHelper
     }
 }
 
@@ -65,5 +68,12 @@ extension MockContext: NnGitContext {
         let loader = DefaultGitBranchLoader(shell: makeShell())
         branchLoader = loader
         return loader
+    }
+    
+    func makeResetHelper() -> GitResetHelper {
+        if let resetHelper { return resetHelper }
+        let helper = MockGitResetHelper()
+        resetHelper = helper
+        return helper
     }
 }

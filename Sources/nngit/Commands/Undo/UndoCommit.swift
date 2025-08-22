@@ -25,74 +25,34 @@ extension Nngit.Undo {
         
         /// Executes the command using the shared context components.
         func run() throws {
+            let helper = Nngit.makeResetHelper()
             let manager = Nngit.makeCommitManager()
-            let picker = Nngit.makePicker()
             
             let resetCount: Int
             let commitInfo: [CommitInfo]
             
             if select {
-                // Selection mode: get last 7 commits and let user pick one
-                commitInfo = try manager.getCommitInfo(count: 7)
-                
-                guard !commitInfo.isEmpty else {
-                    print("No commits found to select from.")
-                    return
-                }
-                
-                let selectedCommit = try picker.requiredSingleSelection("Select a commit to hard reset to:", items: commitInfo)
-                
-                // Find the index of the selected commit (position determines reset count)
-                guard let selectedIndex = commitInfo.firstIndex(where: { $0.hash == selectedCommit.hash }) else {
-                    print("Error: Could not determine commit position.")
-                    return
-                }
-                
-                resetCount = selectedIndex + 1
-                
-                // Get the commits that will actually be reset
-                let commitsToReset = Array(commitInfo.prefix(resetCount))
-                print("The following \(resetCount) commit(s) will be discarded:")
-                commitsToReset.forEach {
-                    print($0.coloredMessage)
-                }
+                guard let result = try helper.selectCommitForReset() else { return }
+                (resetCount, commitInfo) = (result.count, result.commits)
+                helper.displayCommits(commitInfo, action: "discarded")
             } else {
-                // Original mode: use the number argument
-                guard number > 0 else {
-                    print("number of commits to undo must be greater than 0")
-                    return
-                }
-                
-                resetCount = number
-                commitInfo = try manager.getCommitInfo(count: resetCount)
-                print("The following commits will be discarded:")
-                commitInfo.forEach {
-                    print($0.coloredMessage)
-                }
-            }
-            
-            if commitInfo.contains(where: { !$0.wasAuthoredByCurrentUser }) {
-                if force {
-                    print("\nWarning: discarding commits authored by others.")
-                } else {
-                    print("\nSome of the commits were created by other authors. Re-run this command with --force to discard them.")
+                do {
+                    commitInfo = try helper.prepareReset(count: number)
+                    resetCount = number
+                    helper.displayCommits(commitInfo, action: "discarded")
+                } catch {
+                    print(error)
                     return
                 }
             }
             
-            try picker.requiredPermission("Are you sure you want to hard reset \(resetCount) commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action.")
+            if !helper.verifyAuthorPermissions(commits: commitInfo, force: force) {
+                return
+            }
+            
+            try helper.confirmReset(count: resetCount, resetType: "hard")
             
             try manager.undoCommits(count: resetCount)
         }
-    }
-}
-
-
-// MARK: - Extension Dependencies
-private extension CommitInfo {
-    var coloredMessage: String {
-        let authorName = wasAuthoredByCurrentUser ? author.green : author.lightRed
-        
-        return "\(hash.yellow) | (\(authorName), \(date) - \(message.bold)"
     }
 }

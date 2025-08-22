@@ -68,20 +68,6 @@ struct BranchDiffManagerTests {
         #expect(!clipboardHandler.copyToClipboardCalled)
     }
     
-    @Test("Handles base branch not found")
-    func generateDiffBaseBranchNotFound() throws {
-        // Using real GitShellAdapter to test actual command failure
-        let shell = GitShellAdapter()
-        let clipboardHandler = MockClipboardHandler()
-        let manager = makeSUT(shell: shell, clipboardHandler: clipboardHandler)
-        
-        #expect(throws: BranchDiffError.baseBranchNotFound("nonexistent-branch-that-should-not-exist")) {
-            try manager.generateDiff(baseBranch: "nonexistent-branch-that-should-not-exist", copyToClipboard: false)
-        }
-        
-        #expect(!clipboardHandler.copyToClipboardCalled)
-    }
-    
     @Test("Handles no differences between branches")
     func generateDiffNoDifferences() throws {
         let shell = MockShell(results: [

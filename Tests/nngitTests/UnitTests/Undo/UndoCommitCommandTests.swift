@@ -3,7 +3,7 @@
 //
 //@MainActor
 //struct UndoCommitCommandTests {
-//    @Test("undoes commits when all authored by current user")
+//    @Test("Undoes commits when all authored by current user")
 //    func undoesCommitsForCurrentUser() throws {
 //        let responses = [
 //            "git config user.name": "John Doe",

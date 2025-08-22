@@ -9,25 +9,33 @@
 import GitShellKit
 
 class MockGitResetHelper: GitResetHelper {
-    var selectCommitForResetResult: (count: Int, commits: [CommitInfo])?
-    var selectCommitForResetCalled = false
+    private(set) var selectCommitForResetResult: (count: Int, commits: [CommitInfo])?
+    private(set) var selectCommitForResetCalled = false
     
-    var prepareResetResult: [CommitInfo] = []
-    var prepareResetCalled = false
-    var prepareResetCount: Int?
+    private(set) var prepareResetResult: [CommitInfo] = []
+    private(set) var prepareResetCalled = false
+    private(set) var prepareResetCount: Int?
     
-    var verifyAuthorPermissionsResult = true
-    var verifyAuthorPermissionsCalled = false
-    var verifyAuthorPermissionsCommits: [CommitInfo]?
-    var verifyAuthorPermissionsForce: Bool?
+    private(set) var verifyAuthorPermissionsResult = true
+    private(set) var verifyAuthorPermissionsCalled = false
+    private(set) var verifyAuthorPermissionsCommits: [CommitInfo]?
+    private(set) var verifyAuthorPermissionsForce: Bool?
     
-    var displayCommitsCalled = false
-    var displayCommitsCommits: [CommitInfo]?
-    var displayCommitsAction: String?
+    private(set) var displayCommitsCalled = false
+    private(set) var displayCommitsCommits: [CommitInfo]?
+    private(set) var displayCommitsAction: String?
     
-    var confirmResetCalled = false
-    var confirmResetCount: Int?
-    var confirmResetType: String?
+    private(set) var confirmResetCalled = false
+    private(set) var confirmResetCount: Int?
+    private(set) var confirmResetType: String?
+    
+    init(selectCommitForResetResult: (count: Int, commits: [CommitInfo])? = nil,
+         prepareResetResult: [CommitInfo] = [],
+         verifyAuthorPermissionsResult: Bool = true) {
+        self.selectCommitForResetResult = selectCommitForResetResult
+        self.prepareResetResult = prepareResetResult
+        self.verifyAuthorPermissionsResult = verifyAuthorPermissionsResult
+    }
     
     func selectCommitForReset() throws -> (count: Int, commits: [CommitInfo])? {
         selectCommitForResetCalled = true

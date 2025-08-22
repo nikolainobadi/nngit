@@ -43,6 +43,7 @@ Manager classes handle complex workflows and coordinate between commands and git
 - `UnstageManager` - Handles interactive file unstaging workflows
 - `SoftResetManager` - Coordinates soft reset operations with safety checks
 - `HardResetManager` - Manages hard reset operations with author verification
+- `BranchDiffManager` - Handles branch diff generation with clipboard support
 
 #### Git Abstraction Layer
 - `GitShellAdapter` - Concrete implementation using SwiftShell
@@ -72,7 +73,7 @@ Manager classes handle complex workflows and coordinate between commands and git
 - Behavior-driven testing approach focusing on public interfaces
 - Enhanced authorship testing with both git username and email validation
 - Comprehensive test coverage for reset operations and permission checks
-- 154 tests providing extensive coverage
+- 163 tests providing extensive coverage
 
 ### External Dependencies
 - `SwiftShell` - Shell command execution

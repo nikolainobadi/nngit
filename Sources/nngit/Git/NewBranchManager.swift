@@ -6,15 +6,18 @@
 //
 
 import GitShellKit
+import SwiftPicker
 
 /// Manager for handling new branch creation with remote synchronization checks.
 struct NewBranchManager {
     private let shell: GitShell
+    private let picker: CommandLinePicker
     private let branchLoader: GitBranchLoader
     private let config: GitConfig
     
-    init(shell: GitShell, branchLoader: GitBranchLoader, config: GitConfig) {
+    init(shell: GitShell, picker: CommandLinePicker, branchLoader: GitBranchLoader, config: GitConfig) {
         self.shell = shell
+        self.picker = picker
         self.branchLoader = branchLoader
         self.config = config
     }
@@ -30,14 +33,14 @@ extension NewBranchManager {
             return // TODO: -
         }
         
-        if isCurrentBranch(currentBranch) {
+        if isDefaultBranch(currentBranch) {
             let mainBranchStatus = try branchLoader.getSyncStatus(branchName: currentBranch.name, comparingBranch: nil, remoteExists: true)
             
             switch mainBranchStatus {
             case .behind:
                 break
             case .ahead:
-                break
+                try handleAheadBranch(currentBranch)
             case .nsync:
                 break
             default:
@@ -57,7 +60,16 @@ private extension NewBranchManager {
         return try branchLoader.loadBranches(for: nil, mainBranchName: config.defaultBranch).first(where: { $0.isCurrentBranch })
     }
     
-    func isCurrentBranch(_ branch: GitBranch) -> Bool {
-        return false // TODO: -
+    func isDefaultBranch(_ branch: GitBranch) -> Bool {
+        return branch.name == config.defaultBranch
+    }
+    
+    func handleAheadBranch(_ branch: GitBranch) throws {
+        try picker.requiredPermission(
+            "Your \(config.defaultBranch) branch has unpushed changes. Would you like to push them before creating a new branch?"
+        )
+        
+        try shell.runGitCommandWithOutput(.push, path: nil)
+        print("✅ Pushed changes to \(config.defaultBranch)")
     }
 }

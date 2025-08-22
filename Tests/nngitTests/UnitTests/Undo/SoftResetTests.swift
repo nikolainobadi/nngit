@@ -7,7 +7,12 @@ struct SoftResetTests {
     @Test("Soft resets specified number of commits")
     func softResetsSpecifiedCommits() throws {
         // Setup mock reset helper with initialization parameters
-        let commitInfo = [CommitInfo(hash: "abc123", message: "Test commit", author: "Test User", date: "2 hours ago", wasAuthoredByCurrentUser: true)]
+        let commitInfo = [
+            CommitInfo(hash: "abc123", message: "Test commit 1", author: "Test User", date: "1 hour ago", wasAuthoredByCurrentUser: true),
+            CommitInfo(hash: "def456", message: "Test commit 2", author: "Test User", date: "2 hours ago", wasAuthoredByCurrentUser: true),
+            CommitInfo(hash: "ghi789", message: "Test commit 3", author: "Test User", date: "3 hours ago", wasAuthoredByCurrentUser: true),
+            CommitInfo(hash: "jkl012", message: "Test commit 4", author: "Test User", date: "4 hours ago", wasAuthoredByCurrentUser: true)
+        ]
         let mockResetHelper = MockGitResetHelper(
             prepareResetResult: commitInfo,
             verifyAuthorPermissionsResult: true

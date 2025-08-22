@@ -8,7 +8,7 @@
 @testable import nngit
 import GitShellKit
 
-class MockGitResetHelper: GitResetHelper {
+final class MockGitResetHelper: GitResetHelper {
     private(set) var selectCommitForResetResult: (count: Int, commits: [CommitInfo])?
     private(set) var selectCommitForResetCalled = false
     

@@ -50,7 +50,6 @@ extension Nngit {
             let branchLoader = Nngit.makeBranchLoader()
             let config = try Nngit.makeConfigLoader().loadConfig(picker: picker)
             
-            
             var branchNames = try branchLoader.loadBranchNames(from: branchLocation, shell: shell)
 
             let loadMerge = loadMergeStatus ?? config.loading.loadMergeStatus
@@ -98,7 +97,6 @@ extension Nngit {
 
             try shell.runGitCommandWithOutput(.switchBranch(branchName: selectedBranch.name), path: nil)
         }
-        
     }
 }
 

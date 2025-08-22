@@ -27,9 +27,11 @@ extension Nngit {
             let loader = Nngit.makeConfigLoader()
             try shell.verifyLocalGitExists()
             let config = try loader.loadConfig(picker: picker)
-            try rebaseIfNecessary(shell: shell, config: config, picker: picker)
+            
+            let branchHelper = GitBranchHelper(shell: shell)
+            try branchHelper.rebaseIfNecessary(config: config, picker: picker)
+            
             let branchName = try name ?? picker.getRequiredInput("Enter the name of your new branch.")
-
             let fullBranchName = branchName
 
             try shell.runGitCommandWithOutput(.newBranch(branchName: fullBranchName), path: nil)
@@ -38,25 +40,3 @@ extension Nngit {
         }
     }
 }
-
-extension Nngit.NewBranch {
-    /// Rebases the default branch if configured and the user approves.
-    func rebaseIfNecessary(shell: GitShell, config: GitConfig, picker: CommandLinePicker) throws {
-        guard try shell.remoteExists(path: nil) else {
-            return
-        }
-        
-        let currentBranch = try shell.runWithOutput(makeGitCommand(.getCurrentBranchName, path: nil)).trimmingCharacters(in: .whitespacesAndNewlines)
-        let isOnMainBranch = currentBranch.lowercased() == config.branches.defaultBranch.lowercased()
-        
-        guard isOnMainBranch && config.behaviors.rebaseWhenBranchingFromDefault else {
-            return
-        }
-        
-        if picker.getPermission("Would you like to rebase before creating your new branch?") {
-            try shell.runWithOutput("git pull --rebase")
-        }
-    }
-
-}
-

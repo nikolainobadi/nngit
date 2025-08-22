@@ -40,4 +40,20 @@ final class StubBranchLoader: GitBranchLoader {
             names.contains(branch.name) || names.contains("* \(branch.name)")
         }
     }
+    
+    // Override extension methods to avoid shell commands in tests
+    func filterBranchNamesByAuthor(_ names: [String], shell: GitShell, includeAuthor: [String]) -> [String] {
+        // For testing, return all names (simulate that user owns all branches)
+        return names
+    }
+    
+    func filterBranchNamesBySearch(_ names: [String], search: String?) -> [String] {
+        guard let search, !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return names }
+        return names.filter { $0.lowercased().contains(search.lowercased()) }
+    }
+    
+    func filterBranchesByAuthor(_ branches: [GitBranch], shell: GitShell, includeAuthor: [String]) -> [GitBranch] {
+        // For testing, return all branches (simulate that user owns all branches)
+        return branches
+    }
 }

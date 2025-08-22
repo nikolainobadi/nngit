@@ -11,23 +11,11 @@ import GitShellKit
 import ArgumentParser
 
 extension Nngit {
-    /// Command that checks out remote branches authored by the user.
+    /// Command that checks out remote branches.
     struct CheckoutRemote: ParsableCommand {
         static let configuration = CommandConfiguration(
-            abstract: "List and checkout remote branches that you authored which don't exist locally."
+            abstract: "List and checkout remote branches that don't exist locally."
         )
-        
-        @Option(name: .long, parsing: .upToNextOption,
-                help: "Additional author names or emails to include when filtering branches")
-        var includeAuthor: [String] = []
-        
-        @Option(name: .long,
-                help: "Only show branches created within the last N days (default: 15)")
-        var days: Int = 15
-        
-        @Flag(name: .long,
-              help: "Disable date filtering and show all branches regardless of age")
-        var noFilter: Bool = false
         
         /// Executes the command using the shared context components.
         func run() throws {
@@ -38,21 +26,10 @@ extension Nngit {
             try shell.verifyLocalGitExists()
             
             // Load remote branches
-            var remoteBranchNames = try branchLoader.loadBranchNames(from: .remote, shell: shell)
-            
-            // Filter by author (automatically includes current git user)
-            remoteBranchNames = branchLoader.filterBranchNamesByAuthor(remoteBranchNames, shell: shell, includeAuthor: includeAuthor)
-            
-            // Filter by date unless --no-filter flag is used
-            if !noFilter {
-                remoteBranchNames = branchLoader.filterBranchNamesByDate(remoteBranchNames, shell: shell, withinDays: days)
-            }
+            let remoteBranchNames = try branchLoader.loadBranchNames(from: .remote, shell: shell)
             
             if remoteBranchNames.isEmpty {
-                let message = noFilter 
-                    ? "No remote branches found that you authored."
-                    : "No remote branches found that you authored within the last \(days) days. Use --no-filter to show all branches."
-                print(message)
+                print("No remote branches found.")
                 return
             }
             
@@ -64,7 +41,7 @@ extension Nngit {
             )
             
             if availableRemoteBranches.isEmpty {
-                print("All your remote branches already exist locally.")
+                print("All remote branches already exist locally.")
                 print("Use 'nngit switch-branch --branch-location remote' to switch to existing remote branches.")
                 return
             }

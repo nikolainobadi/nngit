@@ -32,5 +32,4 @@ struct BranchPrefixDisplayNameTests {
         let prefix = BranchPrefix(name: "bugfix", requiresIssueNumber: true, issuePrefixes: ["FRA-"])
         #expect(prefix.displayName == "bugfix/[FRA-]<issue>")
     }
-
 }

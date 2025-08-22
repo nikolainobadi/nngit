@@ -145,11 +145,11 @@ The `Staging` command provides interactive file staging/unstaging:
 - **Use `#require` for optional unwrapping in tests**: When testing optionals that should have values, use `try #require()` to safely unwrap and provide clear test failures:
   ```swift
   // Good - clear failures when optional is nil
-  let count = try #require(helper.displayCommitsCommits).count
+  let count = try #require(helper.displayedCommits).count
   #expect(count == 2)
   
   // Avoid - less clear test failures
-  #expect(helper.displayCommitsCommits?.count == 2)
+  #expect(helper.displayedCommits?.count == 2)
   ```
 
 ### Error Handling

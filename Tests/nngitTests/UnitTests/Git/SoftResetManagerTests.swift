@@ -18,9 +18,9 @@ struct SoftResetManagerTests {
         try manager.performSoftReset(select: false, number: 2, force: false)
         
         #expect(helper.prepareResetCount == 2)
-        #expect(helper.displayCommitsCommits != nil)
-        #expect(helper.verifyAuthorPermissionsCommits != nil)
-        #expect(helper.verifyAuthorPermissionsForce == false)
+        #expect(helper.displayedCommits != nil)
+        #expect(helper.verifiedCommits != nil)
+        #expect(helper.verifiedWithForce == false)
         #expect(helper.confirmResetCount == 2)
         #expect(helper.confirmResetType == "soft")
         #expect(commitManager.softResetCommitsCalled)
@@ -34,9 +34,9 @@ struct SoftResetManagerTests {
         let manager = makeSUT(helper: helper, commitManager: commitManager)
         try manager.performSoftReset(select: true, number: 1, force: true)
         
-        #expect(helper.displayCommitsCommits != nil)
-        #expect(helper.verifyAuthorPermissionsCommits != nil)
-        #expect(helper.verifyAuthorPermissionsForce == true)
+        #expect(helper.displayedCommits != nil)
+        #expect(helper.verifiedCommits != nil)
+        #expect(helper.verifiedWithForce == true)
         #expect(helper.confirmResetCount == 3)
         #expect(helper.confirmResetType == "soft")
         #expect(commitManager.softResetCommitsCalled)
@@ -50,8 +50,8 @@ struct SoftResetManagerTests {
         let manager = makeSUT(helper: helper, commitManager: commitManager)
         try manager.performSoftReset(select: true, number: 1, force: false)
         
-        #expect(helper.displayCommitsCommits == nil)
-        #expect(helper.verifyAuthorPermissionsCommits == nil)
+        #expect(helper.displayedCommits == nil)
+        #expect(helper.verifiedCommits == nil)
         #expect(helper.confirmResetCount == nil)
         #expect(!commitManager.softResetCommitsCalled)
     }
@@ -64,9 +64,9 @@ struct SoftResetManagerTests {
         try manager.performSoftReset(select: false, number: 1, force: false)
         
         #expect(helper.prepareResetCount == 1)
-        #expect(helper.displayCommitsCommits != nil)
-        #expect(helper.verifyAuthorPermissionsCommits != nil)
-        #expect(helper.verifyAuthorPermissionsForce == false)
+        #expect(helper.displayedCommits != nil)
+        #expect(helper.verifiedCommits != nil)
+        #expect(helper.verifiedWithForce == false)
         #expect(helper.confirmResetCount == nil)
         #expect(!commitManager.softResetCommitsCalled)
     }
@@ -79,7 +79,7 @@ struct SoftResetManagerTests {
         try manager.performSoftReset(select: false, number: 1, force: true)
         
         #expect(helper.prepareResetCount == 1)
-        #expect(helper.verifyAuthorPermissionsForce == true)
+        #expect(helper.verifiedWithForce == true)
         #expect(helper.confirmResetCount == 1)
         #expect(commitManager.softResetCommitsCalled)
     }
@@ -122,8 +122,8 @@ struct SoftResetManagerTests {
         let manager = makeSUT(helper: helper, commitManager: commitManager)
         try manager.performSoftReset(select: false, number: 2, force: false)
         
-        #expect(helper.displayCommitsAction == "moved back to staging area")
-        #expect(helper.displayCommitsCommits?.count == 2)
+        #expect(helper.displayedAction == "moved back to staging area")
+        #expect(helper.displayedCommits?.count == 2)
     }
     
     @Test("Executes complete workflow in correct order")
@@ -135,8 +135,8 @@ struct SoftResetManagerTests {
         
         // Verify the workflow steps were executed
         #expect(helper.prepareResetCount == 1) // 1. Load commits
-        #expect(helper.displayCommitsCommits != nil) // 2. Display commits
-        #expect(helper.verifyAuthorPermissionsCommits != nil) // 3. Verify permissions
+        #expect(helper.displayedCommits != nil) // 2. Display commits
+        #expect(helper.verifiedCommits != nil) // 3. Verify permissions
         #expect(helper.confirmResetCount == 1) // 4. Confirm reset
         #expect(commitManager.softResetCommitsCalled) // 5. Perform reset
     }

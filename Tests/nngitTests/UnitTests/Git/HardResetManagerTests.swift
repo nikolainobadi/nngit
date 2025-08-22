@@ -24,13 +24,13 @@ struct HardResetManagerTests {
         
         try manager.performHardReset(select: false, number: 2, force: false)
         
-        let displayedCommitsCount = try #require(helper.displayCommitsCommits).count
+        let displayedCommitsCount = try #require(helper.displayedCommits).count
         
         #expect(displayedCommitsCount == 2)
         #expect(helper.prepareResetCount == 2)
-        #expect(helper.displayCommitsAction == "discarded")
-        #expect(helper.verifyAuthorPermissionsCommits != nil)
-        #expect(helper.verifyAuthorPermissionsForce == false)
+        #expect(helper.displayedAction == "discarded")
+        #expect(helper.verifiedCommits != nil)
+        #expect(helper.verifiedWithForce == false)
         #expect(helper.confirmResetCount == 2)
         #expect(helper.confirmResetType == "hard")
         #expect(commitManager.undoCommitsCount == 2)
@@ -51,13 +51,13 @@ struct HardResetManagerTests {
         try manager.performHardReset(select: true, number: 5, force: false)
         
         // When select is true, the helper's selectCommitForReset method is called
-        let displayedCommitsCount = try #require(helper.displayCommitsCommits).count
-        let verifyCommits = try #require(helper.verifyAuthorPermissionsCommits)
+        let displayedCommitsCount = try #require(helper.displayedCommits).count
+        let verifyCommits = try #require(helper.verifiedCommits)
         
         #expect(displayedCommitsCount == 1)
-        #expect(helper.displayCommitsAction == "discarded")
+        #expect(helper.displayedAction == "discarded")
         #expect(verifyCommits.count == 1)
-        #expect(helper.verifyAuthorPermissionsForce == false)
+        #expect(helper.verifiedWithForce == false)
         #expect(helper.confirmResetCount == 1)
         #expect(helper.confirmResetType == "hard")
         #expect(commitManager.undoCommitsCount == 1)
@@ -72,8 +72,8 @@ struct HardResetManagerTests {
         try manager.performHardReset(select: true, number: 1, force: false)
         
         // When selection is cancelled, no further operations occur
-        #expect(helper.displayCommitsCommits == nil)
-        #expect(helper.verifyAuthorPermissionsCommits == nil)
+        #expect(helper.displayedCommits == nil)
+        #expect(helper.verifiedCommits == nil)
         #expect(helper.confirmResetCount == nil)
         #expect(commitManager.undoCommitsCount == nil)
     }
@@ -92,13 +92,13 @@ struct HardResetManagerTests {
         
         try manager.performHardReset(select: false, number: 1, force: false)
         
-        let displayedCommitsCount = try #require(helper.displayCommitsCommits).count
-        let verifyCommits = try #require(helper.verifyAuthorPermissionsCommits)
+        let displayedCommitsCount = try #require(helper.displayedCommits).count
+        let verifyCommits = try #require(helper.verifiedCommits)
         
         #expect(helper.prepareResetCount == 1)
         #expect(displayedCommitsCount == 1)
         #expect(verifyCommits.count == 1)
-        #expect(helper.verifyAuthorPermissionsForce == false)
+        #expect(helper.verifiedWithForce == false)
         #expect(helper.confirmResetCount == nil)
         #expect(commitManager.undoCommitsCount == nil)
     }
@@ -117,13 +117,13 @@ struct HardResetManagerTests {
         
         try manager.performHardReset(select: false, number: 1, force: true)
         
-        let displayedCommitsCount = try #require(helper.displayCommitsCommits).count
-        let verifyCommits = try #require(helper.verifyAuthorPermissionsCommits)
+        let displayedCommitsCount = try #require(helper.displayedCommits).count
+        let verifyCommits = try #require(helper.verifiedCommits)
         
         #expect(helper.prepareResetCount == 1)
         #expect(displayedCommitsCount == 1)
         #expect(verifyCommits.count == 1)
-        #expect(helper.verifyAuthorPermissionsForce == true)
+        #expect(helper.verifiedWithForce == true)
         #expect(helper.confirmResetCount == 1)
         #expect(helper.confirmResetType == "hard")
         #expect(commitManager.undoCommitsCount == 1)
@@ -140,7 +140,7 @@ struct HardResetManagerTests {
         }
         
         #expect(helper.prepareResetCount == nil)
-        #expect(helper.displayCommitsCommits == nil)
+        #expect(helper.displayedCommits == nil)
         #expect(commitManager.undoCommitsCount == nil)
     }
     
@@ -155,7 +155,7 @@ struct HardResetManagerTests {
         }
         
         #expect(helper.prepareResetCount == nil)
-        #expect(helper.displayCommitsCommits == nil)
+        #expect(helper.displayedCommits == nil)
         #expect(commitManager.undoCommitsCount == nil)
     }
     
@@ -173,10 +173,10 @@ struct HardResetManagerTests {
         
         try manager.performHardReset(select: false, number: 1, force: false)
         
-        let displayedCommits = try #require(helper.displayCommitsCommits)
+        let displayedCommits = try #require(helper.displayedCommits)
         
         #expect(displayedCommits.count == 1)
-        #expect(helper.displayCommitsAction == "discarded")
+        #expect(helper.displayedAction == "discarded")
     }
     
     @Test("Executes complete workflow in correct order")
@@ -194,8 +194,8 @@ struct HardResetManagerTests {
         try manager.performHardReset(select: false, number: 1, force: false)
         
         // Verify the workflow executed in the correct order
-        let displayedCommitsCount = try #require(helper.displayCommitsCommits).count
-        let verifyCommits = try #require(helper.verifyAuthorPermissionsCommits)
+        let displayedCommitsCount = try #require(helper.displayedCommits).count
+        let verifyCommits = try #require(helper.verifiedCommits)
         
         #expect(helper.prepareResetCount == 1)
         #expect(displayedCommitsCount == 1)

@@ -34,8 +34,8 @@ struct SoftResetTests {
         
         // Verify the reset helper was called with correct parameters
         #expect(mockResetHelper.prepareResetCount == 1)
-        #expect(mockResetHelper.displayCommitsAction == "moved back to staging area")
-        #expect(mockResetHelper.verifyAuthorPermissionsForce == false)
+        #expect(mockResetHelper.displayedAction == "moved back to staging area")
+        #expect(mockResetHelper.verifiedWithForce == false)
         #expect(mockResetHelper.confirmResetCount == 1)
         #expect(mockResetHelper.confirmResetType == "soft")
         
@@ -166,8 +166,8 @@ struct SoftResetTests {
         
         try runCommand(context, select: true)
         
-        #expect(mockResetHelper.displayCommitsAction == "moved back to staging area")
-        #expect(mockResetHelper.verifyAuthorPermissionsForce == false)
+        #expect(mockResetHelper.displayedAction == "moved back to staging area")
+        #expect(mockResetHelper.verifiedWithForce == false)
         #expect(mockResetHelper.confirmResetCount == 1)
         #expect(mockResetHelper.confirmResetType == "soft")
         #expect(shell.executedCommands.contains("git reset --soft HEAD~1"))
@@ -239,7 +239,7 @@ struct SoftResetTests {
         
         try runCommand(context, force: true, select: true)
         
-        #expect(mockResetHelper.verifyAuthorPermissionsForce == true)
+        #expect(mockResetHelper.verifiedWithForce == true)
         #expect(shell.executedCommands.contains("git reset --soft HEAD~2"))
     }
     
@@ -261,7 +261,7 @@ struct SoftResetTests {
         try runCommand(context, select: true)
         
         // Should not execute soft reset without force flag when other authors are present
-        #expect(mockResetHelper.verifyAuthorPermissionsForce == false)
+        #expect(mockResetHelper.verifiedWithForce == false)
         #expect(mockResetHelper.confirmResetCount == nil)  // Should not reach confirmation
         #expect(!shell.executedCommands.contains("git reset --soft HEAD~2"))
     }

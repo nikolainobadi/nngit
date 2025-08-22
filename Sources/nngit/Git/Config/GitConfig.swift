@@ -9,23 +9,19 @@ struct GitConfig: Codable {
     var branches: BranchSettings
     var loading: LoadingOptions
     var behaviors: BehaviorOptions
-    var branchPrefixes: [BranchPrefix]
     var myBranches: [MyBranch]
 
     init(branches: BranchSettings,
          loading: LoadingOptions = LoadingOptions(),
          behaviors: BehaviorOptions = BehaviorOptions(),
-         branchPrefixes: [BranchPrefix] = [],
          myBranches: [MyBranch] = []) {
         self.branches = branches
         self.loading = loading
         self.behaviors = behaviors
-        self.branchPrefixes = branchPrefixes
         self.myBranches = myBranches
     }
     
     init(defaultBranch: String,
-         branchPrefixList: [BranchPrefix],
          rebaseWhenBranchingFromDefaultBranch: Bool,
          pruneWhenDeletingBranches: Bool = false,
          loadMergeStatusWhenLoadingBranches: Bool = true,
@@ -37,7 +33,6 @@ struct GitConfig: Codable {
                                     loadSyncStatus: loadSyncStatusWhenLoadingBranches)
         self.behaviors = BehaviorOptions(rebaseWhenBranchingFromDefault: rebaseWhenBranchingFromDefaultBranch,
                                        pruneWhenDeleting: pruneWhenDeletingBranches)
-        self.branchPrefixes = branchPrefixList
         self.myBranches = []
     }
 
@@ -45,10 +40,8 @@ struct GitConfig: Codable {
         case branches
         case loading
         case behaviors
-        case branchPrefixes
         case myBranches
         case defaultBranch
-        case branchPrefixList
         case rebaseWhenBranchingFromDefaultBranch
         case pruneWhenDeletingBranches
         case loadMergeStatusWhenLoadingBranches
@@ -63,11 +56,9 @@ struct GitConfig: Codable {
             branches = try container.decode(BranchSettings.self, forKey: .branches)
             loading = try container.decodeIfPresent(LoadingOptions.self, forKey: .loading) ?? LoadingOptions()
             behaviors = try container.decodeIfPresent(BehaviorOptions.self, forKey: .behaviors) ?? BehaviorOptions()
-            branchPrefixes = try container.decodeIfPresent([BranchPrefix].self, forKey: .branchPrefixes) ?? []
             myBranches = try container.decodeIfPresent([MyBranch].self, forKey: .myBranches) ?? []
         } else {
             let defaultBranch = try container.decode(String.self, forKey: .defaultBranch)
-            let branchPrefixList = try container.decode([BranchPrefix].self, forKey: .branchPrefixList)
             let rebaseWhenBranchingFromDefaultBranch = try container.decode(Bool.self, forKey: .rebaseWhenBranchingFromDefaultBranch)
             let pruneWhenDeletingBranches = try container.decodeIfPresent(Bool.self, forKey: .pruneWhenDeletingBranches) ?? false
             let loadMergeStatusWhenLoadingBranches = try container.decodeIfPresent(Bool.self, forKey: .loadMergeStatusWhenLoadingBranches) ?? true
@@ -80,7 +71,6 @@ struct GitConfig: Codable {
                                    loadSyncStatus: loadSyncStatusWhenLoadingBranches)
             behaviors = BehaviorOptions(rebaseWhenBranchingFromDefault: rebaseWhenBranchingFromDefaultBranch,
                                       pruneWhenDeleting: pruneWhenDeletingBranches)
-            branchPrefixes = branchPrefixList
             myBranches = []
         }
     }
@@ -90,7 +80,6 @@ struct GitConfig: Codable {
         try container.encode(branches, forKey: .branches)
         try container.encode(loading, forKey: .loading)
         try container.encode(behaviors, forKey: .behaviors)
-        try container.encode(branchPrefixes, forKey: .branchPrefixes)
         try container.encode(myBranches, forKey: .myBranches)
     }
 }
@@ -100,7 +89,6 @@ extension GitConfig {
         return .init(branches: BranchSettings(defaultBranch: "main"),
                     loading: LoadingOptions(),
                     behaviors: BehaviorOptions(),
-                    branchPrefixes: [],
                     myBranches: [])
     }
 }

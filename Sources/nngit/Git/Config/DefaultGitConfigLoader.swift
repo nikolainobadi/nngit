@@ -39,7 +39,6 @@ extension DefaultGitConfigLoader {
             
             let newConfig = GitConfig(
                 defaultBranch: defaultBranchName,
-                branchPrefixList: [],
                 rebaseWhenBranchingFromDefaultBranch: shouldRebaseWhenCreatingNewBranchesFromDefaultBranch,
                 pruneWhenDeletingBranches: shouldPruneWhenDeletingBranches
             )

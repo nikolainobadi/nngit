@@ -61,7 +61,7 @@
 //        let checkRemote = makeGitCommand(.checkForRemote, path: nil)
 //        let newBranchCmd = makeGitCommand(.newBranch(branchName: "feat/42/test-branch"), path: nil)
 //        var config = GitConfig.defaultConfig
-//        config.branchPrefixes = [BranchPrefix(name: "feat", requiresIssueNumber: true)]
+//        // BranchPrefix functionality removed
 //        let loader = StubNewBranchConfigLoader(initialConfig: config)
 //        let shell = MockGitShell(responses: [
 //            localGitCheck: "true",
@@ -87,7 +87,7 @@
 //        let checkRemote = makeGitCommand(.checkForRemote, path: nil)
 //        let newBranchCmd = makeGitCommand(.newBranch(branchName: "foo"), path: nil)
 //        var config = GitConfig.defaultConfig
-//        config.branchPrefixes = [BranchPrefix(name: "feat", requiresIssueNumber: false)]
+//        // BranchPrefix functionality removed
 //        let loader = StubNewBranchConfigLoader(initialConfig: config)
 //        let shell = MockGitShell(responses: [
 //            localGitCheck: "true",
@@ -110,7 +110,7 @@
 //        let checkRemote = makeGitCommand(.checkForRemote, path: nil)
 //        let newBranchCmd = makeGitCommand(.newBranch(branchName: "bar"), path: nil)
 //        var config = GitConfig.defaultConfig
-//        config.branchPrefixes = [BranchPrefix(name: "feat", requiresIssueNumber: false)]
+//        // BranchPrefix functionality removed
 //        let loader = StubNewBranchConfigLoader(initialConfig: config)
 //        let shell = MockGitShell(responses: [
 //            localGitCheck: "true",

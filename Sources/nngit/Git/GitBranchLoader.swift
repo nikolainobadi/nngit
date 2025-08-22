@@ -12,8 +12,8 @@ protocol GitBranchLoader {
     /// Returns just the raw branch names from the given location.
     func loadBranchNames(from location: BranchLocation) throws -> [String]
     
-    /// Creates ``GitBranch`` models using the provided branch names.
-    func loadBranches(for names: [String], mainBranchName: String) throws -> [GitBranch]
+    /// Creates ``GitBranch`` models using the provided branch names. If names is nil, loads all local branches.
+    func loadBranches(for names: [String]?, mainBranchName: String) throws -> [GitBranch]
     
     /// Returns the synchronization status between a local branch and its remote counterpart.
     ///

@@ -11,7 +11,7 @@ extension Nngit {
     }
 }
 
-fileprivate extension Nngit {
+private extension Nngit {
     /// Captures stdout from invoking the command so it can be asserted in tests.
     static func captureOutput(args: [String]?) throws -> String {
         let pipe = Pipe()

@@ -36,7 +36,10 @@ final class StubBranchLoader: GitBranchLoader {
         }
     }
 
-    func loadBranches(for names: [String], mainBranchName: String) throws -> [GitBranch] {
+    func loadBranches(for names: [String]?, mainBranchName: String) throws -> [GitBranch] {
+        guard let names = names else {
+            return localBranches
+        }
         return localBranches.filter { branch in
             names.contains(branch.name) || names.contains("* \(branch.name)")
         }

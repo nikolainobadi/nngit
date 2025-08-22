@@ -38,7 +38,14 @@ extension DefaultGitBranchLoader: GitBranchLoader {
             .filter({ !$0.contains("->") })
     }
 
-    func loadBranches(for names: [String], mainBranchName: String) throws -> [GitBranch] {
+    func loadBranches(for names: [String]?, mainBranchName: String) throws -> [GitBranch] {
+        let branchNames: [String]
+        if let names = names {
+            branchNames = names
+        } else {
+            branchNames = try loadBranchNames(from: .local)
+        }
+        
         let mergedOutput = try self.shell.runGitCommandWithOutput(
             .listMergedBranches(branchName: mainBranchName),
             path: nil
@@ -49,7 +56,7 @@ extension DefaultGitBranchLoader: GitBranchLoader {
 
         let remoteExists = (try? self.shell.remoteExists(path: nil)) ?? false
 
-        return names.map { name in
+        return branchNames.map { name in
             let isCurrentBranch = name.hasPrefix("*")
             let cleanBranchName = isCurrentBranch ? String(name.dropFirst(2)) : name
             let isMerged = mergedBranches.contains(cleanBranchName)

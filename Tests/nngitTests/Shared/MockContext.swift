@@ -5,9 +5,9 @@
 //  Created by Nikolai Nobadi on 6/22/25.
 //
 
+import NnShellKit
 import SwiftPicker
 import GitShellKit
-import NnShellKit
 @testable import nngit
 
 final class MockContext {

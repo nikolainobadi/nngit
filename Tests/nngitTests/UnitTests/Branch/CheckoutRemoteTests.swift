@@ -41,12 +41,13 @@ struct CheckoutRemoteTests {
             "Select a remote branch to checkout": 0 // Select feature-2
         ])
         
+        let shell = MockShell(results: shellResults)
         let configLoader = StubConfigLoader(initialConfig: config)
-        let context = MockContext(picker: picker, shell: MockShell(results: shellResults), configLoader: configLoader, branchLoader: branchLoader)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
         let output = try Nngit.testRun(context: context, args: ["checkout-remote"])
 
-        #expect(context.mockShell?.executedCommands.contains(localGitCheck) == true)
-        #expect(context.mockShell?.executedCommands.contains("git checkout -b feature-2 origin/feature-2") == true)
+        #expect(shell.executedCommands.contains(localGitCheck) == true)
+        #expect(shell.executedCommands.contains("git checkout -b feature-2 origin/feature-2") == true)
         #expect(output.contains("✅ Created and switched to local branch 'feature-2' tracking 'origin/feature-2'"))
         #expect(output.contains("📋 Added 'feature-2' to your MyBranches list."))
         
@@ -67,8 +68,9 @@ struct CheckoutRemoteTests {
         ]
         
         let picker = MockPicker()
+        let shell = MockShell(results: shellResults)
         let configLoader = StubConfigLoader(initialConfig: config)
-        let context = MockContext(picker: picker, shell: MockShell(results: shellResults), configLoader: configLoader, branchLoader: branchLoader)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
 
         let output = try Nngit.testRun(context: context, args: ["checkout-remote", "--no-filter"])
 
@@ -97,8 +99,9 @@ struct CheckoutRemoteTests {
         ]
         
         let picker = MockPicker()
+        let shell = MockShell(results: shellResults)
         let configLoader = StubConfigLoader(initialConfig: config)
-        let context = MockContext(picker: picker, shell: MockShell(results: shellResults), configLoader: configLoader, branchLoader: branchLoader)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
         let output = try Nngit.testRun(context: context, args: ["checkout-remote"])
 
         #expect(output.contains("All your remote branches already exist locally."))
@@ -125,12 +128,13 @@ struct CheckoutRemoteTests {
             "Select a remote branch to checkout": 0 // Select feature-1
         ])
         
+        let shell = MockShell(results: shellResults)
         let configLoader = StubConfigLoader(initialConfig: config)
-        let context = MockContext(picker: picker, shell: MockShell(results: shellResults), configLoader: configLoader, branchLoader: branchLoader)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
 
         let output = try Nngit.testRun(context: context, args: ["checkout-remote", "--include-author", "Other Author"])
 
-        #expect(context.mockShell?.executedCommands.contains("git checkout -b feature-1 origin/feature-1") == true)
+        #expect(shell.executedCommands.contains("git checkout -b feature-1 origin/feature-1") == true)
         #expect(output.contains("✅ Created and switched to local branch 'feature-1' tracking 'origin/feature-1'"))
     }
     
@@ -153,13 +157,14 @@ struct CheckoutRemoteTests {
             "Select a remote branch to checkout": 0 // Select feature-1
         ])
         
+        let shell = MockShell(results: shellResults)
         let configLoader = StubConfigLoader(initialConfig: config)
-        let context = MockContext(picker: picker, shell: MockShell(results: shellResults), configLoader: configLoader, branchLoader: branchLoader)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
 
         let output = try Nngit.testRun(context: context, args: ["checkout-remote"])
 
         // Should present clean branch names without prefixes
-        #expect(context.mockShell?.executedCommands.contains("git checkout -b feature-1 origin/feature-1") == true)
+        #expect(shell.executedCommands.contains("git checkout -b feature-1 origin/feature-1") == true)
         #expect(output.contains("✅ Created and switched to local branch 'feature-1' tracking 'origin/feature-1'"))
     }
     
@@ -182,12 +187,13 @@ struct CheckoutRemoteTests {
             "Select a remote branch to checkout": 0 // Only feature-2 should be available
         ])
         
+        let shell = MockShell(results: shellResults)
         let configLoader = StubConfigLoader(initialConfig: config)
-        let context = MockContext(picker: picker, shell: MockShell(results: shellResults), configLoader: configLoader, branchLoader: branchLoader)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: branchLoader)
 
         let output = try Nngit.testRun(context: context, args: ["checkout-remote"])
 
-        #expect(context.mockShell?.executedCommands.contains("git checkout -b feature-2 origin/feature-2") == true)
+        #expect(shell.executedCommands.contains("git checkout -b feature-2 origin/feature-2") == true)
         #expect(output.contains("✅ Created and switched to local branch 'feature-2' tracking 'origin/feature-2'"))
         
         let savedConfig = try #require(configLoader.savedConfig)

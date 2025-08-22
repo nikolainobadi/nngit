@@ -34,12 +34,6 @@ extension Nngit {
 
             try shell.runGitCommandWithOutput(.newBranch(branchName: fullBranchName), path: nil)
             
-            // Add the new branch to myBranches and save config
-            let newBranch = MyBranch(name: fullBranchName, description: branchName)
-            var updatedConfig = config
-            updatedConfig.myBranches.append(newBranch)
-            try loader.save(updatedConfig)
-            
             print("✅ Created and switched to branch: \(fullBranchName)")
         }
     }

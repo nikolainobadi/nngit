@@ -9,16 +9,13 @@ struct GitConfig: Codable {
     var branches: BranchSettings
     var loading: LoadingOptions
     var behaviors: BehaviorOptions
-    var myBranches: [MyBranch]
 
     init(branches: BranchSettings,
          loading: LoadingOptions = LoadingOptions(),
-         behaviors: BehaviorOptions = BehaviorOptions(),
-         myBranches: [MyBranch] = []) {
+         behaviors: BehaviorOptions = BehaviorOptions()) {
         self.branches = branches
         self.loading = loading
         self.behaviors = behaviors
-        self.myBranches = myBranches
     }
     
     init(defaultBranch: String,
@@ -33,14 +30,12 @@ struct GitConfig: Codable {
                                     loadSyncStatus: loadSyncStatusWhenLoadingBranches)
         self.behaviors = BehaviorOptions(rebaseWhenBranchingFromDefault: rebaseWhenBranchingFromDefaultBranch,
                                        pruneWhenDeleting: pruneWhenDeletingBranches)
-        self.myBranches = []
     }
 
     enum CodingKeys: String, CodingKey {
         case branches
         case loading
         case behaviors
-        case myBranches
         case defaultBranch
         case rebaseWhenBranchingFromDefaultBranch
         case pruneWhenDeletingBranches
@@ -56,7 +51,6 @@ struct GitConfig: Codable {
             branches = try container.decode(BranchSettings.self, forKey: .branches)
             loading = try container.decodeIfPresent(LoadingOptions.self, forKey: .loading) ?? LoadingOptions()
             behaviors = try container.decodeIfPresent(BehaviorOptions.self, forKey: .behaviors) ?? BehaviorOptions()
-            myBranches = try container.decodeIfPresent([MyBranch].self, forKey: .myBranches) ?? []
         } else {
             let defaultBranch = try container.decode(String.self, forKey: .defaultBranch)
             let rebaseWhenBranchingFromDefaultBranch = try container.decode(Bool.self, forKey: .rebaseWhenBranchingFromDefaultBranch)
@@ -71,7 +65,6 @@ struct GitConfig: Codable {
                                    loadSyncStatus: loadSyncStatusWhenLoadingBranches)
             behaviors = BehaviorOptions(rebaseWhenBranchingFromDefault: rebaseWhenBranchingFromDefaultBranch,
                                       pruneWhenDeleting: pruneWhenDeletingBranches)
-            myBranches = []
         }
     }
     
@@ -80,15 +73,11 @@ struct GitConfig: Codable {
         try container.encode(branches, forKey: .branches)
         try container.encode(loading, forKey: .loading)
         try container.encode(behaviors, forKey: .behaviors)
-        try container.encode(myBranches, forKey: .myBranches)
     }
 }
 
 extension GitConfig {
     static var defaultConfig: GitConfig {
-        return .init(branches: BranchSettings(defaultBranch: "main"),
-                    loading: LoadingOptions(),
-                    behaviors: BehaviorOptions(),
-                    myBranches: [])
+        return .init(branches: BranchSettings(defaultBranch: "main"), loading: LoadingOptions(), behaviors: BehaviorOptions())
     }
 }

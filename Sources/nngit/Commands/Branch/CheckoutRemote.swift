@@ -82,14 +82,7 @@ extension Nngit {
             
             try shell.runWithOutput("git checkout -b \(branchName) \(remoteBranchName)")
             
-            // Add to MyBranches
-            let newMyBranch = MyBranch(name: branchName, description: branchName)
-            var updatedConfig = config
-            updatedConfig.myBranches.append(newMyBranch)
-            try configLoader.save(updatedConfig)
-            
             print("✅ Created and switched to local branch '\(branchName)' tracking '\(remoteBranchName)'")
-            print("📋 Added '\(branchName)' to your MyBranches list.")
         }
         
         /// Filters remote branches to only include those that don't exist locally

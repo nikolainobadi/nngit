@@ -49,12 +49,6 @@ struct CheckoutRemoteTests {
         #expect(shell.executedCommands.contains(localGitCheck) == true)
         #expect(shell.executedCommands.contains("git checkout -b feature-2 origin/feature-2") == true)
         #expect(output.contains("✅ Created and switched to local branch 'feature-2' tracking 'origin/feature-2'"))
-        #expect(output.contains("📋 Added 'feature-2' to your MyBranches list."))
-        
-        // Verify the branch was added to myBranches
-        let savedConfig = try #require(configLoader.savedConfig)
-        #expect(savedConfig.myBranches.count == 1)
-        #expect(savedConfig.myBranches[0].name == "feature-2")
     }
     
     @Test("handles case where no remote branches are found")
@@ -195,8 +189,5 @@ struct CheckoutRemoteTests {
 
         #expect(shell.executedCommands.contains("git checkout -b feature-2 origin/feature-2") == true)
         #expect(output.contains("✅ Created and switched to local branch 'feature-2' tracking 'origin/feature-2'"))
-        
-        let savedConfig = try #require(configLoader.savedConfig)
-        #expect(savedConfig.myBranches[0].name == "feature-2")
     }
 }

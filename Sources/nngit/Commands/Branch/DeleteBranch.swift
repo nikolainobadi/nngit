@@ -13,56 +13,24 @@ extension Nngit {
     /// Command that allows selecting and deleting local branches.
     struct DeleteBranch: ParsableCommand {
         static let configuration = CommandConfiguration(
-            abstract: "Lists all available local branches, deletes the selected branches, and optionally prunes the remote origin."
+            abstract: "Lists all available local branches, deletes the selected branches, and prunes the remote origin."
         )
-
-        @Flag(name: .long, help: "Prune 'origin' after deleting branches.")
-        var pruneOrigin: Bool = false
-
-        @Flag(name: .long, help: "Include branches from all authors when listing")
-        var includeAll: Bool = false
 
         @Flag(name: .long, help: "Delete all merged branches without prompting")
         var allMerged: Bool = false
 
-        @Option(name: .customLong("load-merge-status"),
-                help: "Load merge status when listing branches (true/false)")
-        var loadMergeStatus: Bool?
-
-        @Option(name: .customLong("load-creation-date"),
-                help: "Load branch creation date when listing branches (true/false)")
-        var loadCreationDate: Bool?
-
-        @Option(name: .customLong("load-sync-status"),
-                help: "Load sync status when listing branches (true/false)")
-        var loadSyncStatus: Bool?
-
         @Argument(help: "Name (or partial name) of the branch to delete")
         var search: String?
-
-        @Option(name: .long, parsing: .upToNextOption,
-                help: "Additional author names or emails to include when filtering branches")
-        var includeAuthor: [String] = []
         
         /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
-            let configLoader = Nngit.makeConfigLoader()
-
             try shell.verifyLocalGitExists()
-
-            let config = try configLoader.loadConfig(picker: picker)
             let branchLoader = Nngit.makeBranchLoader()
+            let config = try Nngit.makeConfigLoader().loadConfig(picker: picker)
+            
             var branchNames = try loadEligibleBranchNames(shell: shell, config: config)
-
-            let loadMerge = loadMergeStatus ?? config.loading.loadMergeStatus
-            let loadCreation = loadCreationDate ?? config.loading.loadCreationDate
-            let loadSync = loadSyncStatus ?? config.loading.loadSyncStatus
-
-            if !includeAll {
-                branchNames = branchLoader.filterBranchNamesByAuthor(branchNames, shell: shell, includeAuthor: includeAuthor)
-            }
 
             if let search,
                !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -77,9 +45,9 @@ extension Nngit {
                 for: branchNames,
                 shell: shell,
                 mainBranchName: config.branches.defaultBranch,
-                loadMergeStatus: loadMerge,
-                loadCreationDate: loadCreation,
-                loadSyncStatus: loadSync
+                loadMergeStatus: true,
+                loadCreationDate: true,
+                loadSyncStatus: true
             )
 
             let branchesToDelete: [GitBranch]
@@ -93,10 +61,9 @@ extension Nngit {
                 branchesToDelete = picker.multiSelection("Select which branches to delete", items: eligibleBranches)
             }
         
-            // TODO: - determine why deletedBranchNames needs to be returned
             let _ = try deleteBranches(branchesToDelete, shell: shell, picker: picker, defaultBranch: config.branches.defaultBranch)
             
-            if (pruneOrigin || config.behaviors.pruneWhenDeleting) && (try? shell.remoteExists(path: nil)) == true {
+            if (try? shell.remoteExists(path: nil)) == true {
                 let _ = try shell.runWithOutput(makeGitCommand(.pruneOrigin, path: nil))
             }
         }

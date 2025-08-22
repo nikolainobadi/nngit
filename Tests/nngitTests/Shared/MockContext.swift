@@ -7,22 +7,23 @@
 
 import SwiftPicker
 import GitShellKit
+import NnShellKit
 @testable import nngit
 
 final class MockContext {
     private var picker: MockPicker?
-    private var shell: MockGitShell?
+    private var shell: MockShell?
     private var configLoader: GitConfigLoader?
     private var branchLoader: GitBranchLoader?
     private var resetHelper: GitResetHelper?
     
     init(picker: MockPicker? = nil,
-         shell: MockGitShell? = nil,
+         shellResults: [String] = [],
          configLoader: GitConfigLoader? = nil,
          branchLoader: GitBranchLoader? = nil,
          resetHelper: GitResetHelper? = nil) {
         self.picker = picker
-        self.shell = shell
+        self.shell = shellResults.isEmpty ? nil : MockShell(results: shellResults)
         self.configLoader = configLoader
         self.branchLoader = branchLoader
         self.resetHelper = resetHelper
@@ -47,7 +48,7 @@ extension MockContext: NnGitContext {
             return shell
         }
         
-        let newShell = MockGitShell(responses: [:])
+        let newShell = MockShell(results: [])
         shell = newShell
         return newShell
     }
@@ -75,5 +76,12 @@ extension MockContext: NnGitContext {
         let helper = MockGitResetHelper()
         resetHelper = helper
         return helper
+    }
+}
+
+// MARK: - Test Access
+extension MockContext {
+    var mockShell: MockShell? {
+        return shell
     }
 }

@@ -96,7 +96,7 @@ The compiled binary will be available at `.build/release/nngit`.
 - Configuration is stored via `NnConfigKit`
 - Modular components injected through a context for easier testing
 - Enhanced safety systems with comprehensive authorship detection and permission checks
-- Comprehensive test coverage with 95 passing tests
+- Comprehensive test coverage with 145 passing tests
 
 ## Documentation
 The source is documented with inline comments, and a test suite resides under `Tests/`.

@@ -20,16 +20,16 @@ struct DefaultGitBranchLoader {
 
 // MARK: - GitBranchLoader
 extension DefaultGitBranchLoader: GitBranchLoader {
-    func loadBranchNames(from location: BranchLocation, shell: GitShell) throws -> [String] {
+    func loadBranchNames(from location: BranchLocation) throws -> [String] {
         let output: String
 
         switch location {
         case .local:
-            output = try shell.runGitCommandWithOutput(.listLocalBranches, path: nil)
+            output = try self.shell.runGitCommandWithOutput(.listLocalBranches, path: nil)
         case .remote:
-            output = try shell.runGitCommandWithOutput(.listRemoteBranches, path: nil)
+            output = try self.shell.runGitCommandWithOutput(.listRemoteBranches, path: nil)
         case .both:
-            output = try shell.runWithOutput("git branch -a")
+            output = try self.shell.runWithOutput("git branch -a")
         }
 
         return output
@@ -38,8 +38,8 @@ extension DefaultGitBranchLoader: GitBranchLoader {
             .filter({ !$0.contains("->") })
     }
 
-    func loadBranches(for names: [String], shell: GitShell, mainBranchName: String) throws -> [GitBranch] {
-        let mergedOutput = try shell.runGitCommandWithOutput(
+    func loadBranches(for names: [String], mainBranchName: String) throws -> [GitBranch] {
+        let mergedOutput = try self.shell.runGitCommandWithOutput(
             .listMergedBranches(branchName: mainBranchName),
             path: nil
         )
@@ -47,7 +47,7 @@ extension DefaultGitBranchLoader: GitBranchLoader {
             .split(separator: "\n")
             .map { $0.trimmingCharacters(in: .whitespaces) })
 
-        let remoteExists = (try? shell.remoteExists(path: nil)) ?? false
+        let remoteExists = (try? self.shell.remoteExists(path: nil)) ?? false
 
         return names.map { name in
             let isCurrentBranch = name.hasPrefix("*")
@@ -55,7 +55,7 @@ extension DefaultGitBranchLoader: GitBranchLoader {
             let isMerged = mergedBranches.contains(cleanBranchName)
 
             var creationDate: Date?
-            if let dateOutput = try? shell.runGitCommandWithOutput(
+            if let dateOutput = try? self.shell.runGitCommandWithOutput(
                    .getBranchCreationDate(branchName: cleanBranchName),
                    path: nil
                ) {
@@ -67,7 +67,6 @@ extension DefaultGitBranchLoader: GitBranchLoader {
             let syncStatus = (try? self.getSyncStatus(
                 branchName: name,
                 comparingBranch: nil,
-                shell: shell,
                 remoteExists: remoteExists
             )) ?? .undetermined
 
@@ -87,11 +86,10 @@ extension DefaultGitBranchLoader: GitBranchLoader {
     ///   - branchName: The local branch name to compare.
     ///   - comparingBranch: Optional remote branch name to compare against. When
     ///     `nil`, the same branch name on `origin` is used.
-    ///   - shell: Shell used to execute git commands.
     ///   - remoteExists: Whether a remote repository exists.
     /// - Returns: ``BranchSyncStatus`` describing whether the branch is ahead,
     ///   behind, or in sync with the remote.
-    func getSyncStatus(branchName: String, comparingBranch: String? = nil, shell: GitShell, remoteExists: Bool = true) throws -> BranchSyncStatus {
+    func getSyncStatus(branchName: String, comparingBranch: String? = nil, remoteExists: Bool = true) throws -> BranchSyncStatus {
         if !remoteExists {
             return .noRemoteBranch
         }
@@ -100,7 +98,7 @@ extension DefaultGitBranchLoader: GitBranchLoader {
         // determined whether a remote is configured.
         
         let remoteBranch = "origin/\(comparingBranch ?? branchName)"
-        let comparisonResult = try shell.runGitCommandWithOutput(.compareBranchAndRemote(local: branchName, remote: remoteBranch), path: nil)
+        let comparisonResult = try self.shell.runGitCommandWithOutput(.compareBranchAndRemote(local: branchName, remote: remoteBranch), path: nil)
         let changes = comparisonResult.split(separator: "\t").map(String.init)
         
         guard changes.count == 2 else {

@@ -29,7 +29,7 @@ struct SwitchBranchManager {
 // MARK: - Branch Switching Operations
 extension SwitchBranchManager {
     func switchBranch(search: String?) throws {
-        let branchNames = try branchLoader.loadBranchNames(from: branchLocation, shell: shell)
+        let branchNames = try branchLoader.loadBranchNames(from: branchLocation)
         
         guard let filteredNames = try handleSearchAndFiltering(branchNames: branchNames, search: search) else {
             return
@@ -73,7 +73,6 @@ private extension SwitchBranchManager {
     func loadBranchData(branchNames: [String]) throws -> [GitBranch] {
         return try branchLoader.loadBranches(
             for: branchNames,
-            shell: shell,
             mainBranchName: config.defaultBranch
         )
     }

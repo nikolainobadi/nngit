@@ -48,7 +48,7 @@ extension DeleteBranchManager {
 // MARK: - Private Methods
 private extension DeleteBranchManager {
     func loadEligibleBranchNames() throws -> [String] {
-        return try branchLoader.loadBranchNames(from: .local, shell: shell)
+        return try branchLoader.loadBranchNames(from: .local)
             .filter { name in
                 let clean = name.hasPrefix("*") ? String(name.dropFirst(2)) : name
                 return clean.lowercased() != config.defaultBranch.lowercased()
@@ -72,7 +72,6 @@ private extension DeleteBranchManager {
     func loadBranchData(branchNames: [String]) throws -> [GitBranch] {
         return try branchLoader.loadBranches(
             for: branchNames,
-            shell: shell,
             mainBranchName: config.defaultBranch
         )
     }

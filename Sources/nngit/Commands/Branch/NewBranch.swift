@@ -21,14 +21,18 @@ extension Nngit {
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
+            let branchLoader = DefaultGitBranchLoader(shell: shell)
+            let configLoader = DefaultGitConfigLoader()
             
             try shell.verifyLocalGitExists()
             
             let branchName = try name ?? picker.getRequiredInput("Enter the name of your new branch.")
             let formattedBranchName = branchName.formattedBranchName
-
+            let config = try configLoader.loadConfig(picker: picker)
+            let manager = NewBranchManager(shell: shell, branchLoader: branchLoader, config: config)
+            
             if try shell.remoteExists(path: nil) {
-                // TODO: Add logic for handling remote repository requirements
+                try manager.handleRemoteRepository()
             }
 
             try shell.runGitCommandWithOutput(.newBranch(branchName: formattedBranchName), path: nil)

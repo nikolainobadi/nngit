@@ -21,7 +21,7 @@ final class StubBranchLoader: GitBranchLoader {
         self.filteredResults = filteredResults
     }
     
-    func loadBranchNames(from location: BranchLocation, shell: GitShell) throws -> [String] {
+    func loadBranchNames(from location: BranchLocation) throws -> [String] {
         if let branchNames = branchNames {
             return branchNames
         }
@@ -36,13 +36,13 @@ final class StubBranchLoader: GitBranchLoader {
         }
     }
 
-    func loadBranches(for names: [String], shell: GitShell, mainBranchName: String) throws -> [GitBranch] {
+    func loadBranches(for names: [String], mainBranchName: String) throws -> [GitBranch] {
         return localBranches.filter { branch in
             names.contains(branch.name) || names.contains("* \(branch.name)")
         }
     }
     
-    func getSyncStatus(branchName: String, comparingBranch: String?, shell: GitShell, remoteExists: Bool) throws -> BranchSyncStatus {
+    func getSyncStatus(branchName: String, comparingBranch: String?, remoteExists: Bool) throws -> BranchSyncStatus {
         // For testing, return the sync status from the predefined branches
         let cleanBranchName = branchName.hasPrefix("*") ? String(branchName.dropFirst(2)) : branchName
         return localBranches.first { $0.name == cleanBranchName }?.syncStatus ?? .undetermined

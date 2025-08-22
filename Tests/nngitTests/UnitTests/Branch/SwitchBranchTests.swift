@@ -26,7 +26,7 @@ struct SwitchBranchTests {
             ""  // switchCmd
         ])
         let picker = MockPicker()
-        let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
+        let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
         let output = try Nngit.testRun(context: context, args: ["switch-branch", "dev"])
@@ -45,7 +45,7 @@ struct SwitchBranchTests {
             "true"  // localGitCheck
         ])
         let picker = MockPicker()
-        let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
+        let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
         let output = try Nngit.testRun(context: context, args: ["switch-branch", "xyz"])
@@ -69,7 +69,7 @@ struct SwitchBranchTests {
             requiredInputResponses: [:],
             selectionResponses: ["Select a branch (switching from main)": 0]
         )
-        let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
+        let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
         let output = try Nngit.testRun(context: context, args: ["switch-branch"])
@@ -90,7 +90,7 @@ struct SwitchBranchTests {
             ""       // switchCmd
         ])
         let picker = MockPicker()
-        let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
+        let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
         let output = try Nngit.testRun(context: context, args: ["switch-branch", "dev"])
@@ -114,9 +114,9 @@ struct SwitchBranchTests {
         let picker = MockPicker(
             permissionResponses: [:],
             requiredInputResponses: [:],
-            selectionResponses: ["Select a branch (switching from main)": 1]
+            selectionResponses: ["Select a branch (switching from main)": 0]
         )
-        let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
+        let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
         let output = try Nngit.testRun(context: context, args: ["switch-branch"])

@@ -38,7 +38,7 @@ extension NewBranchManager {
             
             switch mainBranchStatus {
             case .behind:
-                break
+                try handleBehindBranch(currentBranch)
             case .ahead:
                 try handleAheadBranch(currentBranch)
             case .nsync:
@@ -71,5 +71,39 @@ private extension NewBranchManager {
         
         try shell.runGitCommandWithOutput(.push, path: nil)
         print("✅ Pushed changes to \(config.defaultBranch)")
+    }
+    
+    func handleBehindBranch(_ branch: GitBranch) throws {
+        let syncOption = try picker.requiredSingleSelection(
+            "Your \(config.defaultBranch) branch is behind the remote. You must sync before creating a new branch:",
+            items: [SyncOption.merge, SyncOption.rebase]
+        )
+        
+        switch syncOption {
+        case .merge:
+            try shell.runGitCommandWithOutput(.pull(withRebase: false), path: nil)
+            print("✅ Merged remote changes into \(config.defaultBranch)")
+        case .rebase:
+            try shell.runGitCommandWithOutput(.pull(withRebase: true), path: nil)
+            print("✅ Rebased \(config.defaultBranch) onto remote changes")
+        }
+    }
+}
+
+
+// MARK: - Supporting Types
+private extension NewBranchManager {
+    enum SyncOption: DisplayablePickerItem {
+        case merge
+        case rebase
+        
+        var displayName: String {
+            switch self {
+            case .merge:
+                return "Merge remote changes (git pull)"
+            case .rebase:
+                return "Rebase onto remote changes (git pull --rebase)"
+            }
+        }
     }
 }

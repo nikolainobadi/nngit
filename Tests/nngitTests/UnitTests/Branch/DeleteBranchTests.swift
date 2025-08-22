@@ -1,34 +1,35 @@
-//import Testing
-//import SwiftPicker
-//import GitShellKit
-//@testable import nngit
-//
-//@MainActor
-//struct DeleteBranchTests {
-//    @Test("prunes origin when flag provided")
-//    func prunesWithFlag() throws {
-//        let pruneCmd = makeGitCommand(.pruneOrigin, path: nil)
-//        let deleteFoo = makeGitCommand(.deleteBranch(name: "foo", forced: false), path: nil)
-//        let responses = [
-//            makeGitCommand(.localGitCheck, path: nil): "true",
-//            makeGitCommand(.checkForRemote, path: nil): "origin",
-//            pruneCmd: "",
-//            deleteFoo: ""
-//        ]
-//        let shell = MockGitShell(responses: responses)
-//        let picker = MockPicker()
-//        picker.selectionResponses["Select which branches to delete"] = 0
-//        let branch = GitBranch(name: "foo", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
-//        let loader = StubBranchLoader(branches: [branch])
-//        let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
-//        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
-//
-//        try Nngit.testRun(context: context, args: ["delete-branch", "--prune-origin"])
-//
-//        #expect(shell.commands.contains(pruneCmd))
-//        #expect(shell.commands.contains(deleteFoo))
-//    }
-//
+import Testing
+import NnShellKit
+import SwiftPicker
+import GitShellKit
+@testable import nngit
+
+@MainActor
+struct DeleteBranchTests {
+    @Test("prunes origin when flag provided", .disabled())
+    func prunesWithFlag() throws {
+        let pruneCmd = makeGitCommand(.pruneOrigin, path: nil)
+        let deleteFoo = makeGitCommand(.deleteBranch(name: "foo", forced: false), path: nil)
+        let results = [
+            "true",
+            "origin",
+            "",
+            ""
+        ]
+
+        let shell = MockShell(results: results, shouldThrowError: false)
+        let picker = MockPicker(selectionResponses: ["Select which branches to delete": 0])
+        let branch = GitBranch(name: "foo", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let loader = StubBranchLoader(localBranches: [branch])
+        let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
+
+        try runCommand(context: context, additionalArgs: ["--prune-origin"])
+
+        #expect(shell.executedCommands.contains(pruneCmd))
+        #expect(shell.executedCommands.contains(deleteFoo))
+    }
+
 //    @Test("uses config to automatically prune")
 //    func prunesWithConfig() throws {
 //        let pruneCmd = makeGitCommand(.pruneOrigin, path: nil)
@@ -286,43 +287,12 @@
 //        // Should not use MyBranches picker message - verified by testing normal flow
 //        #expect(!shell.commands.contains(where: { $0.contains("git log -1") }))
 //    }
-//}
-//
-//private class StubBranchLoader: GitBranchLoader {
-//    private let branches: [GitBranch]
-//    init(branches: [GitBranch]) { self.branches = branches }
-//    func loadBranches(
-//        from location: BranchLocation,
-//        shell: GitShell,
-//        mainBranchName: String,
-//        loadMergeStatus: Bool,
-//        loadCreationDate: Bool,
-//        loadSyncStatus: Bool
-//    ) throws -> [GitBranch] { branches }
-//
-//    func loadBranchNames(from location: BranchLocation, shell: GitShell) throws -> [String] {
-//        branches.map { $0.isCurrentBranch ? "* \($0.name)" : $0.name }
-//    }
-//
-//    func loadBranches(
-//        for names: [String],
-//        shell: GitShell,
-//        mainBranchName: String,
-//        loadMergeStatus: Bool,
-//        loadCreationDate: Bool,
-//        loadSyncStatus: Bool
-//    ) throws -> [GitBranch] {
-//        branches.filter { names.contains($0.isCurrentBranch ? "* \($0.name)" : $0.name) }
-//    }
-//}
-//
-//private class StubConfigLoader: GitConfigLoader {
-//    private let initialConfig: GitConfig
-//    var savedConfig: GitConfig?
-//    
-//    init(initialConfig: GitConfig) { self.initialConfig = initialConfig }
-//    func loadConfig(picker: CommandLinePicker) throws -> GitConfig { initialConfig }
-//    func save(_ config: GitConfig) throws { 
-//        savedConfig = config
-//    }
-//}
+}
+
+
+// MARK: - Run Method
+private extension DeleteBranchTests {
+    func runCommand(context: MockContext, additionalArgs: [String] = []) throws {
+        try Nngit.testRun(context: context, args: ["delete-branch"] + additionalArgs)
+    }
+}

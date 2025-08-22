@@ -266,30 +266,32 @@ struct SoftResetTests {
         #expect(!shell.executedCommands.contains("git reset --soft HEAD~2"))
     }
     
-    @Test("Selection mode handles permission denial", .disabled())
+    @Test("Selection mode handles permission denial")
     func selectionModeHandlesPermissionDenial() throws {
-        let commitInfo = [
-            CommitInfo(hash: "ghi789", message: "Test commit 3", author: "Test User", date: "3 hours ago", wasAuthoredByCurrentUser: true),
-            CommitInfo(hash: "def456", message: "Test commit 2", author: "Test User", date: "2 hours ago", wasAuthoredByCurrentUser: true),
-            CommitInfo(hash: "abc123", message: "Test commit 1", author: "Test User", date: "1 hour ago", wasAuthoredByCurrentUser: true)
+        let shellResults = [
+            "Test User",                    // git config user.name
+            "test@example.com",             // git config user.email
+            "ghi789 - Test commit 3 (Test User <test@example.com>, 3 hours ago)\ndef456 - Test commit 2 (Test User <test@example.com>, 2 hours ago)\nabc123 - Test commit 1 (Test User <test@example.com>, 1 hour ago)"  // git log
         ]
-        let mockResetHelper = MockGitResetHelper(
-            selectCommitForResetResult: (count: 3, commits: commitInfo),
-            verifyAuthorPermissionsResult: true
-        )
         
-        let picker = MockPicker(permissionResponses: [
-            "Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area.": false
-        ])
-        let shell = MockShell(results: [""])
-        let context = MockContext(picker: picker, shell: shell, resetHelper: mockResetHelper)
+        let picker = MockPicker(
+            permissionResponses: [
+                "Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area.": false
+            ],
+            selectionResponses: [
+                "Select a commit to reset to:": 2  // Select the 3rd commit (index 2), which means reset 3 commits
+            ]
+        )
+        let shell = MockShell(results: shellResults)
+        let commitManager = DefaultGitCommitManager(shell: shell)
+        let resetHelper = DefaultGitResetHelper(manager: commitManager, picker: picker)
+        let context = MockContext(picker: picker, shell: shell, resetHelper: resetHelper)
         
         do {
             try runCommand(context, select: true)
             #expect(Bool(false), "Expected permission denied error")
         } catch {
-            // Expected to throw due to permission denial in the actual implementation
-            // The MockGitResetHelper doesn't throw, but the real helper does
+            // Expected to throw due to permission denial
             #expect(!shell.executedCommands.contains("git reset --soft HEAD~3"))
         }
     }

@@ -12,7 +12,7 @@ extension Nngit {
     struct MyBranches: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Manage your tracked branches for easier switching and deletion.",
-            subcommands: [Add.self, Remove.self, List.self],
+            subcommands: [Remove.self, List.self],
             defaultSubcommand: List.self
         )
     }

@@ -19,14 +19,11 @@ struct SoftResetTests {
         
         try runCommand(context, number: 1)
         
-        // Verify the reset helper was called correctly
-        #expect(mockResetHelper.prepareResetCalled)
+        // Verify the reset helper was called with correct parameters
         #expect(mockResetHelper.prepareResetCount == 1)
-        #expect(mockResetHelper.displayCommitsCalled)
         #expect(mockResetHelper.displayCommitsAction == "moved back to staging area")
-        #expect(mockResetHelper.verifyAuthorPermissionsCalled)
         #expect(mockResetHelper.verifyAuthorPermissionsForce == false)
-        #expect(mockResetHelper.confirmResetCalled)
+        #expect(mockResetHelper.confirmResetCount == 1)
         #expect(mockResetHelper.confirmResetType == "soft")
         
         // Verify the actual reset command was executed

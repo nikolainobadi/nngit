@@ -10,22 +10,17 @@ import GitShellKit
 
 final class MockGitResetHelper: GitResetHelper {
     private(set) var selectCommitForResetResult: (count: Int, commits: [CommitInfo])?
-    private(set) var selectCommitForResetCalled = false
     
     private(set) var prepareResetResult: [CommitInfo] = []
-    private(set) var prepareResetCalled = false
     private(set) var prepareResetCount: Int?
     
     private(set) var verifyAuthorPermissionsResult = true
-    private(set) var verifyAuthorPermissionsCalled = false
     private(set) var verifyAuthorPermissionsCommits: [CommitInfo]?
     private(set) var verifyAuthorPermissionsForce: Bool?
     
-    private(set) var displayCommitsCalled = false
     private(set) var displayCommitsCommits: [CommitInfo]?
     private(set) var displayCommitsAction: String?
     
-    private(set) var confirmResetCalled = false
     private(set) var confirmResetCount: Int?
     private(set) var confirmResetType: String?
     
@@ -38,12 +33,10 @@ final class MockGitResetHelper: GitResetHelper {
     }
     
     func selectCommitForReset() throws -> (count: Int, commits: [CommitInfo])? {
-        selectCommitForResetCalled = true
         return selectCommitForResetResult
     }
     
     func prepareReset(count: Int) throws -> [CommitInfo] {
-        prepareResetCalled = true
         prepareResetCount = count
         
         if count <= 0 {
@@ -54,20 +47,17 @@ final class MockGitResetHelper: GitResetHelper {
     }
     
     func verifyAuthorPermissions(commits: [CommitInfo], force: Bool) -> Bool {
-        verifyAuthorPermissionsCalled = true
         verifyAuthorPermissionsCommits = commits
         verifyAuthorPermissionsForce = force
         return verifyAuthorPermissionsResult
     }
     
     func displayCommits(_ commits: [CommitInfo], action: String) {
-        displayCommitsCalled = true
         displayCommitsCommits = commits
         displayCommitsAction = action
     }
     
     func confirmReset(count: Int, resetType: String) throws {
-        confirmResetCalled = true
         confirmResetCount = count
         confirmResetType = resetType
     }

@@ -9,13 +9,13 @@ A command-line utility for managing Git branches and history. `nngit` offers hel
 
 ## Features
 - Create branches with optional prefixes and issue numbers
-- Manage branch prefixes (add, edit, delete, list)
 - Switch between local and remote branches
 - Delete merged branches with optional origin pruning
 - **Interactive file staging and unstaging** with multi-selection
-- Track and manage your frequently used branches
-- Discard staged/unstaged changes
-- Undo commits with soft/hard reset options and safety checks
+- Checkout remote branches that don't exist locally
+- Compare branch differences with `branch-diff`
+- Discard staged/unstaged changes with file selection options
+- **Enhanced undo commits** with soft/hard reset strategies, safety checks, and interactive selection
 - Edit overall nngit configuration
 
 ## Installation
@@ -31,10 +31,11 @@ $ nngit new-branch feature "Add login"
 $ nngit switch-branch
 $ nngit staging stage              # Interactive file staging
 $ nngit staging unstage            # Interactive file unstaging  
-$ nngit my-branches add            # Track current branch
-$ nngit discard --files both
-$ nngit undo hard 2
-$ nngit edit-config --default-branch develop
+$ nngit checkout-remote            # Checkout remote branches
+$ nngit branch-diff                # Compare current branch with main
+$ nngit discard --files both       # Discard staged and unstaged changes
+$ nngit undo hard 2 --select       # Interactive selection of commits to hard reset
+$ nngit config --default-branch develop
 ```
 
 ### Interactive Staging Workflow
@@ -53,47 +54,33 @@ $ nngit staging unstage
 $ nngit staging  # same as 'nngit staging stage'
 ```
 
-### Branch Prefix Workflow
-Below is an example showing how to add a prefix that requires an issue number and then create a branch using it:
-
-```bash
-$ nngit add-branch-prefix feature --requires-issue-number --issue-prefixes "ISS-,TASK-" --default-issue "NO-JIRA"
-$ nngit new-branch "Add login screen" --branch-prefix-name feature --issue-number 42 --issue-prefix "ISS-"
-```
-
-### MyBranches Workflow
-Track your frequently used branches for easier access:
-
-```bash
-$ nngit my-branches add        # Add current branch to tracked list
-$ nngit my-branches            # List tracked branches (default subcommand)
-$ nngit my-branches remove     # Remove branches from tracked list
-```
 
 ### Undo Workflow
-Undo commits using soft or hard reset strategies:
+Undo commits using soft or hard reset strategies with enhanced safety features:
 
 ```bash
-$ nngit undo 3                 # Soft reset 3 commits (moves to staging area, default)
-$ nngit undo soft 2 --force    # Soft reset 2 commits, including from other authors
-$ nngit undo hard 1            # Hard reset 1 commit (completely discards changes)
-$ nngit undo hard 2 --force    # Hard reset 2 commits, including from other authors
+$ nngit undo 3                      # Soft reset 3 commits (moves to staging area, default)
+$ nngit undo soft 2 --force         # Soft reset 2 commits, including from other authors
+$ nngit undo soft --select          # Interactive selection from last 7 commits
+$ nngit undo hard 1                 # Hard reset 1 commit (completely discards changes)
+$ nngit undo hard 2 --force         # Hard reset 2 commits, including from other authors
+$ nngit undo hard --select --force  # Interactive selection with force override
 ```
 
-## Configuration
-`nngit` stores its settings in a JSON file located at
-`~/.config/nngit/config.json`.  This file is created automatically the first time
-you run the tool.  You can modify values using the `edit-config` command or by
-opening the file in your editor of choice.
+**Safety Features:**
+- Enhanced authorship detection using both git username and email
+- Automatic prevention of resetting commits by other authors (unless `--force` is used)
+- Interactive commit selection with `--select` flag
+- Clear confirmation prompts showing what will be affected
 
-Branch prefixes are kept inside this same file.  A prefix represents the first
-segment of a branch name such as `feature` or `bugfix`.  Prefixes can optionally
-require an issue number and support multiple issue prefixes (e.g., "FRA-", "RAPP-") 
-with default values (e.g., "NO-JIRA").  Use the `add-branch-prefix`, `edit-branch-prefix`, 
-`delete-branch-prefix` and `list-branch-prefix` commands to manage them.  When creating 
-a new branch, `nngit` will combine the selected prefix, the issue prefix and number 
-(if any) and your branch description to generate the final name (e.g., 
-`feature/FRA-123/login-screen`).
+## Configuration
+`nngit` stores its settings in a JSON file located at `~/.config/nngit/config.json`. This file is created automatically the first time you run the tool. You can modify values using the `config` command or by opening the file in your editor of choice.
+
+The configuration includes settings for:
+- Default branch name
+- Branch loading behavior
+- Rebase and prune preferences  
+- Branch prefix configurations (for structured branch naming)
 
 Non-Homebrew users can build the executable manually:
 
@@ -108,6 +95,8 @@ The compiled binary will be available at `.build/release/nngit`.
 - Uses `SwiftShell` for shell execution and `GitShellKit` abstractions
 - Configuration is stored via `NnConfigKit`
 - Modular components injected through a context for easier testing
+- Enhanced safety systems with comprehensive authorship detection and permission checks
+- Comprehensive test coverage with 95 passing tests
 
 ## Documentation
 The source is documented with inline comments, and a test suite resides under `Tests/`.

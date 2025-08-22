@@ -29,58 +29,15 @@ extension Nngit {
             let shell = Nngit.makeShell()
             let loader = Nngit.makeConfigLoader()
             let picker = Nngit.makePicker()
+            let manager = BranchDiffManager(shell: shell)
             
             try shell.verifyLocalGitExists()
             
             let config = try loader.loadConfig(picker: picker)
-            let targetBaseBranch = baseBranch ?? config.branches.defaultBranch
+            let targetBaseBranch = baseBranch ?? config.defaultBranch
             
-            // Get current branch name
-            let currentBranch = try shell.runWithOutput("git branch --show-current")
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            // Check if we're on the base branch
-            if currentBranch == targetBaseBranch {
-                print("You are currently on the base branch '\(targetBaseBranch)'. No diff to show.")
-                return
-            }
-            
-            // Check if base branch exists
-            let branchExists: Bool
-            do {
-                _ = try shell.runWithOutput("git show-ref --verify --quiet refs/heads/\(targetBaseBranch)")
-                branchExists = true
-            } catch {
-                branchExists = false
-            }
-            
-            if !branchExists {
-                print("Base branch '\(targetBaseBranch)' does not exist.")
-                return
-            }
-            
-            // Get the diff from when the branch was created to now
-            let diffOutput = try shell.runWithOutput("git diff \(targetBaseBranch)...HEAD")
-            
-            if diffOutput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                print("No differences found between '\(targetBaseBranch)' and current branch '\(currentBranch)'.")
-                return
-            }
-            
-            print("📊 Showing diff between '\(targetBaseBranch)' and '\(currentBranch)':")
-            print(diffOutput)
+            try manager.generateDiff(baseBranch: targetBaseBranch, copyToClipboard: copy)
         }
     }
 }
 
-/// Errors that can occur during branch diff operations.
-enum BranchDiffError: Error, LocalizedError {
-    case clipboardFailed
-    
-    var errorDescription: String? {
-        switch self {
-        case .clipboardFailed:
-            return "Failed to copy diff to clipboard"
-        }
-    }
-}

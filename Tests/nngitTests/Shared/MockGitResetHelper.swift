@@ -15,11 +15,11 @@ final class MockGitResetHelper: GitResetHelper {
     private(set) var prepareResetCount: Int?
     
     private(set) var verifyAuthorPermissionsResult = true
-    private(set) var verifyAuthorPermissionsCommits: [CommitInfo]?
-    private(set) var verifyAuthorPermissionsForce: Bool?
+    private(set) var verifiedCommits: [CommitInfo]?
+    private(set) var verifiedWithForce: Bool?
     
-    private(set) var displayCommitsCommits: [CommitInfo]?
-    private(set) var displayCommitsAction: String?
+    private(set) var displayedCommits: [CommitInfo]?
+    private(set) var displayedAction: String?
     
     private(set) var confirmResetCount: Int?
     private(set) var confirmResetType: String?
@@ -47,14 +47,14 @@ final class MockGitResetHelper: GitResetHelper {
     }
     
     func verifyAuthorPermissions(commits: [CommitInfo], force: Bool) -> Bool {
-        verifyAuthorPermissionsCommits = commits
-        verifyAuthorPermissionsForce = force
+        verifiedCommits = commits
+        verifiedWithForce = force
         return verifyAuthorPermissionsResult
     }
     
     func displayCommits(_ commits: [CommitInfo], action: String) {
-        displayCommitsCommits = commits
-        displayCommitsAction = action
+        displayedCommits = commits
+        displayedAction = action
     }
     
     func confirmReset(count: Int, resetType: String) throws {

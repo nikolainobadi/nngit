@@ -11,13 +11,21 @@ import GitShellKit
 final class StubBranchLoader: GitBranchLoader {
     private let remoteBranches: [String]
     private let localBranches: [GitBranch]
+    private let branchNames: [String]?
+    private let filteredResults: [String]?
     
-    init(remoteBranches: [String] = [], localBranches: [GitBranch] = []) {
+    init(remoteBranches: [String] = [], localBranches: [GitBranch] = [], branchNames: [String]? = nil, filteredResults: [String]? = nil) {
         self.remoteBranches = remoteBranches
         self.localBranches = localBranches
+        self.branchNames = branchNames
+        self.filteredResults = filteredResults
     }
     
     func loadBranchNames(from location: BranchLocation, shell: GitShell) throws -> [String] {
+        if let branchNames = branchNames {
+            return branchNames
+        }
+        
         switch location {
         case .local:
             return localBranches.map { $0.isCurrentBranch ? "* \($0.name)" : $0.name }
@@ -48,6 +56,10 @@ final class StubBranchLoader: GitBranchLoader {
     }
     
     func filterBranchNamesBySearch(_ names: [String], search: String?) -> [String] {
+        if let filteredResults = filteredResults {
+            return filteredResults
+        }
+        
         guard let search, !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return names }
         return names.filter { $0.lowercased().contains(search.lowercased()) }
     }

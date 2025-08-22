@@ -27,21 +27,12 @@ extension DefaultGitConfigLoader {
             return try load()
         } catch {
             var defaultBranchName = "main"
-            var shouldRebaseWhenCreatingNewBranchesFromDefaultBranch: Bool
-            var shouldPruneWhenDeletingBranches: Bool
             
             if !picker.getPermission("Is your default branch called 'main'?") {
                 defaultBranchName = try picker.getRequiredInput("Enter the name of your default branch.")
             }
             
-            shouldRebaseWhenCreatingNewBranchesFromDefaultBranch = picker.getPermission("Include rebase prompt when creating new branches from \(defaultBranchName)?")
-            shouldPruneWhenDeletingBranches = picker.getPermission("Automatically prune origin when deleting branches?")
-            
-            let newConfig = GitConfig(
-                defaultBranch: defaultBranchName,
-                rebaseWhenBranchingFromDefaultBranch: shouldRebaseWhenCreatingNewBranchesFromDefaultBranch,
-                pruneWhenDeletingBranches: shouldPruneWhenDeletingBranches
-            )
+            let newConfig = GitConfig(defaultBranch: defaultBranchName)
             
             try save(newConfig)
             

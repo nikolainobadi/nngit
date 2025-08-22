@@ -34,11 +34,23 @@ This is a Swift CLI tool built with `swift-argument-parser` that provides Git wo
 4. **Utility Commands**: `Discard`, `BranchDiff` (in `Sources/nngit/Commands/Utility/`)
 5. **Configuration**: `EditConfig` (in `Sources/nngit/Commands/Config/`)
 
+#### Manager Layer
+Manager classes handle complex workflows and coordinate between commands and git operations:
+- `SwitchBranchManager` - Handles branch switching workflows with search and exact match support
+- `DeleteBranchManager` - Manages branch deletion with safety checks and pruning
+- `CheckoutRemoteManager` - Coordinates remote branch checkout operations
+- `StageManager` - Manages interactive file staging workflows
+- `UnstageManager` - Handles interactive file unstaging workflows
+- `SoftResetManager` - Coordinates soft reset operations with safety checks
+- `HardResetManager` - Manages hard reset operations with author verification
+- `BranchDiffManager` - Handles branch diff generation with clipboard support
+- `DiscardManager` - Manages file discard operations with scope-based filtering and interactive selection
+
 #### Git Abstraction Layer
 - `GitShellAdapter` - Concrete implementation using SwiftShell
 - `DefaultGitCommitManager` - Handles commit operations with enhanced authorship detection
-- `GitBranchLoader` - Loads branch information
-- `GitConfigLoader` - Manages nngit configuration
+- `DefaultGitBranchLoader` - Loads and filters branch information
+- `DefaultGitConfigLoader` - Manages nngit configuration
 - `DefaultGitResetHelper` - Manages reset operations with safety checks and user permissions
 
 #### Models
@@ -55,10 +67,14 @@ This is a Swift CLI tool built with `swift-argument-parser` that provides Git wo
 ### Testing Structure
 - Tests located in `Tests/nngitTests/`
 - Uses `MockContext` for dependency injection in tests
-- Mock implementations: `MockShell`, `MockPicker`, `MockGitResetHelper`
-- Test categories mirror the command structure
+- Mock implementations: `MockShell`, `MockPicker`, `MockGitResetHelper`, `StubBranchLoader`, `StubConfigLoader`
+- Test categories mirror the command structure:
+  - Unit tests for managers (e.g., `SwitchBranchManagerTests`, `DeleteBranchManagerTests`)
+  - Integration tests for commands (e.g., `SwitchBranchTests`, `DeleteBranchTests`)
+- Behavior-driven testing approach focusing on public interfaces
 - Enhanced authorship testing with both git username and email validation
 - Comprehensive test coverage for reset operations and permission checks
+- 171 tests providing extensive coverage
 
 ### External Dependencies
 - `SwiftShell` - Shell command execution
@@ -66,6 +82,26 @@ This is a Swift CLI tool built with `swift-argument-parser` that provides Git wo
 - `NnConfigKit` - Configuration management
 - `SwiftPicker` - User interaction prompts
 - `swift-argument-parser` - CLI parsing
+
+### Architectural Patterns
+
+#### Dependency Injection
+- Context-based dependency injection via `NnGitContext` protocol
+- Factory methods for creating dependencies (`makeShell()`, `makePicker()`, etc.)
+- Enables easy testing with mock implementations
+
+#### Manager Pattern
+- Commands delegate complex workflows to manager classes
+- Managers encapsulate business logic and coordinate multiple operations
+- Clean separation between CLI parsing (commands) and business logic (managers)
+- Private helper methods organized in private extensions
+
+#### Testing Strategy
+- Behavior-driven tests focus on public interfaces
+- Private implementation details not directly tested
+- Mock objects simulate external dependencies
+- Stub loaders provide controlled test data
+- Tests use `@MainActor` when needed to ensure proper serialization
 
 ### Key Workflows
 
@@ -99,12 +135,24 @@ The `Staging` command provides interactive file staging/unstaging:
 4. Follow existing patterns in other command implementations
 
 ### Testing
-- All commands should have corresponding test files
+- All commands and managers should have corresponding test files
 - Use `MockContext` for testing command logic
-- Test files follow `<CommandName>Tests.swift` naming convention
+- Test files follow `<ComponentName>Tests.swift` naming convention
+- Manager tests focus on behavior, not implementation details
+- Command tests verify end-to-end workflows
 - For reset operations that require real behavior testing, use `DefaultGitCommitManager` and `DefaultGitResetHelper` instead of mocks
 - Enhanced test coverage includes authorship validation, permission checks, and selection mode functionality
 - All tests use updated git log format with both author name and email: `%h - %s (%an <%ae>, %ar)`
+- Watch for race conditions in tests - ensure proper mock setup and avoid array index issues
+- **Use `#require` for optional unwrapping in tests**: When testing optionals that should have values, use `try #require()` to safely unwrap and provide clear test failures:
+  ```swift
+  // Good - clear failures when optional is nil
+  let count = try #require(helper.displayedCommits).count
+  #expect(count == 2)
+  
+  // Avoid - less clear test failures
+  #expect(helper.displayedCommits?.count == 2)
+  ```
 
 ### Error Handling
 - Git operations throw `GitShellError` for shell failures

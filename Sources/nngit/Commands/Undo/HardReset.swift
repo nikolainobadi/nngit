@@ -27,33 +27,14 @@ extension Nngit.Undo {
         /// Executes the command using the shared context components.
         func run() throws {
             let helper = Nngit.makeResetHelper()
-            let manager = Nngit.makeCommitManager()
+            let commitManager = Nngit.makeCommitManager()
+            let manager = HardResetManager(helper: helper, commitManager: commitManager)
             
-            let resetCount: Int
-            let commitInfo: [CommitInfo]
-            
-            if select {
-                guard let result = try helper.selectCommitForReset() else { return }
-                (resetCount, commitInfo) = (result.count, result.commits)
-                helper.displayCommits(commitInfo, action: "discarded")
-            } else {
-                do {
-                    commitInfo = try helper.prepareReset(count: number)
-                    resetCount = number
-                    helper.displayCommits(commitInfo, action: "discarded")
-                } catch {
-                    print(error)
-                    return
-                }
+            do {
+                try manager.performHardReset(select: select, number: number, force: force)
+            } catch GitResetError.invalidCount {
+                print("Number of commits to reset must be greater than 0")
             }
-            
-            if !helper.verifyAuthorPermissions(commits: commitInfo, force: force) {
-                return
-            }
-            
-            try helper.confirmReset(count: resetCount, resetType: "hard")
-            
-            try manager.undoCommits(count: resetCount)
         }
     }
 }

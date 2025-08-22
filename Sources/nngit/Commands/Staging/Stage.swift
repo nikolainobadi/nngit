@@ -21,31 +21,9 @@ extension Nngit.Staging {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
             try shell.verifyLocalGitExists()
+            let manager = StageManager(shell: shell, picker: picker)
             
-            let gitOutput = try shell.runGitCommandWithOutput(.getLocalChanges, path: nil)
-            let allFiles = FileStatus.parseFromGitStatus(gitOutput)
-            
-            // Filter for files that can be staged (unstaged or untracked)
-            let unstageableFiles = allFiles.filter { $0.hasUnstaged || $0.unstagedStatus == .untracked }
-            
-            guard !unstageableFiles.isEmpty else {
-                print("No files available to stage.")
-                return
-            }
-            
-            let selectedFiles = picker.multiSelection("Select files to stage:", items: unstageableFiles)
-            
-            guard !selectedFiles.isEmpty else {
-                print("No files selected.")
-                return
-            }
-            
-            // Stage each selected file
-            for file in selectedFiles {
-                try shell.runWithOutput("git add \"\(file.path)\"")
-            }
-            
-            print("✅ Staged \(selectedFiles.count) file(s)")
+            try manager.executeStageWorkflow()
         }
     }
 }

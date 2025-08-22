@@ -16,7 +16,6 @@ extension Nngit.Staging {
             abstract: "Unstage files to remove them from the staging area using interactive multi-selection."
         )
         
-        /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()

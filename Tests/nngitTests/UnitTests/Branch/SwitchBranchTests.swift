@@ -13,7 +13,7 @@ import GitShellKit
 
 @MainActor
 struct SwitchBranchTests {
-    @Test("switches without prompting when exact branch name is provided", .disabled())
+    @Test("switches without prompting when exact branch name is provided")
     func switchesExactMatch() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let switchCmd = makeGitCommand(.switchBranch(branchName: "dev"), path: nil)
@@ -53,7 +53,7 @@ struct SwitchBranchTests {
         #expect(output.contains("No branches found matching 'xyz'"))
     }
 
-    @Test("prompts to select branch when no search provided", .disabled())
+    @Test("prompts to select branch when no search provided")
     func promptsAndSwitches() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let switchCmd = makeGitCommand(.switchBranch(branchName: "feature"), path: nil)

@@ -142,6 +142,15 @@ The `Staging` command provides interactive file staging/unstaging:
 - Enhanced test coverage includes authorship validation, permission checks, and selection mode functionality
 - All tests use updated git log format with both author name and email: `%h - %s (%an <%ae>, %ar)`
 - Watch for race conditions in tests - ensure proper mock setup and avoid array index issues
+- **Use `#require` for optional unwrapping in tests**: When testing optionals that should have values, use `try #require()` to safely unwrap and provide clear test failures:
+  ```swift
+  // Good - clear failures when optional is nil
+  let count = try #require(helper.displayCommitsCommits).count
+  #expect(count == 2)
+  
+  // Avoid - less clear test failures
+  #expect(helper.displayCommitsCommits?.count == 2)
+  ```
 
 ### Error Handling
 - Git operations throw `GitShellError` for shell failures

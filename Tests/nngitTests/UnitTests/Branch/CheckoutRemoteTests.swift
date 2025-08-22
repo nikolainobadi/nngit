@@ -57,11 +57,8 @@ struct CheckoutRemoteTests {
     
     @Test("handles case where no remote branches are found")
     func handlesNoRemoteBranches() throws {
-        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let config = GitConfig.defaultConfig
-        
         let branchLoader = StubBranchLoader(remoteBranches: [], localBranches: [])
-        
         let shellResults = [
             "true",
             "Test User",
@@ -80,15 +77,11 @@ struct CheckoutRemoteTests {
     
     @Test("handles case where all remote branches exist locally")
     func handlesAllBranchesExistLocally() throws {
-        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let config = GitConfig.defaultConfig
-        
         let remoteBranch1 = "origin/feature-1"
         let remoteBranch2 = "origin/main"
-        
         let localBranch1 = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
         let localBranch2 = GitBranch(name: "feature-1", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
-        
         let branchLoader = StubBranchLoader(
             remoteBranches: [remoteBranch1, remoteBranch2], 
             localBranches: [localBranch1, localBranch2]
@@ -105,7 +98,6 @@ struct CheckoutRemoteTests {
         let picker = MockPicker()
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shellResults: shellResults, configLoader: configLoader, branchLoader: branchLoader)
-
         let output = try Nngit.testRun(context: context, args: ["checkout-remote"])
 
         #expect(output.contains("All your remote branches already exist locally."))
@@ -115,14 +107,10 @@ struct CheckoutRemoteTests {
     
     @Test("includes additional authors when specified")
     func includesAdditionalAuthors() throws {
-        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let config = GitConfig.defaultConfig
-        
         let remoteBranch1 = "origin/feature-1" 
         let remoteBranch2 = "origin/feature-2"
-        
         let branchLoader = StubBranchLoader(remoteBranches: [remoteBranch1, remoteBranch2], localBranches: [])
-        
         let shellResults = [
             "true",
             "Test User",
@@ -146,14 +134,10 @@ struct CheckoutRemoteTests {
     
     @Test("handles different remote prefixes")
     func handlesDifferentRemotePrefixes() throws {
-        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let config = GitConfig.defaultConfig
-        
         let remoteBranch1 = "upstream/feature-1"
         let remoteBranch2 = "origin/feature-2"
-        
         let branchLoader = StubBranchLoader(remoteBranches: [remoteBranch1, remoteBranch2], localBranches: [])
-        
         let shellResults = [
             "true",
             "Test User", 
@@ -178,14 +162,10 @@ struct CheckoutRemoteTests {
     
     @Test("filters out branches from other authors")
     func filtersOtherAuthors() throws {
-        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let config = GitConfig.defaultConfig
-        
         let remoteBranch1 = "origin/feature-1"
         let remoteBranch2 = "origin/feature-2"
-        
         let branchLoader = StubBranchLoader(remoteBranches: [remoteBranch1, remoteBranch2], localBranches: [])
-        
         let shellResults = [
             "true",
             "Test User",

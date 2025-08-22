@@ -24,6 +24,30 @@ struct CheckoutRemoteManager {
 
 // MARK: - Remote Branch Checkout Operations
 extension CheckoutRemoteManager {
+    func executeCheckoutWorkflow() throws {
+        let remoteBranchNames = try loadRemoteBranchNames()
+        
+        if remoteBranchNames.isEmpty {
+            print("No remote branches found.")
+            return
+        }
+        
+        let availableRemoteBranches = try filterNonExistingLocalBranches(remoteBranches: remoteBranchNames)
+        
+        if availableRemoteBranches.isEmpty {
+            print("All remote branches already exist locally.")
+            print("Use 'nngit switch-branch --branch-location remote' to switch to existing remote branches.")
+            return
+        }
+        
+        let selectedBranchName = try selectRemoteBranch(availableBranches: availableRemoteBranches)
+        try checkoutRemoteBranch(branchName: selectedBranchName)
+    }
+}
+
+
+// MARK: - Private Methods
+private extension CheckoutRemoteManager {
     func loadRemoteBranchNames() throws -> [String] {
         return try branchLoader.loadBranchNames(from: .remote, shell: shell)
     }
@@ -76,34 +100,16 @@ extension CheckoutRemoteManager {
         try shell.runWithOutput("git checkout -b \(branchName) \(remoteBranchName)")
         print("✅ Created and switched to local branch '\(branchName)' tracking '\(remoteBranchName)'")
     }
-    
-    func executeCheckoutWorkflow() throws {
-        let remoteBranchNames = try loadRemoteBranchNames()
-        
-        if remoteBranchNames.isEmpty {
-            print("No remote branches found.")
-            return
-        }
-        
-        let availableRemoteBranches = try filterNonExistingLocalBranches(remoteBranches: remoteBranchNames)
-        
-        if availableRemoteBranches.isEmpty {
-            print("All remote branches already exist locally.")
-            print("Use 'nngit switch-branch --branch-location remote' to switch to existing remote branches.")
-            return
-        }
-        
-        let selectedBranchName = try selectRemoteBranch(availableBranches: availableRemoteBranches)
-        try checkoutRemoteBranch(branchName: selectedBranchName)
-    }
 }
 
 
 // MARK: - Supporting Types
-private struct RemoteBranchItem: DisplayablePickerItem {
-    let name: String
-    
-    var displayName: String {
-        return name
+private extension CheckoutRemoteManager {
+    struct RemoteBranchItem: DisplayablePickerItem {
+        let name: String
+        
+        var displayName: String {
+            return name
+        }
     }
 }

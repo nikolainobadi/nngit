@@ -21,6 +21,26 @@ struct SoftResetManager {
 
 // MARK: - Soft Reset Operations
 extension SoftResetManager {
+    func executeSoftResetWorkflow(select: Bool, number: Int, force: Bool) throws {
+        guard let result = try handleCommitSelection(select: select, number: number) else { return }
+        let (resetCount, commitInfo) = (result.count, result.commits)
+        
+        displayCommitsForSoftReset(commitInfo)
+        
+        guard verifyPermissions(commits: commitInfo, force: force) else {
+            return
+        }
+        
+        try confirmSoftReset(count: resetCount)
+        try performSoftReset(count: resetCount)
+        
+        print("✅ Soft reset \(resetCount) commit(s). Changes are now staged.")
+    }
+}
+
+
+// MARK: - Private Methods
+private extension SoftResetManager {
     func handleCommitSelection(select: Bool, number: Int) throws -> (count: Int, commits: [CommitInfo])? {
         if select {
             guard let result = try helper.selectCommitForReset() else { return nil }
@@ -45,21 +65,5 @@ extension SoftResetManager {
     
     func performSoftReset(count: Int) throws {
         try commitManager.softResetCommits(count: count)
-    }
-    
-    func executeSoftResetWorkflow(select: Bool, number: Int, force: Bool) throws {
-        guard let result = try handleCommitSelection(select: select, number: number) else { return }
-        let (resetCount, commitInfo) = (result.count, result.commits)
-        
-        displayCommitsForSoftReset(commitInfo)
-        
-        guard verifyPermissions(commits: commitInfo, force: force) else {
-            return
-        }
-        
-        try confirmSoftReset(count: resetCount)
-        try performSoftReset(count: resetCount)
-        
-        print("✅ Soft reset \(resetCount) commit(s). Changes are now staged.")
     }
 }

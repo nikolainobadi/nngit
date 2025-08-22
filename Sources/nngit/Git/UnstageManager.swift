@@ -22,25 +22,6 @@ struct UnstageManager {
 
 // MARK: - File Unstaging Operations
 extension UnstageManager {
-    func loadAllFiles() throws -> [FileStatus] {
-        let gitOutput = try shell.runGitCommandWithOutput(.getLocalChanges, path: nil)
-        return FileStatus.parseFromGitStatus(gitOutput)
-    }
-    
-    func filterStagedFiles(_ files: [FileStatus]) -> [FileStatus] {
-        return files.filter { $0.hasStaged }
-    }
-    
-    func selectFilesToUnstage(_ files: [FileStatus]) -> [FileStatus] {
-        return picker.multiSelection("Select files to unstage:", items: files)
-    }
-    
-    func unstageFiles(_ files: [FileStatus]) throws {
-        for file in files {
-            try shell.runWithOutput("git reset HEAD \"\(file.path)\"")
-        }
-    }
-    
     func executeUnstageWorkflow() throws {
         let allFiles = try loadAllFiles()
         let stagedFiles = filterStagedFiles(allFiles)
@@ -59,5 +40,28 @@ extension UnstageManager {
         
         try unstageFiles(selectedFiles)
         print("✅ Unstaged \(selectedFiles.count) file(s)")
+    }
+}
+
+
+// MARK: - Private Methods
+private extension UnstageManager {
+    func loadAllFiles() throws -> [FileStatus] {
+        let gitOutput = try shell.runGitCommandWithOutput(.getLocalChanges, path: nil)
+        return FileStatus.parseFromGitStatus(gitOutput)
+    }
+    
+    func filterStagedFiles(_ files: [FileStatus]) -> [FileStatus] {
+        return files.filter { $0.hasStaged }
+    }
+    
+    func selectFilesToUnstage(_ files: [FileStatus]) -> [FileStatus] {
+        return picker.multiSelection("Select files to unstage:", items: files)
+    }
+    
+    func unstageFiles(_ files: [FileStatus]) throws {
+        for file in files {
+            try shell.runWithOutput("git reset HEAD \"\(file.path)\"")
+        }
     }
 }

@@ -22,25 +22,6 @@ struct StageManager {
 
 // MARK: - File Staging Operations
 extension StageManager {
-    func loadAllFiles() throws -> [FileStatus] {
-        let gitOutput = try shell.runGitCommandWithOutput(.getLocalChanges, path: nil)
-        return FileStatus.parseFromGitStatus(gitOutput)
-    }
-    
-    func filterUnstageableFiles(_ files: [FileStatus]) -> [FileStatus] {
-        return files.filter { $0.hasUnstaged || $0.unstagedStatus == .untracked }
-    }
-    
-    func selectFilesToStage(_ files: [FileStatus]) -> [FileStatus] {
-        return picker.multiSelection("Select files to stage:", items: files)
-    }
-    
-    func stageFiles(_ files: [FileStatus]) throws {
-        for file in files {
-            try shell.runWithOutput("git add \"\(file.path)\"")
-        }
-    }
-    
     func executeStageWorkflow() throws {
         let allFiles = try loadAllFiles()
         let unstageableFiles = filterUnstageableFiles(allFiles)
@@ -59,5 +40,28 @@ extension StageManager {
         
         try stageFiles(selectedFiles)
         print("✅ Staged \(selectedFiles.count) file(s)")
+    }
+}
+
+
+// MARK: - Private Methods
+private extension StageManager {
+    func loadAllFiles() throws -> [FileStatus] {
+        let gitOutput = try shell.runGitCommandWithOutput(.getLocalChanges, path: nil)
+        return FileStatus.parseFromGitStatus(gitOutput)
+    }
+    
+    func filterUnstageableFiles(_ files: [FileStatus]) -> [FileStatus] {
+        return files.filter { $0.hasUnstaged || $0.unstagedStatus == .untracked }
+    }
+    
+    func selectFilesToStage(_ files: [FileStatus]) -> [FileStatus] {
+        return picker.multiSelection("Select files to stage:", items: files)
+    }
+    
+    func stageFiles(_ files: [FileStatus]) throws {
+        for file in files {
+            try shell.runWithOutput("git add \"\(file.path)\"")
+        }
     }
 }

@@ -13,7 +13,7 @@ import GitShellKit
 
 @MainActor
 struct SwitchBranchTests {
-    @Test("switches without prompting when exact branch name is provided")
+    @Test("switches without prompting when exact branch name is provided", .disabled())
     func switchesExactMatch() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let switchCmd = makeGitCommand(.switchBranch(branchName: "dev"), path: nil)

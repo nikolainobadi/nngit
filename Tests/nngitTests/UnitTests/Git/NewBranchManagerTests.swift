@@ -71,6 +71,42 @@ struct NewBranchManagerTests {
         #expect(shell.executedCommands.contains("git push"))
         #expect(picker.requiredPermissions.contains("Your develop branch has unpushed changes. Would you like to push them before creating a new branch?"))
     }
+    
+    @Test("Throws error when branch has diverged.")
+    func handleRemoteRepositoryDiverged() throws {
+        let currentBranch = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .diverged)
+        let (sut, shell, _) = makeSUT(localBranches: [currentBranch])
+        
+        #expect(throws: NewBranchError.self) {
+            try sut.handleRemoteRepository()
+        }
+        
+        #expect(shell.executedCommands.isEmpty)
+    }
+    
+    @Test("Throws error when branch status is undetermined.")
+    func handleRemoteRepositoryUndetermined() throws {
+        let currentBranch = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        let (sut, shell, _) = makeSUT(localBranches: [currentBranch])
+        
+        #expect(throws: NewBranchError.self) {
+            try sut.handleRemoteRepository()
+        }
+        
+        #expect(shell.executedCommands.isEmpty)
+    }
+    
+    @Test("Throws error when no remote branch exists.")
+    func handleRemoteRepositoryNoRemoteBranch() throws {
+        let currentBranch = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .noRemoteBranch)
+        let (sut, shell, _) = makeSUT(localBranches: [currentBranch])
+        
+        #expect(throws: NewBranchError.self) {
+            try sut.handleRemoteRepository()
+        }
+        
+        #expect(shell.executedCommands.isEmpty)
+    }
 }
 
 // MARK: - SUT

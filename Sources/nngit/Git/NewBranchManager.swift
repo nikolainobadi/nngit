@@ -5,6 +5,7 @@
 //  Created by Nikolai Nobadi on 8/22/25.
 //
 
+import Foundation
 import GitShellKit
 import SwiftPicker
 
@@ -43,8 +44,12 @@ extension NewBranchManager {
                 try handleAheadBranch(currentBranch)
             case .nsync:
                 break
-            default:
-                break
+            case .diverged:
+                throw NewBranchError.branchDiverged
+            case .undetermined:
+                throw NewBranchError.branchStatusUndetermined
+            case .noRemoteBranch:
+                throw NewBranchError.noRemoteBranch
             }
         } else {
             // TODO: - check if a remote branch exists

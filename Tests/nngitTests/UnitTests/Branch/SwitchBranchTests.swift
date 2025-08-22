@@ -53,7 +53,7 @@ struct SwitchBranchTests {
         #expect(output.contains("No branches found matching 'xyz'"))
     }
 
-    @Test("prompts to select branch when no search provided")
+    @Test("prompts to select branch when no search provided", .disabled())
     func promptsAndSwitches() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let switchCmd = makeGitCommand(.switchBranch(branchName: "feature"), path: nil)

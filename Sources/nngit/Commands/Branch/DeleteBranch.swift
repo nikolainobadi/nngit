@@ -52,9 +52,7 @@ extension Nngit {
 
             try shell.verifyLocalGitExists()
 
-            var config = try configLoader.loadConfig(picker: picker)
-            
-            
+            let config = try configLoader.loadConfig(picker: picker)
             let branchLoader = Nngit.makeBranchLoader()
             var branchNames = try loadEligibleBranchNames(shell: shell, config: config)
 
@@ -95,8 +93,8 @@ extension Nngit {
                 branchesToDelete = picker.multiSelection("Select which branches to delete", items: eligibleBranches)
             }
         
-            let deletedBranchNames = try deleteBranches(branchesToDelete, shell: shell, picker: picker, defaultBranch: config.branches.defaultBranch)
-            
+            // TODO: - determine why deletedBranchNames needs to be returned
+            let _ = try deleteBranches(branchesToDelete, shell: shell, picker: picker, defaultBranch: config.branches.defaultBranch)
             
             if (pruneOrigin || config.behaviors.pruneWhenDeleting) && (try? shell.remoteExists(path: nil)) == true {
                 let _ = try shell.runWithOutput(makeGitCommand(.pruneOrigin, path: nil))

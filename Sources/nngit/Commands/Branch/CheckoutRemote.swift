@@ -33,12 +33,9 @@ extension Nngit {
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
-            let configLoader = Nngit.makeConfigLoader()
             let branchLoader = Nngit.makeBranchLoader()
             
             try shell.verifyLocalGitExists()
-            
-            let config = try configLoader.loadConfig(picker: picker)
             
             // Load remote branches
             var remoteBranchNames = try branchLoader.loadBranchNames(from: .remote, shell: shell)

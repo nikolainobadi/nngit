@@ -57,7 +57,7 @@ struct DeleteBranchTests {
         #expect(shell.executedCommands.contains(deleteFoo))
     }
 
-    @Test("Does not prune when no remote exists", .disabled())
+    @Test("Does not prune when no remote exists")
     func noPruneWithoutRemote() throws {
         let pruneCmd = makeGitCommand(.pruneOrigin, path: nil)
         let deleteFoo = makeGitCommand(.deleteBranch(name: "foo", forced: false), path: nil)
@@ -65,7 +65,7 @@ struct DeleteBranchTests {
             "true",  // localGitCheck
             ""       // deleteBranch
         ]
-        let shell = MockShell(results: results, shouldThrowError: true) // Will throw on remoteExists check
+        let shell = MockShell(results: results)
         let picker = MockPicker(selectionResponses: ["Select which branches to delete": 0])
         let branch = GitBranch(name: "foo", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         let loader = StubBranchLoader(localBranches: [branch])

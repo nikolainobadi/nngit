@@ -52,4 +52,38 @@ struct NewBranchTests {
         #expect(output.contains("✅ Created and switched to branch: prompted-branch"))
     }
 
+    @Test("formats branch name by replacing spaces with dashes")
+    func formatsBranchNameWithSpaces() throws {
+        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
+        let newBranchCmd = makeGitCommand(.newBranch(branchName: "my-new-feature"), path: nil)
+        let shell = MockShell(results: [
+            "true",  // localGitCheck
+            ""       // newBranchCmd
+        ])
+        let picker = MockPicker()
+        let context = MockContext(picker: picker, shell: shell, configLoader: StubConfigLoader(initialConfig: .defaultConfig))
+
+        let output = try Nngit.testRun(context: context, args: ["new-branch", "my new feature"])
+        #expect(shell.executedCommands.contains(localGitCheck))
+        #expect(shell.executedCommands.contains(newBranchCmd))
+        #expect(output.contains("✅ Created and switched to branch: my-new-feature"))
+    }
+
+    @Test("formats branch name by converting to lowercase and replacing underscores")
+    func formatsBranchNameCasing() throws {
+        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
+        let newBranchCmd = makeGitCommand(.newBranch(branchName: "my-feature-branch"), path: nil)
+        let shell = MockShell(results: [
+            "true",  // localGitCheck
+            ""       // newBranchCmd
+        ])
+        let picker = MockPicker()
+        let context = MockContext(picker: picker, shell: shell, configLoader: StubConfigLoader(initialConfig: .defaultConfig))
+
+        let output = try Nngit.testRun(context: context, args: ["new-branch", "My_Feature Branch"])
+        #expect(shell.executedCommands.contains(localGitCheck))
+        #expect(shell.executedCommands.contains(newBranchCmd))
+        #expect(output.contains("✅ Created and switched to branch: my-feature-branch"))
+    }
+
 }

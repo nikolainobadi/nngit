@@ -34,7 +34,7 @@ extension Nngit {
             try shell.verifyLocalGitExists()
             
             let config = try loader.loadConfig(picker: picker)
-            let targetBaseBranch = baseBranch ?? config.branches.defaultBranch
+            let targetBaseBranch = baseBranch ?? config.defaultBranch
             
             try manager.generateDiff(baseBranch: targetBaseBranch, copyToClipboard: copy)
         }

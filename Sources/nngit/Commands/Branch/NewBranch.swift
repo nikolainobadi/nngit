@@ -24,11 +24,7 @@ extension Nngit {
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
-            let loader = Nngit.makeConfigLoader()
             try shell.verifyLocalGitExists()
-            let config = try loader.loadConfig(picker: picker)
-            let branchHelper = GitBranchHelper(shell: shell)
-            try branchHelper.rebaseIfNecessary(config: config, picker: picker)
             
             let branchName = try name ?? picker.getRequiredInput("Enter the name of your new branch.")
             let fullBranchName = branchName

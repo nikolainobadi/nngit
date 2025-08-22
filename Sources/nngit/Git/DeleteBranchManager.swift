@@ -51,7 +51,7 @@ private extension DeleteBranchManager {
         return try branchLoader.loadBranchNames(from: .local, shell: shell)
             .filter { name in
                 let clean = name.hasPrefix("*") ? String(name.dropFirst(2)) : name
-                return clean.lowercased() != config.branches.defaultBranch.lowercased()
+                return clean.lowercased() != config.defaultBranch.lowercased()
             }
     }
     
@@ -73,7 +73,7 @@ private extension DeleteBranchManager {
         return try branchLoader.loadBranches(
             for: branchNames,
             shell: shell,
-            mainBranchName: config.branches.defaultBranch,
+            mainBranchName: config.defaultBranch,
             loadMergeStatus: true,
             loadCreationDate: true,
             loadSyncStatus: true
@@ -106,7 +106,7 @@ private extension DeleteBranchManager {
                 deletedBranchNames.append(branch.name)
             } else {
                 try picker.requiredPermission(
-                    "This branch has NOT been merged into \(config.branches.defaultBranch.yellow). Are you sure you want to delete it?"
+                    "This branch has NOT been merged into \(config.defaultBranch.yellow). Are you sure you want to delete it?"
                 )
                 try deleteBranch(branch, forced: true)
                 deletedBranchNames.append(branch.name)

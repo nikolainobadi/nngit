@@ -74,7 +74,7 @@ private extension SwitchBranchManager {
         return try branchLoader.loadBranches(
             for: branchNames,
             shell: shell,
-            mainBranchName: config.branches.defaultBranch,
+            mainBranchName: config.defaultBranch,
             loadMergeStatus: true,
             loadCreationDate: true,
             loadSyncStatus: true

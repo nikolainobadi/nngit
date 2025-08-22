@@ -172,8 +172,6 @@ private extension DeleteBranchManagerTests {
     }
     
     func makeConfig(defaultBranch: String) -> GitConfig {
-        var config = GitConfig.defaultConfig
-        config.branches.defaultBranch = defaultBranch
-        return config
+        return GitConfig(defaultBranch: defaultBranch)
     }
 }

@@ -30,14 +30,8 @@ extension Nngit {
             try shell.verifyLocalGitExists()
             let branchLoader = Nngit.makeBranchLoader()
             let config = try Nngit.makeConfigLoader().loadConfig(picker: picker)
+            let manager = SwitchBranchManager(branchLocation: branchLocation, shell: shell, picker: picker, branchLoader: branchLoader, config: config)
             
-            let manager = SwitchBranchManager(
-                branchLocation: branchLocation,
-                shell: shell,
-                picker: picker,
-                branchLoader: branchLoader,
-                config: config
-            )
             try manager.executeSwitchWorkflow(search: search)
         }
     }

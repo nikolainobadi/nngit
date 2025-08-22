@@ -27,7 +27,6 @@ extension Nngit {
             let loader = Nngit.makeConfigLoader()
             try shell.verifyLocalGitExists()
             let config = try loader.loadConfig(picker: picker)
-            
             let branchHelper = GitBranchHelper(shell: shell)
             try branchHelper.rebaseIfNecessary(config: config, picker: picker)
             

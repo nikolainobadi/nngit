@@ -6,15 +6,18 @@ import GitShellKit
 
 @MainActor
 struct DeleteBranchTests {
-    @Test("prunes origin when flag provided", .disabled())
+    @Test("prunes origin when flag provided")
     func prunesWithFlag() throws {
         let pruneCmd = makeGitCommand(.pruneOrigin, path: nil)
         let deleteFoo = makeGitCommand(.deleteBranch(name: "foo", forced: false), path: nil)
         let results = [
-            "true",
-            "origin",
-            "",
-            ""
+            "true",                           // git rev-parse --is-inside-work-tree
+            "Test User",                      // git config user.name
+            "test@example.com",               // git config user.email
+            "Test User,test@example.com",     // git log -1 --pretty=format:'%an,%ae' foo
+            "",                               // git branch -d foo
+            "origin",                         // git remote  
+            ""                                // git remote prune origin
         ]
 
         let shell = MockShell(results: results, shouldThrowError: false)

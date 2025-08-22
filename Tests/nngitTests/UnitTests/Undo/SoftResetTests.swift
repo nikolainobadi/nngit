@@ -42,8 +42,9 @@ struct SoftResetTests {
             ""
         ]
         
-        let picker = MockPicker()
-        picker.permissionResponses["Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area."] = true
+        let picker = MockPicker(permissionResponses: [
+            "Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area.": true
+        ])
         let context = MockContext(picker: picker, shellResults: shellResults)
         
         try runCommand(context, number: 3)
@@ -76,8 +77,9 @@ struct SoftResetTests {
             ""
         ]
         
-        let picker = MockPicker()
-        picker.permissionResponses["Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area."] = true
+        let picker = MockPicker(permissionResponses: [
+            "Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area.": true
+        ])
         let context = MockContext(picker: picker, shellResults: shellResults)
         
         try runCommand(context, number: 2, force: true)
@@ -105,8 +107,9 @@ struct SoftResetTests {
             "abc123 - Test commit (Test User, 2 hours ago)"
         ]
         
-        let picker = MockPicker()
-        picker.permissionResponses["Are you sure you want to soft reset 1 commit(s)? The changes will be moved to staging area."] = false
+        let picker = MockPicker(permissionResponses: [
+            "Are you sure you want to soft reset 1 commit(s)? The changes will be moved to staging area.": false
+        ])
         let context = MockContext(picker: picker, shellResults: shellResults)
         
         do {
@@ -136,9 +139,10 @@ struct SoftResetTests {
             ""
         ]
         
-        let picker = MockPicker()
-        picker.selectionResponses["Select a commit to soft reset to:"] = 0 // Select first commit
-        picker.permissionResponses["Are you sure you want to soft reset 1 commit(s)? The changes will be moved to staging area."] = true
+        let picker = MockPicker(
+            permissionResponses: ["Are you sure you want to soft reset 1 commit(s)? The changes will be moved to staging area.": true],
+            selectionResponses: ["Select a commit to soft reset to:": 0] // Select first commit
+        )
         let context = MockContext(picker: picker, shellResults: shellResults)
         
         try runCommand(context, select: true)
@@ -164,9 +168,10 @@ struct SoftResetTests {
             ""
         ]
         
-        let picker = MockPicker()
-        picker.selectionResponses["Select a commit to soft reset to:"] = 3 // Select 4th commit (index 3)
-        picker.permissionResponses["Are you sure you want to soft reset 4 commit(s)? The changes will be moved to staging area."] = true
+        let picker = MockPicker(
+            permissionResponses: ["Are you sure you want to soft reset 4 commit(s)? The changes will be moved to staging area.": true],
+            selectionResponses: ["Select a commit to soft reset to:": 3] // Select 4th commit (index 3)
+        )
         let context = MockContext(picker: picker, shellResults: shellResults)
         
         try runCommand(context, select: true)
@@ -191,9 +196,10 @@ struct SoftResetTests {
             ""
         ]
         
-        let picker = MockPicker()
-        picker.selectionResponses["Select a commit to soft reset to:"] = 6 // Select 7th commit (index 6)
-        picker.permissionResponses["Are you sure you want to soft reset 7 commit(s)? The changes will be moved to staging area."] = true
+        let picker = MockPicker(
+            permissionResponses: ["Are you sure you want to soft reset 7 commit(s)? The changes will be moved to staging area.": true],
+            selectionResponses: ["Select a commit to soft reset to:": 6] // Select 7th commit (index 6)
+        )
         let context = MockContext(picker: picker, shellResults: shellResults)
         
         try runCommand(context, select: true)
@@ -220,9 +226,10 @@ struct SoftResetTests {
             ""
         ]
         
-        let picker = MockPicker()
-        picker.selectionResponses["Select a commit to soft reset to:"] = 1 // Select 2nd commit (has other author)
-        picker.permissionResponses["Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area."] = true
+        let picker = MockPicker(
+            permissionResponses: ["Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area.": true],
+            selectionResponses: ["Select a commit to soft reset to:": 1] // Select 2nd commit (has other author)
+        )
         let context = MockContext(picker: picker, shellResults: shellResults)
         
         try runCommand(context, force: true, select: true)
@@ -246,8 +253,9 @@ struct SoftResetTests {
                 """
         ]
         
-        let picker = MockPicker()
-        picker.selectionResponses["Select a commit to soft reset to:"] = 1 // Select 2nd commit (has other author)
+        let picker = MockPicker(
+            selectionResponses: ["Select a commit to soft reset to:": 1] // Select 2nd commit (has other author)
+        )
         let context = MockContext(picker: picker, shellResults: shellResults)
         
         try runCommand(context, select: true)
@@ -272,9 +280,10 @@ struct SoftResetTests {
                 """
         ]
         
-        let picker = MockPicker()
-        picker.selectionResponses["Select a commit to soft reset to:"] = 2 // Select 3rd commit
-        picker.permissionResponses["Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area."] = false
+        let picker = MockPicker(
+            permissionResponses: ["Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area.": false],
+            selectionResponses: ["Select a commit to soft reset to:": 2] // Select 3rd commit
+        )
         let context = MockContext(picker: picker, shellResults: shellResults)
         
         do {
@@ -317,9 +326,10 @@ struct SoftResetTests {
             ""
         ]
         
-        let picker = MockPicker()
-        picker.selectionResponses["Select a commit to soft reset to:"] = 1 // Select 2nd commit (out of 3 available)
-        picker.permissionResponses["Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area."] = true
+        let picker = MockPicker(
+            permissionResponses: ["Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area.": true],
+            selectionResponses: ["Select a commit to soft reset to:": 1] // Select 2nd commit (out of 3 available)
+        )
         let context = MockContext(picker: picker, shellResults: shellResults)
         
         try runCommand(context, select: true)
@@ -345,9 +355,10 @@ struct SoftResetTests {
             ""
         ]
         
-        let picker = MockPicker()
-        picker.selectionResponses["Select a commit to soft reset to:"] = 2 // Select 3rd commit
-        picker.permissionResponses["Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area."] = true
+        let picker = MockPicker(
+            permissionResponses: ["Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area.": true],
+            selectionResponses: ["Select a commit to soft reset to:": 2] // Select 3rd commit
+        )
         let context = MockContext(picker: picker, shellResults: shellResults)
         
         // Pass number argument 5, but it should be ignored in select mode

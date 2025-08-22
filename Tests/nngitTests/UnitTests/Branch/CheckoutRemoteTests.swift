@@ -36,8 +36,9 @@ struct CheckoutRemoteTests {
             "Switched to a new branch 'feature-2'"    // git checkout -b feature-2 origin/feature-2
         ]
         
-        let picker = MockPicker()
-        picker.selectionResponses["Select a remote branch to checkout"] = 0 // Select feature-2
+        let picker = MockPicker(selectionResponses: [
+            "Select a remote branch to checkout": 0 // Select feature-2
+        ])
         
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shellResults: shellResults, configLoader: configLoader, branchLoader: branchLoader)
@@ -120,8 +121,9 @@ struct CheckoutRemoteTests {
             "Switched to a new branch 'feature-1'"
         ]
         
-        let picker = MockPicker()
-        picker.selectionResponses["Select a remote branch to checkout"] = 0 // Select feature-1
+        let picker = MockPicker(selectionResponses: [
+            "Select a remote branch to checkout": 0 // Select feature-1
+        ])
         
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shellResults: shellResults, configLoader: configLoader, branchLoader: branchLoader)
@@ -147,8 +149,9 @@ struct CheckoutRemoteTests {
             "Switched to a new branch 'feature-1'"
         ]
         
-        let picker = MockPicker()
-        picker.selectionResponses["Select a remote branch to checkout"] = 0 // Select feature-1 
+        let picker = MockPicker(selectionResponses: [
+            "Select a remote branch to checkout": 0 // Select feature-1
+        ])
         
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shellResults: shellResults, configLoader: configLoader, branchLoader: branchLoader)
@@ -175,8 +178,9 @@ struct CheckoutRemoteTests {
             "Switched to a new branch 'feature-2'"
         ]
         
-        let picker = MockPicker()
-        picker.selectionResponses["Select a remote branch to checkout"] = 0 // Only feature-2 should be available
+        let picker = MockPicker(selectionResponses: [
+            "Select a remote branch to checkout": 0 // Only feature-2 should be available
+        ])
         
         let configLoader = StubConfigLoader(initialConfig: config)
         let context = MockContext(picker: picker, shellResults: shellResults, configLoader: configLoader, branchLoader: branchLoader)

@@ -28,8 +28,8 @@ struct DefaultGitResetHelperTests {
             CommitInfo(hash: "def456", message: "Second", author: "User", date: "2h ago", wasAuthoredByCurrentUser: true),
             CommitInfo(hash: "ghi789", message: "Third", author: "User", date: "3h ago", wasAuthoredByCurrentUser: true)
         ]
-        let (sut, _, picker) = makeSUT(commitInfo: commits)
-        picker.selectionResponses["Select a commit to reset to:"] = 1 // Select second commit
+        let picker = MockPicker(selectionResponses: ["Select a commit to reset to:": 1]) // Select second commit
+        let (sut, _, _) = makeSUT(commitInfo: commits, picker: picker)
         
         let result = try sut.selectCommitForReset()
         
@@ -46,8 +46,8 @@ struct DefaultGitResetHelperTests {
             CommitInfo(hash: "abc123", message: "First", author: "User", date: "1h ago", wasAuthoredByCurrentUser: true),
             CommitInfo(hash: "def456", message: "Second", author: "User", date: "2h ago", wasAuthoredByCurrentUser: true)
         ]
-        let (sut, _, picker) = makeSUT(commitInfo: commits)
-        picker.selectionResponses["Select a commit to reset to:"] = 1 // Select last commit
+        let picker = MockPicker(selectionResponses: ["Select a commit to reset to:": 1]) // Select last commit
+        let (sut, _, _) = makeSUT(commitInfo: commits, picker: picker)
         
         let result = try sut.selectCommitForReset()
         
@@ -141,8 +141,8 @@ struct DefaultGitResetHelperTests {
     
     @Test("confirm reset uses correct message for soft reset")
     func confirmResetSoftMessage() throws {
-        let (sut, _, picker) = makeSUT()
-        picker.permissionResponses["Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area."] = true
+        let picker = MockPicker(permissionResponses: ["Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area.": true])
+        let (sut, _, _) = makeSUT(picker: picker)
         
         try sut.confirmReset(count: 3, resetType: "soft")
         
@@ -151,8 +151,8 @@ struct DefaultGitResetHelperTests {
     
     @Test("confirm reset uses correct message for hard reset")
     func confirmResetHardMessage() throws {
-        let (sut, _, picker) = makeSUT()
-        picker.permissionResponses["Are you sure you want to hard reset 2 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."] = true
+        let picker = MockPicker(permissionResponses: ["Are you sure you want to hard reset 2 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action.": true])
+        let (sut, _, _) = makeSUT(picker: picker)
         
         try sut.confirmReset(count: 2, resetType: "hard")
         
@@ -161,8 +161,8 @@ struct DefaultGitResetHelperTests {
     
     @Test("confirm reset uses default message for unknown type")
     func confirmResetDefaultMessage() throws {
-        let (sut, _, picker) = makeSUT()
-        picker.permissionResponses["Are you sure you want to reset 1 commit(s)?"] = true
+        let picker = MockPicker(permissionResponses: ["Are you sure you want to reset 1 commit(s)?": true])
+        let (sut, _, _) = makeSUT(picker: picker)
         
         try sut.confirmReset(count: 1, resetType: "unknown")
         
@@ -173,10 +173,9 @@ struct DefaultGitResetHelperTests {
 
 // MARK: - SUT
 private extension DefaultGitResetHelperTests {
-    func makeSUT(commitInfo: [CommitInfo] = []) -> (sut: DefaultGitResetHelper, manager: MockCommitManager, picker: MockPicker) {
+    func makeSUT(commitInfo: [CommitInfo] = [], picker: MockPicker = MockPicker()) -> (sut: DefaultGitResetHelper, manager: MockCommitManager, picker: MockPicker) {
         let manager = MockCommitManager()
         manager.commitInfo = commitInfo
-        let picker = MockPicker()
         let sut = DefaultGitResetHelper(manager: manager, picker: picker)
         
         return (sut, manager, picker)

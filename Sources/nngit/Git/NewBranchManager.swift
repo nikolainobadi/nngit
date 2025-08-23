@@ -34,26 +34,25 @@ extension NewBranchManager {
             return // TODO: -
         }
         
-        if isDefaultBranch(currentBranch) {
-            let mainBranchStatus = try branchLoader.getSyncStatus(branchName: currentBranch.name, comparingBranch: nil)
-            
-            switch mainBranchStatus {
-            case .behind:
-                try handleBehindBranch(currentBranch)
-            case .ahead:
-                try handleAheadBranch(currentBranch)
-            case .nsync:
-                break
-            case .diverged:
-                throw NewBranchError.branchDiverged
-            case .undetermined:
-                throw NewBranchError.branchStatusUndetermined
-            case .noRemoteBranch:
+        let branchStatus = try branchLoader.getSyncStatus(branchName: currentBranch.name, comparingBranch: nil)
+        
+        switch branchStatus {
+        case .behind:
+            try handleBehindBranch(currentBranch)
+        case .ahead:
+            try handleAheadBranch(currentBranch)
+        case .nsync:
+            break
+        case .diverged:
+            throw NewBranchError.branchDiverged
+        case .undetermined:
+            throw NewBranchError.branchStatusUndetermined
+        case .noRemoteBranch:
+            if isDefaultBranch(currentBranch) {
                 throw NewBranchError.noRemoteBranch
             }
-        } else {
-            // TODO: - check if a remote branch exists
-            // if it does, get status
+            // Non-default branches without remote can create new branches
+            break
         }
     }
 }
@@ -70,27 +69,39 @@ private extension NewBranchManager {
     }
     
     func handleAheadBranch(_ branch: GitBranch) throws {
+        let branchName = isDefaultBranch(branch) ? config.defaultBranch : branch.name
+        
         try picker.requiredPermission(
-            "Your \(config.defaultBranch) branch has unpushed changes. Would you like to push them before creating a new branch?"
+            "Your \(branchName) branch has unpushed changes. Would you like to push them before creating a new branch?"
         )
         
         try shell.runGitCommandWithOutput(.push, path: nil)
-        print("✅ Pushed changes to \(config.defaultBranch)")
+        print("✅ Pushed changes to \(branchName)")
     }
     
     func handleBehindBranch(_ branch: GitBranch) throws {
-        let syncOption = try picker.requiredSingleSelection(
-            "Your \(config.defaultBranch) branch is behind the remote. You must sync before creating a new branch:",
-            items: [SyncOption.merge, SyncOption.rebase]
-        )
-        
-        switch syncOption {
-        case .merge:
-            try shell.runGitCommandWithOutput(.pull(withRebase: false), path: nil)
-            print("✅ Merged remote changes into \(config.defaultBranch)")
-        case .rebase:
+        if isDefaultBranch(branch) {
+            let syncOption = try picker.requiredSingleSelection(
+                "Your \(config.defaultBranch) branch is behind the remote. You must sync before creating a new branch:",
+                items: [SyncOption.merge, SyncOption.rebase]
+            )
+            
+            switch syncOption {
+            case .merge:
+                try shell.runGitCommandWithOutput(.pull(withRebase: false), path: nil)
+                print("✅ Merged remote changes into \(config.defaultBranch)")
+            case .rebase:
+                try shell.runGitCommandWithOutput(.pull(withRebase: true), path: nil)
+                print("✅ Rebased \(config.defaultBranch) onto remote changes")
+            }
+        } else {
+            // Non-default branches behind remote must be rebased before creating new branches
+            try picker.requiredPermission(
+                "Your \(branch.name) branch is behind the remote. You must rebase before creating a new branch. Continue?"
+            )
+            
             try shell.runGitCommandWithOutput(.pull(withRebase: true), path: nil)
-            print("✅ Rebased \(config.defaultBranch) onto remote changes")
+            print("✅ Rebased \(branch.name) onto remote changes")
         }
     }
 }

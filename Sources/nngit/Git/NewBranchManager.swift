@@ -35,7 +35,7 @@ extension NewBranchManager {
         }
         
         if isDefaultBranch(currentBranch) {
-            let mainBranchStatus = try branchLoader.getSyncStatus(branchName: currentBranch.name, comparingBranch: nil, remoteExists: true)
+            let mainBranchStatus = try branchLoader.getSyncStatus(branchName: currentBranch.name, comparingBranch: nil)
             
             switch mainBranchStatus {
             case .behind:

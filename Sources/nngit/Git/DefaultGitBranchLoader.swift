@@ -53,11 +53,9 @@ extension DefaultGitBranchLoader: GitBranchLoader {
         let mergedBranches = Set(mergedOutput
             .split(separator: "\n")
             .map { $0.trimmingCharacters(in: .whitespaces) })
-
-        let remoteExists = (try? self.shell.remoteExists(path: nil)) ?? false
         
         // Fetch latest remote changes to ensure accurate sync status
-        if remoteExists {
+        if try shell.remoteExists(path: nil) {
             try shell.runGitCommandWithOutput(.fetchOrigin, path: nil)
         }
 
@@ -77,9 +75,8 @@ extension DefaultGitBranchLoader: GitBranchLoader {
             }
 
             let syncStatus = (try? self.getSyncStatus(
-                branchName: name,
-                comparingBranch: nil,
-                remoteExists: remoteExists
+                branchName: cleanBranchName,
+                comparingBranch: nil
             )) ?? .undetermined
 
             return .init(
@@ -98,16 +95,12 @@ extension DefaultGitBranchLoader: GitBranchLoader {
     ///   - branchName: The local branch name to compare.
     ///   - comparingBranch: Optional remote branch name to compare against. When
     ///     `nil`, the same branch name on `origin` is used.
-    ///   - remoteExists: Whether a remote repository exists.
     /// - Returns: ``BranchSyncStatus`` describing whether the branch is ahead,
     ///   behind, or in sync with the remote.
-    func getSyncStatus(branchName: String, comparingBranch: String? = nil, remoteExists: Bool = true) throws -> BranchSyncStatus {
-        if !remoteExists {
+    func getSyncStatus(branchName: String, comparingBranch: String? = nil) throws -> BranchSyncStatus {
+        guard (try? self.shell.remoteExists(path: nil)) == true else {
             return .noRemoteBranch
         }
-
-        // Skip additional remote existence checks when the caller already
-        // determined whether a remote is configured.
         
         let remoteBranch = "origin/\(comparingBranch ?? branchName)"
         let comparisonResult = try self.shell.runGitCommandWithOutput(.compareBranchAndRemote(local: branchName, remote: remoteBranch), path: nil)

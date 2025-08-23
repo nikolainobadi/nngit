@@ -45,7 +45,7 @@ final class StubBranchLoader: GitBranchLoader {
         }
     }
     
-    func getSyncStatus(branchName: String, comparingBranch: String?, remoteExists: Bool) throws -> BranchSyncStatus {
+    func getSyncStatus(branchName: String, comparingBranch: String?) throws -> BranchSyncStatus {
         // For testing, return the sync status from the predefined branches
         let cleanBranchName = branchName.hasPrefix("*") ? String(branchName.dropFirst(2)) : branchName
         return localBranches.first { $0.name == cleanBranchName }?.syncStatus ?? .undetermined

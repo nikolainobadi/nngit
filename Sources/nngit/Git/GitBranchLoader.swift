@@ -21,10 +21,9 @@ protocol GitBranchLoader {
     ///   - branchName: The local branch name to compare.
     ///   - comparingBranch: Optional remote branch name to compare against. When
     ///     `nil`, the same branch name on `origin` is used.
-    ///   - remoteExists: Whether a remote repository exists.
     /// - Returns: ``BranchSyncStatus`` describing whether the branch is ahead,
     ///   behind, or in sync with the remote.
-    func getSyncStatus(branchName: String, comparingBranch: String?, remoteExists: Bool) throws -> BranchSyncStatus
+    func getSyncStatus(branchName: String, comparingBranch: String?) throws -> BranchSyncStatus
 }
 
 

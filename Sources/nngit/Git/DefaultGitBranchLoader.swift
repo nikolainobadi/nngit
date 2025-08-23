@@ -55,6 +55,11 @@ extension DefaultGitBranchLoader: GitBranchLoader {
             .map { $0.trimmingCharacters(in: .whitespaces) })
 
         let remoteExists = (try? self.shell.remoteExists(path: nil)) ?? false
+        
+        // Fetch latest remote changes to ensure accurate sync status
+        if remoteExists {
+            try shell.runGitCommandWithOutput(.fetchOrigin, path: nil)
+        }
 
         return branchNames.map { name in
             let isCurrentBranch = name.hasPrefix("*")

@@ -190,11 +190,13 @@ struct NewBranchManagerTests {
         #expect(shell.executedCommands.isEmpty)
     }
     
-    @Test("Returns early when no current branch is found.")
+    @Test("Throws error when no current branch is found.")
     func handleRemoteRepositoryNoCurrentBranch() throws {
         let (sut, shell, _) = makeSUT(localBranches: [])
         
-        try sut.handleRemoteRepository()
+        #expect(throws: NewBranchError.noCurrentBranch) {
+            try sut.handleRemoteRepository()
+        }
         
         #expect(shell.executedCommands.isEmpty)
     }

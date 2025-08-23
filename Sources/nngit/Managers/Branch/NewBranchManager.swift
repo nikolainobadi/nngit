@@ -31,7 +31,7 @@ extension NewBranchManager {
     /// Checks if current branch is the default branch and handles sync status.
     func handleRemoteRepository() throws {
         guard let currentBranch = try loadCurrentBranch() else {
-            return // TODO: -
+            throw NewBranchError.noCurrentBranch
         }
         
         let branchStatus = try branchLoader.getSyncStatus(branchName: currentBranch.name, comparingBranch: nil)

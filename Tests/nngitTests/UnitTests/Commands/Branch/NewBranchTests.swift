@@ -63,7 +63,9 @@ struct NewBranchTests {
             ""        // newBranchCmd
         ])
         let picker = MockPicker()
-        let context = MockContext(picker: picker, shell: shell, configLoader: StubConfigLoader(initialConfig: .defaultConfig))
+        let currentBranch = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .nsync)
+        let branchLoader = StubBranchLoader(localBranches: [currentBranch])
+        let context = MockContext(picker: picker, shell: shell, configLoader: StubConfigLoader(initialConfig: .defaultConfig), branchLoader: branchLoader)
 
         let output = try Nngit.testRun(context: context, args: ["new-branch", "test-branch"])
         #expect(shell.executedCommands.contains(localGitCheck))

@@ -11,7 +11,7 @@ import NnShellKit
 import GitShellKit
 @testable import nngit
 
-@Suite("StopTrackingManager Tests")
+@Suite("StopTrackingManager Tests", .serialized)
 struct StopTrackingManagerTests {
     
     // MARK: - stopTrackingIgnoredFiles Tests
@@ -106,7 +106,7 @@ struct StopTrackingManagerTests {
             "Select files to stop tracking:": 0 // Will select first file due to MockPicker implementation
         ]
         let (sut, _, _, tracker) = makeSUTWithMockTracker(
-            results: ["true", "", ""],
+            results: ["true", "", "", ""],
             selectionResponses: selectionResponses
         )
         
@@ -255,7 +255,9 @@ struct StopTrackingManagerTests {
 // MARK: - SUT Factory
 private extension StopTrackingManagerTests {
     func makeSUT() -> (sut: StopTrackingManager, shell: MockShell) {
-        let shell = MockShell(results: [])
+        // Provide enough mock results to handle any shell commands that might be called
+        let safeResults = Array(repeating: "", count: 10)
+        let shell = MockShell(results: safeResults)
         let picker = MockPicker()
         let tracker = DefaultGitFileTracker(shell: shell)
         let sut = StopTrackingManager(shell: shell, picker: picker, tracker: tracker)
@@ -264,7 +266,9 @@ private extension StopTrackingManagerTests {
     }
     
     func makeSUTWithResults(_ results: [String]) -> (sut: StopTrackingManager, shell: MockShell) {
-        let shell = MockShell(results: results)
+        // Provide enough mock results to handle any shell commands that might be called
+        let safeResults = results + Array(repeating: "", count: 10)
+        let shell = MockShell(results: safeResults)
         let picker = MockPicker()
         let tracker = DefaultGitFileTracker(shell: shell)
         let sut = StopTrackingManager(shell: shell, picker: picker, tracker: tracker)
@@ -285,7 +289,9 @@ private extension StopTrackingManagerTests {
         results: [String] = [],
         selectionResponses: [String: Int] = [:]
     ) -> (sut: StopTrackingManager, shell: MockShell, picker: MockPicker, tracker: GitFileTracker) {
-        let shell = MockShell(results: results)
+        // Provide enough mock results to handle any shell commands that might be called
+        let safeResults = results + Array(repeating: "", count: 10)
+        let shell = MockShell(results: safeResults)
         let picker = MockPicker(selectionResponses: selectionResponses)
         let tracker = MockGitFileTracker()
         let sut = StopTrackingManager(shell: shell, picker: picker, tracker: tracker)

@@ -12,6 +12,7 @@ import GitShellKit
 @testable import nngit
 
 @MainActor
+@Suite("SwitchBranch Tests", .serialized)
 struct SwitchBranchTests {
     @Test("switches without prompting when exact branch name is provided")
     func switchesExactMatch() throws {

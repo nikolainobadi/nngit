@@ -18,7 +18,7 @@ struct Nngit: ParsableCommand {
         subcommands: [
             Discard.self, Undo.self, BranchDiff.self,
             NewBranch.self, SwitchBranch.self, DeleteBranch.self, CheckoutRemote.self,
-            Staging.self,
+            Staging.self, StopTracking.self,
             EditConfig.self
         ]
     )
@@ -57,5 +57,10 @@ extension Nngit {
     /// Factory for obtaining the configured ``GitResetHelper`` instance.
     static func makeResetHelper() -> GitResetHelper {
         return context.makeResetHelper()
+    }
+    
+    /// Factory for obtaining the configured ``GitFileTracker`` instance.
+    static func makeFileTracker() -> GitFileTracker {
+        return context.makeFileTracker()
     }
 }

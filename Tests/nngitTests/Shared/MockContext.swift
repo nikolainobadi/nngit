@@ -77,6 +77,10 @@ extension MockContext: NnGitContext {
         resetHelper = helper
         return helper
     }
+    
+    func makeFileTracker() -> GitFileTracker {
+        return DefaultGitFileTracker(shell: makeShell())
+    }
 }
 
 // MARK: - Test Access

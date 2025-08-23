@@ -11,6 +11,7 @@ enum NewBranchError: Error, LocalizedError {
     case branchDiverged
     case branchStatusUndetermined
     case noRemoteBranch
+    case noCurrentBranch
     
     var errorDescription: String? {
         switch self {
@@ -20,6 +21,8 @@ enum NewBranchError: Error, LocalizedError {
             return "Cannot create new branch: Unable to determine branch status. Please check your remote connection."
         case .noRemoteBranch:
             return "Cannot create new branch: No remote branch found for comparison."
+        case .noCurrentBranch:
+            return "Cannot create new branch: No current branch found. Please check out a branch first."
         }
     }
 }

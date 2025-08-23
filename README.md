@@ -90,13 +90,46 @@ swift build -c release
 
 The compiled binary will be available at `.build/release/nngit`.
 
-## Architecture Notes
-- Built on top of `swift-argument-parser` for CLI parsing
-- Uses `SwiftShell` for shell execution and `GitShellKit` abstractions
-- Configuration is stored via `NnConfigKit`
-- Modular components injected through a context for easier testing
-- Enhanced safety systems with comprehensive authorship detection and permission checks
-- Comprehensive test coverage with 171 passing tests
+## Architecture
+This Swift CLI tool follows a clean, modular architecture with clear separation of concerns:
+
+### Project Structure
+```
+Sources/nngit/
+├── Core/                     # Essential components
+│   ├── Context/              # Dependency injection
+│   ├── Models/               # Data models
+│   └── Extensions/           # Type extensions
+├── Services/                 # External integrations
+│   ├── Git/                  # Git operations (protocols & implementations)
+│   └── Configuration/        # Config management
+├── Managers/                 # Business logic
+│   ├── Branch/               # Branch-related workflows
+│   ├── FileOperations/       # File staging/unstaging/discarding
+│   ├── Reset/                # Commit reset operations
+│   └── Utility/              # Utility functions
+├── Commands/                 # CLI command definitions
+│   ├── Branch/               # Branch commands
+│   ├── FileOperations/       # File operation commands
+│   ├── Reset/                # Reset commands
+│   ├── Configuration/        # Config commands
+│   └── BranchDiff.swift      # Branch comparison
+├── Errors/                   # Error definitions
+└── Nngit.swift              # Main entry point
+```
+
+### Key Design Principles
+- **Dependency Injection**: Context-based injection for testability
+- **Feature-Based Organization**: Related functionality grouped together
+- **Protocol/Implementation Split**: Clean abstraction boundaries
+- **Enhanced Safety Systems**: Comprehensive authorship detection and permission checks
+- **Comprehensive Testing**: 171 passing tests with behavior-driven approach
+
+### Dependencies
+- Built on `swift-argument-parser` for CLI parsing
+- Uses `SwiftShell` and `GitShellKit` for Git operations
+- Configuration managed via `NnConfigKit`
+- User interaction through `SwiftPicker`
 
 ## Documentation
 The source is documented with inline comments, and a test suite resides under `Tests/`.

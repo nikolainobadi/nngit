@@ -13,16 +13,12 @@ import GitCommandGen
 
 @Suite("DefaultGitFileTracker Tests")
 struct DefaultGitFileTrackerTests {
-    
-    // MARK: - loadUnwantedFiles Tests
-    
     @Test("Returns empty array when no tracked files exist.")
     func loadUnwantedFiles_noTrackedFiles() {
-        let shell = MockShell(results: [""])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, shell) = makeSUT(results: [""])
         let gitignore = "*.log\nbuild/"
         
-        let result = tracker.loadUnwantedFiles(gitignore: gitignore)
+        let result = sut.loadUnwantedFiles(gitignore: gitignore)
         
         #expect(result.isEmpty)
         #expect(shell.executedCommands.contains("git ls-files"))
@@ -30,22 +26,20 @@ struct DefaultGitFileTrackerTests {
     
     @Test("Returns empty array when no patterns match.")
     func loadUnwantedFiles_noMatches() {
-        let shell = MockShell(results: ["src/main.swift\nREADME.md"])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, _) = makeSUT(results: ["src/main.swift\nREADME.md"])
         let gitignore = "*.log\nbuild/"
         
-        let result = tracker.loadUnwantedFiles(gitignore: gitignore)
+        let result = sut.loadUnwantedFiles(gitignore: gitignore)
         
         #expect(result.isEmpty)
     }
     
     @Test("Identifies files matching simple patterns.")
     func loadUnwantedFiles_simplePatterns() {
-        let shell = MockShell(results: ["debug.log\nerror.log\nsrc/main.swift"])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, _) = makeSUT(results: ["debug.log\nerror.log\nsrc/main.swift"])
         let gitignore = "*.log"
         
-        let result = tracker.loadUnwantedFiles(gitignore: gitignore)
+        let result = sut.loadUnwantedFiles(gitignore: gitignore)
         
         #expect(result.count == 2)
         #expect(result.contains("debug.log"))
@@ -54,11 +48,10 @@ struct DefaultGitFileTrackerTests {
     
     @Test("Handles directory patterns correctly.")
     func loadUnwantedFiles_directoryPatterns() {
-        let shell = MockShell(results: ["build/output.txt\nbuild/debug/app\nsrc/main.swift"])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, _) = makeSUT(results: ["build/output.txt\nbuild/debug/app\nsrc/main.swift"])
         let gitignore = "build/"
         
-        let result = tracker.loadUnwantedFiles(gitignore: gitignore)
+        let result = sut.loadUnwantedFiles(gitignore: gitignore)
         
         #expect(result.count == 2)
         #expect(result.contains("build/output.txt"))
@@ -67,11 +60,10 @@ struct DefaultGitFileTrackerTests {
     
     @Test("Handles patterns with wildcards.")
     func loadUnwantedFiles_wildcardPatterns() {
-        let shell = MockShell(results: ["test_file.txt\ntest_data.json\nprod_file.txt"])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, _) = makeSUT(results: ["test_file.txt\ntest_data.json\nprod_file.txt"])
         let gitignore = "test_*"
         
-        let result = tracker.loadUnwantedFiles(gitignore: gitignore)
+        let result = sut.loadUnwantedFiles(gitignore: gitignore)
         
         #expect(result.count == 2)
         #expect(result.contains("test_file.txt"))
@@ -80,11 +72,10 @@ struct DefaultGitFileTrackerTests {
     
     @Test("Handles double wildcard patterns.")
     func loadUnwantedFiles_doubleWildcardPatterns() {
-        let shell = MockShell(results: ["logs/debug.log\nlogs/2024/error.log\nsrc/main.swift"])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, _) = makeSUT(results: ["logs/debug.log\nlogs/2024/error.log\nsrc/main.swift"])
         let gitignore = "logs/**/*.log"
         
-        let result = tracker.loadUnwantedFiles(gitignore: gitignore)
+        let result = sut.loadUnwantedFiles(gitignore: gitignore)
         
         // The ** pattern means any number of directories, but "logs/debug.log" 
         // doesn't match "logs/**/*.log" because there's no intermediate directory
@@ -93,9 +84,8 @@ struct DefaultGitFileTrackerTests {
         
         // Test with a pattern that matches both
         let gitignore2 = "logs/**"
-        let shell2 = MockShell(results: ["logs/debug.log\nlogs/2024/error.log\nsrc/main.swift"])
-        let tracker2 = DefaultGitFileTracker(shell: shell2)
-        let result2 = tracker2.loadUnwantedFiles(gitignore: gitignore2)
+        let (sut2, _) = makeSUT(results: ["logs/debug.log\nlogs/2024/error.log\nsrc/main.swift"])
+        let result2 = sut2.loadUnwantedFiles(gitignore: gitignore2)
         
         #expect(result2.count == 2)
         #expect(result2.contains("logs/debug.log"))
@@ -104,8 +94,7 @@ struct DefaultGitFileTrackerTests {
     
     @Test("Ignores comments and empty lines in gitignore.")
     func loadUnwantedFiles_ignoresCommentsAndEmptyLines() {
-        let shell = MockShell(results: ["debug.log\nerror.log"])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, _) = makeSUT(results: ["debug.log\nerror.log"])
         let gitignore = """
         # This is a comment
         *.log
@@ -113,7 +102,7 @@ struct DefaultGitFileTrackerTests {
         # Another comment
         """
         
-        let result = tracker.loadUnwantedFiles(gitignore: gitignore)
+        let result = sut.loadUnwantedFiles(gitignore: gitignore)
         
         #expect(result.count == 2)
         #expect(result.contains("debug.log"))
@@ -122,11 +111,10 @@ struct DefaultGitFileTrackerTests {
     
     @Test("Handles absolute path patterns.")
     func loadUnwantedFiles_absolutePathPatterns() {
-        let shell = MockShell(results: ["config.json\nsrc/config.json"])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, _) = makeSUT(results: ["config.json\nsrc/config.json"])
         let gitignore = "/config.json"
         
-        let result = tracker.loadUnwantedFiles(gitignore: gitignore)
+        let result = sut.loadUnwantedFiles(gitignore: gitignore)
         
         #expect(result.count == 1)
         #expect(result.contains("config.json"))
@@ -134,14 +122,13 @@ struct DefaultGitFileTrackerTests {
     
     @Test("Skips negation patterns.")
     func loadUnwantedFiles_negationPatterns() {
-        let shell = MockShell(results: ["important.log\ndebug.log"])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, _) = makeSUT(results: ["important.log\ndebug.log"])
         let gitignore = """
         *.log
         !important.log
         """
         
-        let result = tracker.loadUnwantedFiles(gitignore: gitignore)
+        let result = sut.loadUnwantedFiles(gitignore: gitignore)
         
         // The implementation currently returns false for negation patterns
         // This means files with negation won't be included in unwanted files
@@ -152,11 +139,10 @@ struct DefaultGitFileTrackerTests {
     
     @Test("Handles question mark wildcards.")
     func loadUnwantedFiles_questionMarkWildcards() {
-        let shell = MockShell(results: ["file1.txt\nfile2.txt\nfile10.txt"])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, _) = makeSUT(results: ["file1.txt\nfile2.txt\nfile10.txt"])
         let gitignore = "file?.txt"
         
-        let result = tracker.loadUnwantedFiles(gitignore: gitignore)
+        let result = sut.loadUnwantedFiles(gitignore: gitignore)
         
         #expect(result.count == 2)
         #expect(result.contains("file1.txt"))
@@ -165,8 +151,7 @@ struct DefaultGitFileTrackerTests {
     
     @Test("Handles multiple patterns.")
     func loadUnwantedFiles_multiplePatterns() {
-        let shell = MockShell(results: ["debug.log\nbuild/output\ntemp.txt\ncache/data"])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, _) = makeSUT(results: ["debug.log\nbuild/output\ntemp.txt\ncache/data"])
         let gitignore = """
         *.log
         build/
@@ -174,7 +159,7 @@ struct DefaultGitFileTrackerTests {
         cache/
         """
         
-        let result = tracker.loadUnwantedFiles(gitignore: gitignore)
+        let result = sut.loadUnwantedFiles(gitignore: gitignore)
         
         #expect(result.count == 4)
         #expect(result.contains("debug.log"))
@@ -187,45 +172,41 @@ struct DefaultGitFileTrackerTests {
     
     @Test("Executes git rm --cached command with proper escaping.")
     func stopTrackingFile_executesCommand() throws {
-        let shell = MockShell(results: [""])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, shell) = makeSUT(results: [""])
         let file = "src/secret.env"
         
-        try tracker.stopTrackingFile(file: file)
+        try sut.stopTrackingFile(file: file)
         
         #expect(shell.executedCommands.contains("git rm --cached \"src/secret.env\""))
     }
     
     @Test("Handles files with spaces in the name.")
     func stopTrackingFile_filesWithSpaces() throws {
-        let shell = MockShell(results: [""])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, shell) = makeSUT(results: [""])
         let file = "my file with spaces.txt"
         
-        try tracker.stopTrackingFile(file: file)
+        try sut.stopTrackingFile(file: file)
         
         #expect(shell.executedCommands.contains("git rm --cached \"my file with spaces.txt\""))
     }
     
     @Test("Handles files with special characters.")
     func stopTrackingFile_filesWithSpecialCharacters() throws {
-        let shell = MockShell(results: [""])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, shell) = makeSUT(results: [""])
         let file = "file$with@special#chars.txt"
         
-        try tracker.stopTrackingFile(file: file)
+        try sut.stopTrackingFile(file: file)
         
         #expect(shell.executedCommands.contains("git rm --cached \"file$with@special#chars.txt\""))
     }
     
     @Test("Throws error when git command fails.")
     func stopTrackingFile_throwsOnError() {
-        let shell = MockShell(results: [], shouldThrowError: true)
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, _) = makeSUT(results: [], shouldThrowError: true)
         let file = "nonexistent.txt"
         
         #expect(throws: Error.self) {
-            try tracker.stopTrackingFile(file: file)
+            try sut.stopTrackingFile(file: file)
         }
     }
     
@@ -237,10 +218,9 @@ struct DefaultGitFileTrackerTests {
         M  src/main.swift
         ?? new_file.txt
         """
-        let shell = MockShell(results: [gitStatusOutput])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, shell) = makeSUT(results: [gitStatusOutput])
         
-        let result = try tracker.containsUntrackedFiles()
+        let result = try sut.containsUntrackedFiles()
         
         #expect(result == true)
         #expect(shell.executedCommands.contains(makeGitCommand(.getLocalChanges, path: nil)))
@@ -248,10 +228,9 @@ struct DefaultGitFileTrackerTests {
     
     @Test("Returns false when there are no changes.")
     func containsUntrackedFiles_noChanges() throws {
-        let shell = MockShell(results: [""])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, shell) = makeSUT(results: [""])
         
-        let result = try tracker.containsUntrackedFiles()
+        let result = try sut.containsUntrackedFiles()
         
         #expect(result == false)
         #expect(shell.executedCommands.contains(makeGitCommand(.getLocalChanges, path: nil)))
@@ -260,10 +239,9 @@ struct DefaultGitFileTrackerTests {
     @Test("Returns true for staged changes only.")
     func containsUntrackedFiles_stagedChangesOnly() throws {
         let gitStatusOutput = "M  src/main.swift"
-        let shell = MockShell(results: [gitStatusOutput])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, shell) = makeSUT(results: [gitStatusOutput])
         
-        let result = try tracker.containsUntrackedFiles()
+        let result = try sut.containsUntrackedFiles()
         
         #expect(result == true)
         #expect(shell.executedCommands.contains(makeGitCommand(.getLocalChanges, path: nil)))
@@ -272,10 +250,9 @@ struct DefaultGitFileTrackerTests {
     @Test("Returns true for untracked files only.")
     func containsUntrackedFiles_untrackedFilesOnly() throws {
         let gitStatusOutput = "?? new_file.txt"
-        let shell = MockShell(results: [gitStatusOutput])
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, shell) = makeSUT(results: [gitStatusOutput])
         
-        let result = try tracker.containsUntrackedFiles()
+        let result = try sut.containsUntrackedFiles()
         
         #expect(result == true)
         #expect(shell.executedCommands.contains(makeGitCommand(.getLocalChanges, path: nil)))
@@ -283,11 +260,10 @@ struct DefaultGitFileTrackerTests {
     
     @Test("Throws error when git command fails.")
     func containsUntrackedFiles_throwsOnError() {
-        let shell = MockShell(results: [], shouldThrowError: true)
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, _) = makeSUT(results: [], shouldThrowError: true)
         
         #expect(throws: Error.self) {
-            try tracker.containsUntrackedFiles()
+            try sut.containsUntrackedFiles()
         }
     }
     
@@ -309,8 +285,7 @@ struct DefaultGitFileTrackerTests {
             "", "", "", ""
         ]
         
-        let shell = MockShell(results: results)
-        let tracker = DefaultGitFileTracker(shell: shell)
+        let (sut, shell) = makeSUT(results: results)
         
         // Setup gitignore
         let gitignore = """
@@ -321,7 +296,7 @@ struct DefaultGitFileTrackerTests {
         """
         
         // Get unwanted files
-        let unwantedFiles = tracker.loadUnwantedFiles(gitignore: gitignore)
+        let unwantedFiles = sut.loadUnwantedFiles(gitignore: gitignore)
         
         #expect(unwantedFiles.count == 4)
         #expect(unwantedFiles.contains(".env"))
@@ -331,7 +306,7 @@ struct DefaultGitFileTrackerTests {
         
         // Stop tracking each unwanted file
         for file in unwantedFiles {
-            try tracker.stopTrackingFile(file: file)
+            try sut.stopTrackingFile(file: file)
         }
         
         // Verify all commands were executed
@@ -339,5 +314,16 @@ struct DefaultGitFileTrackerTests {
         #expect(shell.executedCommands.contains("git rm --cached \".DS_Store\""))
         #expect(shell.executedCommands.contains("git rm --cached \"build/output.txt\""))
         #expect(shell.executedCommands.contains("git rm --cached \"logs/debug.log\""))
+    }
+}
+
+
+// MARK: - SUT
+private extension DefaultGitFileTrackerTests {
+    func makeSUT(results: [String] = [], shouldThrowError: Bool = false) -> (sut: DefaultGitFileTracker, shell: MockShell) {
+        let shell = MockShell(results: results, shouldThrowError: shouldThrowError)
+        let sut = DefaultGitFileTracker(shell: shell)
+        
+        return (sut, shell)
     }
 }

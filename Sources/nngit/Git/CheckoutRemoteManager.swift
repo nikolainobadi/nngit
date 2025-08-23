@@ -49,12 +49,12 @@ extension CheckoutRemoteManager {
 // MARK: - Private Methods
 private extension CheckoutRemoteManager {
     func loadRemoteBranchNames() throws -> [String] {
-        return try branchLoader.loadBranchNames(from: .remote, shell: shell)
+        return try branchLoader.loadBranchNames(from: .remote)
     }
     
     func filterNonExistingLocalBranches(remoteBranches: [String]) throws -> [String] {
         // Get local branch names
-        let localBranchNames = try branchLoader.loadBranchNames(from: .local, shell: shell)
+        let localBranchNames = try branchLoader.loadBranchNames(from: .local)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "* ", with: "") }
         let localBranchSet = Set(localBranchNames)
         

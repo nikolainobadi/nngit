@@ -18,46 +18,65 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Architecture Overview
 
 ### Core Structure
-This is a Swift CLI tool built with `swift-argument-parser` that provides Git workflow utilities. The architecture follows a dependency injection pattern with a context-based approach for testability.
+This Swift CLI tool follows a clean, modular architecture with clear separation of concerns. Built with `swift-argument-parser`, it provides Git workflow utilities using a dependency injection pattern with a context-based approach for testability.
+
+### Project Organization
+
+```
+Sources/nngit/
+├── Core/                     # Essential components
+│   ├── Context/              # Dependency injection (NnGitContext, DefaultContext)
+│   ├── Models/               # Core data models (GitBranch, CommitInfo, BranchLocation, FileStatus)
+│   └── Extensions/           # Type extensions (CommitInfo+Display)
+├── Services/                 # External integrations & abstractions
+│   ├── Git/
+│   │   ├── Protocols/        # Git service contracts (GitBranchLoader, GitCommitManager, GitResetHelper)
+│   │   └── Implementations/  # Concrete implementations (DefaultGitBranchLoader, DefaultGitCommitManager, etc.)
+│   └── Configuration/
+│       ├── Protocols/        # Config contracts (GitConfigLoader)
+│       ├── Implementations/  # Config implementations (DefaultGitConfigLoader)
+│       └── Models/           # Config models (GitConfig, BranchPrefix)
+├── Managers/                 # Business logic layer
+│   ├── Branch/               # Branch operations (SwitchBranchManager, DeleteBranchManager, etc.)
+│   ├── FileOperations/       # File handling (StageManager, UnstageManager, DiscardManager)
+│   ├── Reset/                # Reset operations (SoftResetManager, HardResetManager)
+│   └── Utility/              # Utility functions (BranchDiffManager)
+├── Commands/                 # CLI command definitions
+│   ├── Branch/               # Branch commands (NewBranch, SwitchBranch, DeleteBranch, CheckoutRemote)
+│   ├── FileOperations/       # File operation commands (Staging, Stage, Unstage, Discard)
+│   ├── Reset/                # Reset commands (Undo, SoftReset, HardReset)
+│   ├── Configuration/        # Config commands (EditConfig)
+│   └── BranchDiff.swift      # Branch comparison command
+├── Errors/                   # Centralized error definitions
+└── Nngit.swift              # Main entry point (v0.4.1)
+```
 
 ### Key Components
 
-#### Main Entry Point
-- `Sources/nngit/Main/Nngit.swift` - Main command entry point using ArgumentParser
-- Uses `NnGitContext` protocol for dependency injection
-- Version: 0.4.1
+#### Core Layer
+- **Context**: Dependency injection container using `NnGitContext` protocol
+- **Models**: Core data structures for Git entities and file status
+- **Extensions**: Type extensions for enhanced functionality
 
-#### Command Categories
-1. **Branch Commands**: `NewBranch`, `SwitchBranch`, `DeleteBranch`, `CheckoutRemote` (in `Sources/nngit/Commands/Branch/`)
-2. **Staging Commands**: `Staging` (parent command with `Stage`, `Unstage` subcommands in `Sources/nngit/Commands/Staging/`)
-3. **Undo Commands**: `Undo` (parent command with `Soft`, `HardReset` subcommands in `Sources/nngit/Commands/Undo/`)
-4. **Utility Commands**: `Discard`, `BranchDiff` (in `Sources/nngit/Commands/Utility/`)
-5. **Configuration**: `EditConfig` (in `Sources/nngit/Commands/Config/`)
+#### Services Layer
+- **Git Services**: Abstractions for Git operations with protocol/implementation separation
+- **Configuration Services**: Settings management with clean abstractions
+- All implementations use concrete types like `GitShellAdapter` for shell execution
 
-#### Manager Layer
-Manager classes handle complex workflows and coordinate between commands and git operations:
-- `SwitchBranchManager` - Handles branch switching workflows with search and exact match support
-- `DeleteBranchManager` - Manages branch deletion with safety checks and pruning
-- `CheckoutRemoteManager` - Coordinates remote branch checkout operations
-- `StageManager` - Manages interactive file staging workflows
-- `UnstageManager` - Handles interactive file unstaging workflows
-- `SoftResetManager` - Coordinates soft reset operations with safety checks
-- `HardResetManager` - Manages hard reset operations with author verification
-- `BranchDiffManager` - Handles branch diff generation with clipboard support
-- `DiscardManager` - Manages file discard operations with scope-based filtering and interactive selection
+#### Managers Layer
+Business logic components that coordinate complex workflows:
+- **Branch Managers**: Handle branch switching, deletion, creation, and remote checkout
+- **File Operation Managers**: Manage staging, unstaging, and discarding of changes
+- **Reset Managers**: Coordinate commit reset operations with safety checks
+- **Utility Managers**: Provide specialized functions like branch diff generation
 
-#### Git Abstraction Layer
-- `GitShellAdapter` - Concrete implementation using SwiftShell
-- `DefaultGitCommitManager` - Handles commit operations with enhanced authorship detection
-- `DefaultGitBranchLoader` - Loads and filters branch information
-- `DefaultGitConfigLoader` - Manages nngit configuration
-- `DefaultGitResetHelper` - Manages reset operations with safety checks and user permissions
-
-#### Models
-- `GitConfig` - Main configuration structure stored in `~/.config/nngit/config.json`
-- `BranchPrefix` - Branch naming prefix configuration with support for multiple issue prefixes and default values
-- `GitBranch`, `CommitInfo`, `BranchLocation` - Git-related data models
-- `FileStatus` - Represents git file status with staging information, used by Staging and Discard commands
+#### Commands Layer
+CLI command definitions organized by feature area:
+- **Branch Commands**: User-facing branch operations
+- **File Operation Commands**: Interactive file staging/unstaging/discarding
+- **Reset Commands**: Commit undo operations with enhanced safety
+- **Configuration Commands**: Settings management
+- **Utility Commands**: Branch comparison and other utilities
 
 ### Configuration System
 - Configuration stored at `~/.config/nngit/config.json`
@@ -65,16 +84,38 @@ Manager classes handle complex workflows and coordinate between commands and git
 - Key settings: default branch, branch prefixes, rebase/prune behavior, branch loading options
 
 ### Testing Structure
-- Tests located in `Tests/nngitTests/`
-- Uses `MockContext` for dependency injection in tests
-- Mock implementations: `MockShell`, `MockPicker`, `MockGitResetHelper`, `StubBranchLoader`, `StubConfigLoader`
-- Test categories mirror the command structure:
-  - Unit tests for managers (e.g., `SwitchBranchManagerTests`, `DeleteBranchManagerTests`)
-  - Integration tests for commands (e.g., `SwitchBranchTests`, `DeleteBranchTests`)
-- Behavior-driven testing approach focusing on public interfaces
-- Enhanced authorship testing with both git username and email validation
-- Comprehensive test coverage for reset operations and permission checks
-- 171 tests providing extensive coverage
+
+```
+Tests/nngitTests/
+├── Shared/                   # Test utilities and mocks
+│   ├── MockContext.swift     # Dependency injection for tests
+│   ├── Mock implementations  # MockShell, MockPicker, MockGitResetHelper
+│   └── Stub implementations  # StubBranchLoader, StubConfigLoader
+└── UnitTests/                # Test cases organized by source structure
+    ├── Commands/
+    │   ├── Branch/           # Branch command tests
+    │   ├── FileOperations/   # File operation command tests
+    │   ├── Reset/            # Reset command tests
+    │   ├── Configuration/    # Config command tests
+    │   └── Utility/          # Utility command tests
+    ├── Managers/
+    │   ├── Branch/           # Branch manager tests
+    │   ├── FileOperations/   # File operation manager tests
+    │   ├── Reset/            # Reset manager tests
+    │   └── Utility/          # Utility manager tests
+    └── Services/
+        ├── Git/
+        │   └── Implementations/  # Git service implementation tests
+        └── Configuration/
+            └── Implementations/  # Config service tests
+```
+
+**Testing Approach:**
+- **Behavior-driven**: Tests focus on public interfaces and expected behaviors
+- **Comprehensive Coverage**: 171 tests covering all major functionality
+- **Enhanced Safety Testing**: Authorship validation with git username and email
+- **Permission Verification**: Reset operations include extensive safety checks
+- **Mock-based**: Clean separation using dependency injection for testability
 
 ### External Dependencies
 - `SwiftShell` - Shell command execution
@@ -109,20 +150,22 @@ Manager classes handle complex workflows and coordinate between commands and git
 Branch prefixes are stored in the configuration and can optionally require issue numbers. Prefixes support multiple issue prefixes (e.g., "FRA-", "RAPP-") and default values (e.g., "NO-JIRA"). The system combines prefix + issue prefix + issue number + description to generate branch names (e.g., `feature/FRA-42/add-login-screen`).
 
 #### Undo Workflow
-The `Undo` command provides commit undoing with two strategies:
-- `Soft` subcommand (default): Soft resets commits, moving changes back to staging area (SoftReset.swift)
-- `hard` subcommand: Hard resets commits, completely discarding changes (HardReset.swift)
+The `Undo` command (in `Commands/Reset/`) provides commit undoing with two strategies:
+- `Soft` subcommand (default): Soft resets commits, moving changes back to staging area
+- `Hard` subcommand: Hard resets commits, completely discarding changes
 - Both support `--force` flag for commits authored by others
 - Both support `--select` flag to choose from the last 7 commits interactively
 - Enhanced authorship detection using both git username and email for safety
-- Uses `DefaultGitCommitManager` for commit operations and `DefaultGitResetHelper` for safety checks
+- Uses `SoftResetManager`/`HardResetManager` (in `Managers/Reset/`) for business logic
+- Leverages `DefaultGitCommitManager` and `DefaultGitResetHelper` (in `Services/Git/Implementations/`) for safety
 - Comprehensive permission verification prevents accidental deletion of other authors' work
 
 #### Staging Workflow
-The `Staging` command provides interactive file staging/unstaging:
+The `Staging` command (in `Commands/FileOperations/`) provides interactive file staging/unstaging:
 - `Stage` subcommand: Lists unstaged and untracked files for multi-selection staging
 - `Unstage` subcommand: Lists staged files for multi-selection unstaging
-- Uses `SwiftPicker` for interactive multi-selection interface
+- Uses `StageManager`/`UnstageManager` (in `Managers/FileOperations/`) for workflow coordination
+- Leverages `SwiftPicker` for interactive multi-selection interface
 - Executes individual `git add` and `git reset HEAD` commands per selected file
 
 

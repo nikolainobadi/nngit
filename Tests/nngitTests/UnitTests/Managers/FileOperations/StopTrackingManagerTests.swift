@@ -47,11 +47,9 @@ struct StopTrackingManagerTests {
     
     @Test("Returns early when no files match gitignore patterns.")
     func stopTrackingIgnoredFiles_noMatchingFiles() throws {
-        let (sut, _, _, tracker) = makeSUTWithMockTracker(results: ["true"])
-        
         // Mock tracker to return no unwanted files
-        let mockTracker = tracker as! MockGitFileTracker
-        mockTracker.unwantedFiles = []
+        let mockTracker = MockGitFileTracker(unwantedFiles: [])
+        let (sut, _, _, tracker) = makeSUTWithMockTracker(results: ["true"], tracker: mockTracker)
         
         // Create temporary gitignore
         let tempDir = createTemporaryDirectoryWithGitignore("*.log")
@@ -65,20 +63,19 @@ struct StopTrackingManagerTests {
         
         try sut.stopTrackingIgnoredFiles()
         
-        #expect(mockTracker.loadUnwantedFilesCallCount == 1)
+        #expect(tracker.loadUnwantedFilesCallCount == 1)
     }
     
     @Test("Stops tracking all files when user selects stop all option.")
     func stopTrackingIgnoredFiles_stopAllFiles() throws {
         // Response index 0 = "Stop tracking all files"
         let selectionResponses = ["What would you like to do?": 0]
+        let mockTracker = MockGitFileTracker(unwantedFiles: ["file1.log", "file2.log", ".env"])
         let (sut, _, _, tracker) = makeSUTWithMockTracker(
             results: ["true", "", "", ""],
-            selectionResponses: selectionResponses
+            selectionResponses: selectionResponses,
+            tracker: mockTracker
         )
-        
-        let mockTracker = tracker as! MockGitFileTracker
-        mockTracker.unwantedFiles = ["file1.log", "file2.log", ".env"]
         
         // Create temporary gitignore
         let tempDir = createTemporaryDirectoryWithGitignore("*.log\n.env")
@@ -92,10 +89,10 @@ struct StopTrackingManagerTests {
         
         try sut.stopTrackingIgnoredFiles()
         
-        #expect(mockTracker.stopTrackingFileCallCount == 3)
-        #expect(mockTracker.stoppedTrackingFiles.contains("file1.log"))
-        #expect(mockTracker.stoppedTrackingFiles.contains("file2.log"))
-        #expect(mockTracker.stoppedTrackingFiles.contains(".env"))
+        #expect(tracker.stopTrackingFileCallCount == 3)
+        #expect(tracker.stoppedTrackingFiles.contains("file1.log"))
+        #expect(tracker.stoppedTrackingFiles.contains("file2.log"))
+        #expect(tracker.stoppedTrackingFiles.contains(".env"))
     }
     
     @Test("Stops tracking selected files when user chooses specific selection.")
@@ -105,13 +102,12 @@ struct StopTrackingManagerTests {
             "What would you like to do?": 1,
             "Select files to stop tracking:": 0 // Will select first file due to MockPicker implementation
         ]
+        let mockTracker = MockGitFileTracker(unwantedFiles: ["file1.log", "file2.log", ".env"])
         let (sut, _, _, tracker) = makeSUTWithMockTracker(
             results: ["true", "", "", ""],
-            selectionResponses: selectionResponses
+            selectionResponses: selectionResponses,
+            tracker: mockTracker
         )
-        
-        let mockTracker = tracker as! MockGitFileTracker
-        mockTracker.unwantedFiles = ["file1.log", "file2.log", ".env"]
         
         // Create temporary gitignore
         let tempDir = createTemporaryDirectoryWithGitignore("*.log\n.env")
@@ -125,21 +121,20 @@ struct StopTrackingManagerTests {
         
         try sut.stopTrackingIgnoredFiles()
         
-        #expect(mockTracker.stopTrackingFileCallCount == 1)
-        #expect(mockTracker.stoppedTrackingFiles.contains("file1.log"))
+        #expect(tracker.stopTrackingFileCallCount == 1)
+        #expect(tracker.stoppedTrackingFiles.contains("file1.log"))
     }
     
     @Test("Returns early when user selects no files in specific selection.")
     func stopTrackingIgnoredFiles_selectNoFiles() throws {
         // Index 1 = "Select specific files", but no selectionResponses for multiSelection means empty return
         let selectionResponses = ["What would you like to do?": 1]
+        let mockTracker = MockGitFileTracker(unwantedFiles: ["file1.log", "file2.log"])
         let (sut, _, _, tracker) = makeSUTWithMockTracker(
             results: ["true"],
-            selectionResponses: selectionResponses
+            selectionResponses: selectionResponses,
+            tracker: mockTracker
         )
-        
-        let mockTracker = tracker as! MockGitFileTracker
-        mockTracker.unwantedFiles = ["file1.log", "file2.log"]
         
         // Create temporary gitignore
         let tempDir = createTemporaryDirectoryWithGitignore("*.log")
@@ -153,20 +148,19 @@ struct StopTrackingManagerTests {
         
         try sut.stopTrackingIgnoredFiles()
         
-        #expect(mockTracker.stopTrackingFileCallCount == 0)
+        #expect(tracker.stopTrackingFileCallCount == 0)
     }
     
     @Test("Returns early when user cancels operation.")
     func stopTrackingIgnoredFiles_userCancels() throws {
         // Response index 2 = "Cancel"
         let selectionResponses = ["What would you like to do?": 2]
+        let mockTracker = MockGitFileTracker(unwantedFiles: ["file1.log", "file2.log"])
         let (sut, _, _, tracker) = makeSUTWithMockTracker(
             results: ["true"],
-            selectionResponses: selectionResponses
+            selectionResponses: selectionResponses,
+            tracker: mockTracker
         )
-        
-        let mockTracker = tracker as! MockGitFileTracker
-        mockTracker.unwantedFiles = ["file1.log", "file2.log"]
         
         // Create temporary gitignore
         let tempDir = createTemporaryDirectoryWithGitignore("*.log")
@@ -180,21 +174,22 @@ struct StopTrackingManagerTests {
         
         try sut.stopTrackingIgnoredFiles()
         
-        #expect(mockTracker.stopTrackingFileCallCount == 0)
+        #expect(tracker.stopTrackingFileCallCount == 0)
     }
     
     @Test("Handles errors when stopping individual files.")
     func stopTrackingIgnoredFiles_handlesIndividualErrors() throws {
         // Response index 0 = "Stop tracking all files"
         let selectionResponses = ["What would you like to do?": 0]
+        let mockTracker = MockGitFileTracker(
+            unwantedFiles: ["file1.log", "file2.log", "file3.log"],
+            filesToFailStopping: ["file2.log"] // This file will fail
+        )
         let (sut, _, _, tracker) = makeSUTWithMockTracker(
             results: ["true", "", "", ""],
-            selectionResponses: selectionResponses
+            selectionResponses: selectionResponses,
+            tracker: mockTracker
         )
-        
-        let mockTracker = tracker as! MockGitFileTracker
-        mockTracker.unwantedFiles = ["file1.log", "file2.log", "file3.log"]
-        mockTracker.filesToFailStopping = ["file2.log"] // This file will fail
         
         // Create temporary gitignore
         let tempDir = createTemporaryDirectoryWithGitignore("*.log")
@@ -208,23 +203,22 @@ struct StopTrackingManagerTests {
         
         try sut.stopTrackingIgnoredFiles()
         
-        #expect(mockTracker.stopTrackingFileCallCount == 3)
-        #expect(mockTracker.stoppedTrackingFiles.contains("file1.log"))
-        #expect(!mockTracker.stoppedTrackingFiles.contains("file2.log")) // Should not be in success list
-        #expect(mockTracker.stoppedTrackingFiles.contains("file3.log"))
+        #expect(tracker.stopTrackingFileCallCount == 3)
+        #expect(tracker.stoppedTrackingFiles.contains("file1.log"))
+        #expect(!tracker.stoppedTrackingFiles.contains("file2.log")) // Should not be in success list
+        #expect(tracker.stoppedTrackingFiles.contains("file3.log"))
     }
     
     @Test("Reads gitignore file contents correctly.")
     func stopTrackingIgnoredFiles_readsGitignoreCorrectly() throws {
         // Response index 2 = "Cancel"
         let selectionResponses = ["What would you like to do?": 2]
+        let mockTracker = MockGitFileTracker(unwantedFiles: [])
         let (sut, _, _, tracker) = makeSUTWithMockTracker(
             results: ["true"],
-            selectionResponses: selectionResponses
+            selectionResponses: selectionResponses,
+            tracker: mockTracker
         )
-        
-        let mockTracker = tracker as! MockGitFileTracker
-        mockTracker.unwantedFiles = []
         
         let gitignoreContent = """
         *.log
@@ -246,8 +240,8 @@ struct StopTrackingManagerTests {
         
         try sut.stopTrackingIgnoredFiles()
         
-        #expect(mockTracker.loadUnwantedFilesCallCount == 1)
-        #expect(mockTracker.lastGitignoreContent == gitignoreContent)
+        #expect(tracker.loadUnwantedFilesCallCount == 1)
+        #expect(tracker.lastGitignoreContent == gitignoreContent)
     }
 }
 
@@ -287,13 +281,13 @@ private extension StopTrackingManagerTests {
     
     func makeSUTWithMockTracker(
         results: [String] = [],
-        selectionResponses: [String: Int] = [:]
-    ) -> (sut: StopTrackingManager, shell: MockShell, picker: MockPicker, tracker: GitFileTracker) {
+        selectionResponses: [String: Int] = [:],
+        tracker: MockGitFileTracker
+    ) -> (sut: StopTrackingManager, shell: MockShell, picker: MockPicker, tracker: MockGitFileTracker) {
         // Provide enough mock results to handle any shell commands that might be called
         let safeResults = results + Array(repeating: "", count: 10)
         let shell = MockShell(results: safeResults)
         let picker = MockPicker(selectionResponses: selectionResponses)
-        let tracker = MockGitFileTracker()
         let sut = StopTrackingManager(shell: shell, picker: picker, tracker: tracker)
         
         return (sut, shell, picker, tracker)
@@ -317,44 +311,3 @@ private extension StopTrackingManagerTests {
     }
 }
 
-
-// MARK: - Mock GitFileTracker
-private class MockGitFileTracker: GitFileTracker {
-    var unwantedFiles: [String] = []
-    var stoppedTrackingFiles: [String] = []
-    var filesToFailStopping: [String] = []
-    var loadUnwantedFilesCallCount = 0
-    var stopTrackingFileCallCount = 0
-    var lastGitignoreContent: String?
-    
-    func loadUnwantedFiles(gitignore: String) -> [String] {
-        loadUnwantedFilesCallCount += 1
-        lastGitignoreContent = gitignore
-        return unwantedFiles
-    }
-    
-    func stopTrackingFile(file: String) throws {
-        stopTrackingFileCallCount += 1
-        
-        if filesToFailStopping.contains(file) {
-            throw TestError.stopTrackingFailed
-        }
-        
-        stoppedTrackingFiles.append(file)
-    }
-    
-    func containsUntrackedFiles() throws -> Bool {
-        return true
-    }
-    
-    enum TestError: Error {
-        case stopTrackingFailed
-        
-        var localizedDescription: String {
-            switch self {
-            case .stopTrackingFailed:
-                return "Failed to stop tracking file"
-            }
-        }
-    }
-}

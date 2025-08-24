@@ -209,16 +209,90 @@ struct NewRemoteManagerTests {
         
         #expect(shell.executedCommands.contains("gh repo create project --public -d 'Repository created via nngit'"))
     }
+    
+    @Test("Prompts user to confirm repository details before creation.")
+    func promptsUserToConfirmRepositoryDetails() throws {
+        let results = [
+            "true",           // localGitExists
+            "/usr/bin/gh",    // which gh
+            "",               // checkForRemote
+            "main",           // getCurrentBranchName
+            "/Users/test/project", // pwd
+            "testuser",       // gh api user
+            "",               // gh repo create
+            "",               // git remote add
+            "",               // git push
+            "https://github.com/testuser/project"
+        ]
+        let (sut, picker) = makeSUTWithPicker(results: results)
+        
+        try sut.initializeGitHubRemote(visibility: .privateRepo)
+        
+        #expect(picker.requiredPermissions.count == 1)
+        let confirmationPrompt = picker.requiredPermissions[0]
+        #expect(confirmationPrompt.contains("Repository Details:"))
+        #expect(confirmationPrompt.contains("testuser"))
+        #expect(confirmationPrompt.contains("project"))
+        #expect(confirmationPrompt.contains("main"))
+        #expect(confirmationPrompt.contains("Private"))
+    }
+    
+    @Test("Throws error when user denies permission to create repository.")
+    func throwsErrorWhenUserDeniesPermission() throws {
+        let confirmationMessage = """
+        📋 Repository Details:
+        • GitHub Username: testuser
+        • Repository Name: project
+        • Current Branch: main
+        • Visibility: Private
+        
+        Create remote repository with these settings?
+        """
+        let permissionResponses = [
+            confirmationMessage: false
+        ]
+        let results = [
+            "true",           // localGitExists
+            "/usr/bin/gh",    // which gh
+            "",               // checkForRemote
+            "main",           // getCurrentBranchName
+            "/Users/test/project", // pwd
+            "testuser"        // gh api user
+        ]
+        let (sut, _) = makeSUTWithPicker(permissionResponses: permissionResponses, results: results)
+        
+        #expect(throws: NewRemoteError.userDeniedPermission) {
+            try sut.initializeGitHubRemote(visibility: .privateRepo)
+        }
+    }
 }
 
 
 // MARK: - SUT
 private extension NewRemoteManagerTests {
-    func makeSUT(selectionResponses: [String: Int] = [:], results: [String] = [], shouldThrowShellError: Bool = false) -> (sut: NewRemoteManager, shell: MockShell) {
-        let picker = MockPicker(selectionResponses: selectionResponses)
+    func makeSUT(
+        permissionResponses: [String: Bool] = [:],
+        selectionResponses: [String: Int] = [:],
+        results: [String] = [],
+        shouldThrowShellError: Bool = false
+    ) -> (sut: NewRemoteManager, shell: MockShell) {
+        let picker = MockPicker(permissionResponses: permissionResponses, selectionResponses: selectionResponses)
         let shell = MockShell(results: results, shouldThrowError: shouldThrowShellError)
         let sut = NewRemoteManager(shell: shell, picker: picker)
         
         return (sut, shell)
+    }
+    
+    func makeSUTWithPicker(
+        permissionResponses: [String: Bool] = [:],
+        selectionResponses: [String: Int] = [:],
+        results: [String] = [],
+        shouldThrowShellError: Bool = false
+    ) -> (sut: NewRemoteManager, picker: MockPicker) {
+        let picker = MockPicker(permissionResponses: permissionResponses, selectionResponses: selectionResponses)
+        let shell = MockShell(results: results, shouldThrowError: shouldThrowShellError)
+        let sut = NewRemoteManager(shell: shell, picker: picker)
+        
+        return (sut, picker)
     }
 }

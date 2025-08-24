@@ -191,4 +191,33 @@ struct NewRemoteTests {
         #expect(shell.executedCommands.contains("gh repo create project --private -d 'Repository created via nngit'"))
         #expect(output.contains("✅ Remote repository created successfully!"))
     }
+    
+    @Test("Throws error when user denies permission to create repository.")
+    func throwsErrorWhenUserDeniesPermission() throws {
+        let confirmationMessage = """
+        📋 Repository Details:
+        • GitHub Username: testuser
+        • Repository Name: project
+        • Current Branch: main
+        • Visibility: Private
+        
+        Create remote repository with these settings?
+        """
+        let shell = MockShell(results: [
+            "true",           // localGitExists
+            "/usr/bin/gh",    // which gh  
+            "",               // checkForRemote
+            "main",           // getCurrentBranchName
+            "/Users/test/project", // pwd
+            "testuser"        // gh api user
+        ])
+        let picker = MockPicker(permissionResponses: [
+            confirmationMessage: false
+        ])
+        let context = MockContext(picker: picker, shell: shell)
+        
+        #expect(throws: Error.self) {
+            _ = try Nngit.testRun(context: context, args: ["new-remote", "--visibility", "private"])
+        }
+    }
 }

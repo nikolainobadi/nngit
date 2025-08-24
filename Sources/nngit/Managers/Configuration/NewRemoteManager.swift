@@ -37,6 +37,13 @@ extension NewRemoteManager {
         let repoName = try getCurrentDirectoryName()
         let username = try getGitHubUsername()
         
+        try confirmRepositoryCreation(
+            username: username,
+            projectName: repoName,
+            branch: currentBranch,
+            visibility: selectedVisibility
+        )
+        
         try addGitHubRemote(username: username, projectName: repoName, visibility: selectedVisibility)
         try pushCurrentBranch(currentBranch)
         
@@ -108,6 +115,35 @@ private extension NewRemoteManager {
 }
 
 
+// MARK: - Confirmation
+private extension NewRemoteManager {
+    /// Confirms repository creation details with the user.
+    func confirmRepositoryCreation(
+        username: String,
+        projectName: String,
+        branch: String,
+        visibility: RepoVisibility
+    ) throws {
+        let visibilityText = visibility == .publicRepo ? "Public" : "Private"
+        let confirmationMessage = """
+        📋 Repository Details:
+        • GitHub Username: \(username)
+        • Repository Name: \(projectName)
+        • Current Branch: \(branch)
+        • Visibility: \(visibilityText)
+        
+        Create remote repository with these settings?
+        """
+        
+        do {
+            try picker.requiredPermission(confirmationMessage)
+        } catch {
+            throw NewRemoteError.userDeniedPermission
+        }
+    }
+}
+
+
 // MARK: - Repository Operations
 private extension NewRemoteManager {
     /// Gets the current directory name to use as repository name.
@@ -155,4 +191,5 @@ enum NewRemoteError: Error, Equatable {
     case userCancelledNonMainBranch
     case cannotDetermineDirectoryName
     case cannotGetGitHubUsername
+    case userDeniedPermission
 }

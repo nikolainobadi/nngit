@@ -24,7 +24,7 @@ struct NewRemoteManager {
 // MARK: - Main Workflow
 extension NewRemoteManager {
     /// Initializes a new GitHub remote repository for the current local repository.
-    func initializeGitHubRemote() throws {
+    func initializeGitHubRemote(visibility: RepoVisibility? = nil) throws {
         try verifyPrerequisites()
         
         let currentBranch = try shell.runGitCommandWithOutput(.getCurrentBranchName, path: nil)
@@ -33,10 +33,11 @@ extension NewRemoteManager {
             try handleNonMainBranch(currentBranch)
         }
         
+        let selectedVisibility = visibility ?? selectVisibility()
         let repoName = try getCurrentDirectoryName()
         let username = try getGitHubUsername()
         
-        try addGitHubRemote(username: username, projectName: repoName)
+        try addGitHubRemote(username: username, projectName: repoName, visibility: selectedVisibility)
         try pushCurrentBranch(currentBranch)
         
         let githubURL = try shell.getGitHubURL(at: nil)
@@ -92,6 +93,21 @@ private extension NewRemoteManager {
 }
 
 
+// MARK: - Visibility Selection
+private extension NewRemoteManager {
+    /// Prompts user to select repository visibility.
+    func selectVisibility() -> RepoVisibility {
+        let options = ["Private", "Public"]
+        let choice = picker.singleSelection(
+            "Select repository visibility:",
+            items: options
+        )
+        
+        return choice == "Public" ? .publicRepo : .privateRepo
+    }
+}
+
+
 // MARK: - Repository Operations
 private extension NewRemoteManager {
     /// Gets the current directory name to use as repository name.
@@ -113,9 +129,10 @@ private extension NewRemoteManager {
     }
     
     /// Adds the GitHub remote origin to the local repository.
-    func addGitHubRemote(username: String, projectName: String) throws {
+    func addGitHubRemote(username: String, projectName: String, visibility: RepoVisibility) throws {
         // First create the remote repository on GitHub
-        _ = try shell.runWithOutput("gh repo create \(projectName) --private -d 'Repository created via nngit'")
+        let visibilityFlag = visibility == .publicRepo ? "--public" : "--private"
+        _ = try shell.runWithOutput("gh repo create \(projectName) \(visibilityFlag) -d 'Repository created via nngit'")
         print("📦 Created remote repository: \(username)/\(projectName)")
         
         // Then add the remote origin

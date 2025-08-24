@@ -143,6 +143,72 @@ struct NewRemoteManagerTests {
             try sut.initializeGitHubRemote()
         }
     }
+    
+    @Test("Creates public repository when visibility is specified.")
+    func createsPublicRepositoryWhenVisibilitySpecified() throws {
+        let results = [
+            "true",           // localGitExists
+            "/usr/bin/gh",    // which gh
+            "",               // checkForRemote
+            "main",           // getCurrentBranchName
+            "/Users/test/project", // pwd
+            "testuser",       // gh api user
+            "",               // gh repo create
+            "",               // git remote add
+            "",               // git push
+            "https://github.com/testuser/project"
+        ]
+        let (sut, shell) = makeSUT(results: results)
+        
+        try sut.initializeGitHubRemote(visibility: .publicRepo)
+        
+        #expect(shell.executedCommands.contains("gh repo create project --public -d 'Repository created via nngit'"))
+    }
+    
+    @Test("Creates private repository when visibility is specified.")
+    func createsPrivateRepositoryWhenVisibilitySpecified() throws {
+        let results = [
+            "true",           // localGitExists
+            "/usr/bin/gh",    // which gh
+            "",               // checkForRemote
+            "main",           // getCurrentBranchName
+            "/Users/test/project", // pwd
+            "testuser",       // gh api user
+            "",               // gh repo create
+            "",               // git remote add
+            "",               // git push
+            "https://github.com/testuser/project"
+        ]
+        let (sut, shell) = makeSUT(results: results)
+        
+        try sut.initializeGitHubRemote(visibility: .privateRepo)
+        
+        #expect(shell.executedCommands.contains("gh repo create project --private -d 'Repository created via nngit'"))
+    }
+    
+    @Test("Prompts for visibility when not specified and creates repository accordingly.")
+    func promptsForVisibilityWhenNotSpecified() throws {
+        let selectionResponses = [
+            "Select repository visibility:": 1  // "Public"
+        ]
+        let results = [
+            "true",           // localGitExists
+            "/usr/bin/gh",    // which gh
+            "",               // checkForRemote
+            "main",           // getCurrentBranchName
+            "/Users/test/project", // pwd
+            "testuser",       // gh api user
+            "",               // gh repo create
+            "",               // git remote add
+            "",               // git push
+            "https://github.com/testuser/project"
+        ]
+        let (sut, shell) = makeSUT(selectionResponses: selectionResponses, results: results)
+        
+        try sut.initializeGitHubRemote()
+        
+        #expect(shell.executedCommands.contains("gh repo create project --public -d 'Repository created via nngit'"))
+    }
 }
 
 

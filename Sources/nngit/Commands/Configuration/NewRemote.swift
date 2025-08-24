@@ -16,6 +16,9 @@ extension Nngit {
             commandName: "new-remote",
             abstract: "Initialize a new GitHub remote repository."
         )
+        
+        @Option(name: .long, help: "Repository visibility (public or private)")
+        var visibility: RepoVisibility?
 
         /// Executes the command using the shared context components.
         func run() throws {
@@ -27,7 +30,10 @@ extension Nngit {
                 picker: picker
             )
             
-            try manager.initializeGitHubRemote()
+            try manager.initializeGitHubRemote(visibility: visibility)
         }
     }
 }
+
+// MARK: - ArgumentParser Conformance
+extension RepoVisibility: @retroactive ExpressibleByArgument {}

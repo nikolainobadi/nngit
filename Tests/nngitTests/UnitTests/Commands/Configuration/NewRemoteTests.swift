@@ -120,4 +120,75 @@ struct NewRemoteTests {
             _ = try Nngit.testRun(context: context, args: ["new-remote"])
         }
     }
+    
+    @Test("Creates public repository when --visibility public is specified.")
+    func createsPublicRepositoryWithVisibilityArgument() throws {
+        let shell = MockShell(results: [
+            "true",           // localGitExists
+            "/usr/bin/gh",    // which gh  
+            "",               // checkForRemote
+            "main",           // getCurrentBranchName
+            "/Users/test/project", // pwd
+            "testuser",       // gh api user
+            "",               // gh repo create
+            "",               // git remote add
+            "",               // git push
+            "https://github.com/testuser/project" // getGitHubURL
+        ])
+        let picker = MockPicker()
+        let context = MockContext(picker: picker, shell: shell)
+        
+        let output = try Nngit.testRun(context: context, args: ["new-remote", "--visibility", "public"])
+        
+        #expect(shell.executedCommands.contains("gh repo create project --public -d 'Repository created via nngit'"))
+        #expect(output.contains("✅ Remote repository created successfully!"))
+    }
+    
+    @Test("Creates private repository when --visibility private is specified.")
+    func createsPrivateRepositoryWithVisibilityArgument() throws {
+        let shell = MockShell(results: [
+            "true",           // localGitExists
+            "/usr/bin/gh",    // which gh  
+            "",               // checkForRemote
+            "main",           // getCurrentBranchName
+            "/Users/test/project", // pwd
+            "testuser",       // gh api user
+            "",               // gh repo create
+            "",               // git remote add
+            "",               // git push
+            "https://github.com/testuser/project" // getGitHubURL
+        ])
+        let picker = MockPicker()
+        let context = MockContext(picker: picker, shell: shell)
+        
+        let output = try Nngit.testRun(context: context, args: ["new-remote", "--visibility", "private"])
+        
+        #expect(shell.executedCommands.contains("gh repo create project --private -d 'Repository created via nngit'"))
+        #expect(output.contains("✅ Remote repository created successfully!"))
+    }
+    
+    @Test("Prompts for visibility when no --visibility argument is provided.")
+    func promptsForVisibilityWhenNotProvided() throws {
+        let shell = MockShell(results: [
+            "true",           // localGitExists
+            "/usr/bin/gh",    // which gh  
+            "",               // checkForRemote
+            "main",           // getCurrentBranchName
+            "/Users/test/project", // pwd
+            "testuser",       // gh api user
+            "",               // gh repo create
+            "",               // git remote add
+            "",               // git push
+            "https://github.com/testuser/project" // getGitHubURL
+        ])
+        let picker = MockPicker(selectionResponses: [
+            "Select repository visibility:": 0  // "Private"
+        ])
+        let context = MockContext(picker: picker, shell: shell)
+        
+        let output = try Nngit.testRun(context: context, args: ["new-remote"])
+        
+        #expect(shell.executedCommands.contains("gh repo create project --private -d 'Repository created via nngit'"))
+        #expect(output.contains("✅ Remote repository created successfully!"))
+    }
 }

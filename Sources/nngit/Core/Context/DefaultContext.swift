@@ -46,4 +46,9 @@ struct DefaultContext: NnGitContext {
     func makeFileTracker() -> GitFileTracker {
         return DefaultGitFileTracker(shell: makeShell())
     }
+    
+    /// Default ``GitFileCreator`` for managing template files.
+    func makeFileCreator() -> GitFileCreator {
+        return DefaultGitFileCreator()
+    }
 }

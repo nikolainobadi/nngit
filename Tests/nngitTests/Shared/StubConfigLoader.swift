@@ -23,4 +23,18 @@ final class StubConfigLoader: GitConfigLoader {
     func save(_ config: GitConfig) throws {
         savedConfig = config
     }
+    
+    func addGitFile(_ gitFile: GitFile, picker: CommandLinePicker) throws {
+        var config = try loadConfig(picker: picker)
+        config.gitFiles.append(gitFile)
+        savedConfig = config
+    }
+    
+    func removeGitFile(named fileName: String, picker: CommandLinePicker) throws -> Bool {
+        var config = try loadConfig(picker: picker)
+        let initialCount = config.gitFiles.count
+        config.gitFiles.removeAll { $0.fileName == fileName }
+        savedConfig = config
+        return config.gitFiles.count < initialCount
+    }
 }

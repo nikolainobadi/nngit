@@ -85,6 +85,10 @@ extension MockContext: NnGitContext {
         if let fileTracker { return fileTracker }
         return DefaultGitFileTracker(shell: makeShell())
     }
+    
+    func makeFileCreator() -> GitFileCreator {
+        return DefaultGitFileCreator()
+    }
 }
 
 // MARK: - Test Access

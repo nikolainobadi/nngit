@@ -23,4 +23,6 @@ protocol NnGitContext {
     func makeResetHelper() -> GitResetHelper
     /// Creates a file tracker for managing git tracked files.
     func makeFileTracker() -> GitFileTracker
+    /// Creates a file creator for managing git template files.
+    func makeFileCreator() -> GitFileCreator
 }

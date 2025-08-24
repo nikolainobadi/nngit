@@ -7,14 +7,16 @@
 
 struct GitConfig: Codable {
     var defaultBranch: String
+    var gitFiles: [GitFile]
     
-    init(defaultBranch: String) {
+    init(defaultBranch: String, gitFiles: [GitFile] = []) {
         self.defaultBranch = defaultBranch
+        self.gitFiles = gitFiles
     }
 }
 
 extension GitConfig {
     static var defaultConfig: GitConfig {
-        return .init(defaultBranch: "main")
+        return .init(defaultBranch: "main", gitFiles: [])
     }
 }

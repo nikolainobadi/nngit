@@ -17,19 +17,22 @@ final class MockContext {
     private var branchLoader: GitBranchLoader?
     private var resetHelper: GitResetHelper?
     private var fileTracker: GitFileTracker?
+    private var fileCreator: GitFileCreator?
     
     init(picker: MockPicker? = nil,
          shell: MockShell? = nil,
          configLoader: GitConfigLoader? = nil,
          branchLoader: GitBranchLoader? = nil,
          resetHelper: GitResetHelper? = nil,
-         fileTracker: GitFileTracker? = nil) {
+         fileTracker: GitFileTracker? = nil,
+         fileCreator: GitFileCreator? = nil) {
         self.picker = picker
         self.shell = shell
         self.configLoader = configLoader
         self.branchLoader = branchLoader
         self.resetHelper = resetHelper
         self.fileTracker = fileTracker
+        self.fileCreator = fileCreator
     }
 }
 
@@ -87,6 +90,7 @@ extension MockContext: NnGitContext {
     }
     
     func makeFileCreator() -> GitFileCreator {
+        if let fileCreator { return fileCreator }
         return DefaultGitFileCreator()
     }
     

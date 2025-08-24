@@ -21,4 +21,6 @@ protocol NnGitContext {
     func makeBranchLoader() -> GitBranchLoader
     /// Creates a helper for git reset operations.
     func makeResetHelper() -> GitResetHelper
+    /// Creates a file tracker for managing git tracked files.
+    func makeFileTracker() -> GitFileTracker
 }

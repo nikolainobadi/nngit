@@ -114,5 +114,4 @@ struct CheckoutRemoteTests {
         #expect(shell.executedCommands.contains("git checkout -b feature-1 origin/feature-1") == true)
         #expect(output.contains("✅ Created and switched to local branch 'feature-1' tracking 'origin/feature-1'"))
     }
-    
 }

@@ -16,6 +16,7 @@ A command-line utility for managing Git branches and history. `nngit` offers hel
 - Compare branch differences with `branch-diff`
 - Discard staged/unstaged changes with file selection options
 - **Enhanced undo commits** with soft/hard reset strategies, safety checks, and interactive selection
+- **Stop tracking files** that match gitignore patterns with interactive selection
 - Edit overall nngit configuration
 
 ## Installation
@@ -35,6 +36,7 @@ $ nngit checkout-remote            # Checkout remote branches
 $ nngit branch-diff                # Compare current branch with main
 $ nngit discard --files both       # Discard staged and unstaged changes
 $ nngit undo hard 2 --select       # Interactive selection of commits to hard reset
+$ nngit stop-tracking              # Stop tracking files matching gitignore patterns
 $ nngit config --default-branch develop
 ```
 
@@ -73,6 +75,20 @@ $ nngit undo hard --select --force  # Interactive selection with force override
 - Interactive commit selection with `--select` flag
 - Clear confirmation prompts showing what will be affected
 
+### Stop Tracking Workflow
+Manage files that should be untracked according to your `.gitignore`:
+
+```bash
+$ nngit stop-tracking               # Interactive workflow to stop tracking gitignored files
+# (analyzes .gitignore patterns, finds matching tracked files, offers selection options)
+```
+
+**Features:**
+- Reads `.gitignore` patterns and identifies tracked files that match
+- Offers choice between stopping all matching files or selecting specific ones
+- Handles complex gitignore patterns including wildcards, negation, and directory patterns
+- Executes `git rm --cached` with proper file path escaping
+
 ## Configuration
 `nngit` stores its settings in a JSON file located at `~/.config/nngit/config.json`. This file is created automatically the first time you run the tool. You can modify values using the `config` command or by opening the file in your editor of choice.
 
@@ -105,17 +121,17 @@ Sources/nngit/
 │   └── Configuration/        # Config management
 ├── Managers/                 # Business logic
 │   ├── Branch/               # Branch-related workflows
-│   ├── FileOperations/       # File staging/unstaging/discarding
+│   ├── FileOperations/       # File staging/unstaging/discarding/stop-tracking
 │   ├── Reset/                # Commit reset operations
 │   └── Utility/              # Utility functions
 ├── Commands/                 # CLI command definitions
 │   ├── Branch/               # Branch commands
-│   ├── FileOperations/       # File operation commands
+│   ├── FileOperations/       # File operation commands (including stop-tracking)
 │   ├── Reset/                # Reset commands
 │   ├── Configuration/        # Config commands
 │   └── BranchDiff.swift      # Branch comparison
 ├── Errors/                   # Error definitions
-└── Nngit.swift              # Main entry point
+└── Main/Nngit.swift         # Main entry point (v0.4.1)
 ```
 
 ### Key Design Principles
@@ -123,7 +139,7 @@ Sources/nngit/
 - **Feature-Based Organization**: Related functionality grouped together
 - **Protocol/Implementation Split**: Clean abstraction boundaries
 - **Enhanced Safety Systems**: Comprehensive authorship detection and permission checks
-- **Comprehensive Testing**: 171 passing tests with behavior-driven approach
+- **Comprehensive Testing**: 229 passing tests with behavior-driven approach and stable execution
 
 ### Dependencies
 - Built on `swift-argument-parser` for CLI parsing

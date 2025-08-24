@@ -197,6 +197,9 @@ The `StopTracking` command (in `Commands/FileOperations/`) helps manage gitignor
 - Enhanced test coverage includes authorship validation, permission checks, and selection mode functionality
 - All tests use updated git log format with both author name and email: `%h - %s (%an <%ae>, %ar)`
 - Watch for race conditions in tests - ensure proper mock setup and avoid array index issues
+- **Always use existing mocks**: NEVER create new mock implementations without explicit approval. Use the existing mocks in `Tests/nngitTests/Shared/` (MockContext, MockShell, MockPicker, MockGitResetHelper, etc.)
+- **Request permission for new functionality**: If new functionality is required that doesn't exist in current mocks, ask the user first before implementing
+- **Request permission for new mocks**: If you believe new mocks need to be created, ask the user first before creating them
 - **Test descriptions must be formatted as sentences**: All test case descriptions should begin with a capital letter and end with a period, written as complete sentences (e.g., `@Test("Handles user permission denial.")` not `@Test("handles user permission denial")`)
 - **Use `#require` for optional unwrapping in tests**: When testing optionals that should have values, use `try #require()` to safely unwrap and provide clear test failures:
   ```swift
@@ -207,6 +210,14 @@ The `StopTracking` command (in `Commands/FileOperations/`) helps manage gitignor
   // Avoid - less clear test failures
   #expect(helper.displayedCommits?.count == 2)
   ```
+
+### Protocol Design
+- **Keep protocols focused and cohesive**: Each protocol should have a single, well-defined responsibility
+- **Never inject other protocols into method signatures**: Protocols should not depend on other protocols in their method parameters
+  - **Good**: `func loadConfig() throws -> GitConfig`
+  - **Bad**: `func loadConfig(using picker: CommandLinePicker) throws -> GitConfig`
+- **Use dependency injection at the implementation level**: If an implementation needs other dependencies, inject them through the initializer or context, not through protocol methods
+- **Maintain protocol independence**: Protocols should be testable and implementable without requiring knowledge of other protocols
 
 ### Error Handling
 - Git operations throw `GitShellError` for shell failures

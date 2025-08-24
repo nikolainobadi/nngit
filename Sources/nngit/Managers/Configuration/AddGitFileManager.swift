@@ -54,7 +54,7 @@ extension AddGitFileManager {
             localPath: finalPath
         )
         
-        try configLoader.addGitFile(gitFile, picker: picker)
+        try configLoader.addGitFile(gitFile)
         
         print("✅ Added GitFile '\(resolvedNickname)' (\(resolvedFileName))")
     }

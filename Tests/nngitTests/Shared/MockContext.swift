@@ -62,7 +62,7 @@ extension MockContext: NnGitContext {
 
     func makeConfigLoader() -> GitConfigLoader {
         if let configLoader { return configLoader }
-        let loader = DefaultGitConfigLoader()
+        let loader = DefaultGitConfigLoader(picker: makePicker())
         configLoader = loader
         return loader
     }

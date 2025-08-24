@@ -20,19 +20,19 @@ final class MockGitConfigLoader: GitConfigLoader {
         // Not needed for these tests
     }
     
-    func loadConfig(picker: CommandLinePicker) throws -> GitConfig {
+    func loadConfig() throws -> GitConfig {
         // Not needed for these tests
         return GitConfig.defaultConfig
     }
     
-    func addGitFile(_ gitFile: GitFile, picker: CommandLinePicker) throws {
+    func addGitFile(_ gitFile: GitFile) throws {
         if shouldThrowOnAdd {
             throw TestError.configError
         }
         self.addedGitFile = gitFile
     }
     
-    func removeGitFile(named fileName: String, picker: CommandLinePicker) throws -> Bool {
+    func removeGitFile(named fileName: String) throws -> Bool {
         // Not needed for these tests
         return true
     }

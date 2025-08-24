@@ -28,12 +28,11 @@ extension Nngit {
         func run() throws {
             let shell = Nngit.makeShell()
             let loader = Nngit.makeConfigLoader()
-            let picker = Nngit.makePicker()
             let manager = BranchDiffManager(shell: shell)
             
             try shell.verifyLocalGitExists()
             
-            let config = try loader.loadConfig(picker: picker)
+            let config = try loader.loadConfig()
             let targetBaseBranch = baseBranch ?? config.defaultBranch
             
             try manager.generateDiff(baseBranch: targetBaseBranch, copyToClipboard: copy)

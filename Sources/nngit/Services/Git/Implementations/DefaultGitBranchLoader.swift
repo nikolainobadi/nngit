@@ -169,7 +169,16 @@ extension DefaultGitBranchLoader: GitBranchLoader {
         
         // Execute git rev-list command to get ahead/behind counts
         // Output format: "ahead_count\tbehind_count" (tab-separated)
-        let comparisonResult = try self.shell.runGitCommandWithOutput(.compareBranchAndRemote(local: branchName, remote: remoteBranch), path: nil)
+        // If the remote branch doesn't exist, this command will fail
+        let comparisonResult: String
+        do {
+            comparisonResult = try self.shell.runGitCommandWithOutput(.compareBranchAndRemote(local: branchName, remote: remoteBranch), path: nil)
+        } catch {
+            // If the command fails (likely because the remote branch doesn't exist),
+            // return .noRemoteBranch status
+            return .noRemoteBranch
+        }
+        
         let changes = comparisonResult.split(separator: "\t").map(String.init)
         
         // Ensure we got exactly two values (ahead and behind counts)

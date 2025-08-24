@@ -96,14 +96,12 @@ struct NewBranchManagerTests {
         #expect(shell.executedCommands.isEmpty)
     }
     
-    @Test("Throws error when default branch has no remote branch.")
+    @Test("Allows new branch creation when default branch has no remote branch.")
     func handleRemoteRepositoryNoRemoteBranchDefaultBranch() throws {
         let currentBranch = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .noRemoteBranch)
         let (sut, shell, _) = makeSUT(localBranches: [currentBranch])
         
-        #expect(throws: NewBranchError.self) {
-            try sut.handleRemoteRepository()
-        }
+        try sut.handleRemoteRepository()
         
         #expect(shell.executedCommands.isEmpty)
     }

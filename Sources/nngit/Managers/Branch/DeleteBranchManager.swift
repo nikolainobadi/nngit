@@ -50,8 +50,12 @@ private extension DeleteBranchManager {
     func loadEligibleBranchNames() throws -> [String] {
         return try branchLoader.loadBranchNames(from: .local)
             .filter { name in
-                let clean = name.hasPrefix("*") ? String(name.dropFirst(2)) : name
-                return clean.lowercased() != config.defaultBranch.lowercased()
+                // Exclude current branch (marked with "*")
+                if name.hasPrefix("*") {
+                    return false
+                }
+                // Also exclude the default branch
+                return name.lowercased() != config.defaultBranch.lowercased()
             }
     }
     
@@ -73,7 +77,7 @@ private extension DeleteBranchManager {
         return try branchLoader.loadBranches(
             for: branchNames,
             mainBranchName: config.defaultBranch
-        )
+        ).filter { !$0.isCurrentBranch }  // Extra safety: filter out current branch
     }
     
     func selectBranchesToDelete(eligibleBranches: [GitBranch], allMerged: Bool) -> [GitBranch]? {
@@ -83,6 +87,29 @@ private extension DeleteBranchManager {
                 print("No merged branches found")
                 return nil
             }
+            
+            // Display branches that will be deleted
+            print("The following merged branches will be deleted:")
+            let displayCount = min(branchesToDelete.count, 10)
+            for i in 0..<displayCount {
+                print("  - \(branchesToDelete[i].name)")
+            }
+            
+            // If there are more than 10, show how many more
+            if branchesToDelete.count > 10 {
+                print("  ... and \(branchesToDelete.count - 10) more")
+            }
+            
+            print("\nTotal branches to delete: \(branchesToDelete.count)")
+            
+            // Prompt for confirmation
+            do {
+                try picker.requiredPermission("Do you want to proceed with deleting these \(branchesToDelete.count) merged branches?")
+            } catch {
+                print("Deletion cancelled")
+                return nil
+            }
+            
             return branchesToDelete
         } else {
             return picker.multiSelection("Select which branches to delete", items: eligibleBranches)

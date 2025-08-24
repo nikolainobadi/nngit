@@ -103,7 +103,9 @@ extension DefaultGitBranchLoader: GitBranchLoader {
             // Determine if this is the current branch (prefixed with "*")
             let isCurrentBranch = name.hasPrefix("*")
             let cleanBranchName = isCurrentBranch ? String(name.dropFirst(2)) : name
-            let isMerged = mergedBranches.contains(cleanBranchName)
+            
+            // Don't mark the main branch as merged (it's not "merged into itself" conceptually)
+            let isMerged = cleanBranchName.lowercased() != mainBranchName.lowercased() && mergedBranches.contains(cleanBranchName)
 
             // Attempt to get branch creation date using git log
             // This may fail for branches without history, so we use try? and default to nil

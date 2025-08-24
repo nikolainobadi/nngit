@@ -45,4 +45,12 @@ extension GitShell {
             throw GitShellError.missingLocalGit
         }
     }
+    
+    /// Throws ``NewGitError.gitAlreadyExists`` if a git repository already exists at
+    /// the given path.
+    func verifyNoLocalGit() throws {
+        guard try !localGitExists(at: nil) else {
+            throw NewGitError.gitAlreadyExists
+        }
+    }
 }

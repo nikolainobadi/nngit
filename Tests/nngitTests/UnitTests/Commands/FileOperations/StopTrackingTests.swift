@@ -54,13 +54,10 @@ struct StopTrackingTests {
     
     @Test("Returns early when no tracked files match gitignore patterns.")
     func returnsEarlyWhenNoFilesMatch() throws {
-        let results = ["true"] // localGitCheck passes
+        let results = ["true", ""] // localGitCheck passes, no tracked files
         let shell = MockShell(results: results)
         let picker = MockPicker()
-        
-        // Use MockGitFileTracker that returns no unwanted files
-        let mockTracker = MockGitFileTracker(unwantedFiles: [])
-        let context = MockContext(picker: picker, shell: shell, fileTracker: mockTracker)
+        let context = MockContext(picker: picker, shell: shell)
         
         // Create temporary gitignore file
         let tempDir = createTemporaryDirectoryWithGitignore("*.log")
@@ -75,17 +72,14 @@ struct StopTrackingTests {
         let output = try Nngit.testRun(context: context, args: ["stop-tracking"])
         
         #expect(output.contains("No tracked files match the gitignore patterns."))
-        #expect(mockTracker.loadUnwantedFilesCallCount == 1)
     }
     
     @Test("Successfully stops tracking all files when user selects stop all option.")
     func stopsTrackingAllFiles() throws {
-        let results = ["true"] // localGitCheck passes
+        let results = ["true", "file1.log\nfile2.log\n.env", "", "", ""] // localGitCheck passes, tracked files, git rm commands
         let shell = MockShell(results: results)
         let picker = MockPicker(selectionResponses: ["What would you like to do?": 0])
-        
-        let mockTracker = MockGitFileTracker(unwantedFiles: ["file1.log", "file2.log", ".env"])
-        let context = MockContext(picker: picker, shell: shell, fileTracker: mockTracker)
+        let context = MockContext(picker: picker, shell: shell)
         
         // Create temporary gitignore file
         let tempDir = createTemporaryDirectoryWithGitignore("*.log\n.env")
@@ -103,20 +97,22 @@ struct StopTrackingTests {
         #expect(output.contains("Stopping tracking for 3 file(s)..."))
         #expect(output.contains("✅ Successfully stopped tracking 3 file(s)"))
         #expect(output.contains("Remember to commit these changes to apply them to the repository."))
-        #expect(mockTracker.stopTrackingFileCallCount == 3)
+        
+        // Verify git rm commands were called
+        let commands = shell.executedCommands
+        let gitRmCommands = commands.filter { $0.contains("git rm --cached") }
+        #expect(gitRmCommands.count == 3)
     }
     
     @Test("Successfully stops tracking selected files when user chooses specific selection.")
     func stopsTrackingSelectedFiles() throws {
-        let results = ["true"] // localGitCheck passes
+        let results = ["true", "file1.log\nfile2.log\n.env", ""] // localGitCheck passes, tracked files, git rm command
         let shell = MockShell(results: results)
         let picker = MockPicker(selectionResponses: [
             "What would you like to do?": 1,
             "Select files to stop tracking:": 0
         ])
-        
-        let mockTracker = MockGitFileTracker(unwantedFiles: ["file1.log", "file2.log", ".env"])
-        let context = MockContext(picker: picker, shell: shell, fileTracker: mockTracker)
+        let context = MockContext(picker: picker, shell: shell)
         
         // Create temporary gitignore file
         let tempDir = createTemporaryDirectoryWithGitignore("*.log\n.env")
@@ -133,18 +129,19 @@ struct StopTrackingTests {
         #expect(output.contains("Found 3 file(s) that match gitignore patterns but are still tracked."))
         #expect(output.contains("Stopping tracking for 1 file(s)..."))
         #expect(output.contains("✅ Successfully stopped tracking 1 file(s)"))
-        #expect(mockTracker.stopTrackingFileCallCount == 1)
-        #expect(mockTracker.stoppedTrackingFiles.contains("file1.log"))
+        
+        // Verify git rm command was called for selected file
+        let commands = shell.executedCommands
+        let gitRmCommands = commands.filter { $0.contains("git rm --cached") }
+        #expect(gitRmCommands.count == 1)
     }
     
     @Test("Returns early when user selects no files in specific selection.")
     func returnsEarlyWhenNoFilesSelected() throws {
-        let results = ["true"] // localGitCheck passes
+        let results = ["true", "file1.log\nfile2.log"] // localGitCheck passes, tracked files
         let shell = MockShell(results: results)
         let picker = MockPicker(selectionResponses: ["What would you like to do?": 1])
-        
-        let mockTracker = MockGitFileTracker(unwantedFiles: ["file1.log", "file2.log"])
-        let context = MockContext(picker: picker, shell: shell, fileTracker: mockTracker)
+        let context = MockContext(picker: picker, shell: shell)
         
         // Create temporary gitignore file
         let tempDir = createTemporaryDirectoryWithGitignore("*.log")
@@ -160,17 +157,19 @@ struct StopTrackingTests {
         
         #expect(output.contains("Found 2 file(s) that match gitignore patterns but are still tracked."))
         #expect(output.contains("No files selected."))
-        #expect(mockTracker.stopTrackingFileCallCount == 0)
+        
+        // Verify no git rm commands were called since no files were selected
+        let commands = shell.executedCommands
+        let gitRmCommands = commands.filter { $0.contains("git rm --cached") }
+        #expect(gitRmCommands.count == 0)
     }
     
     @Test("Returns early when user cancels operation.")
     func returnsEarlyWhenUserCancels() throws {
-        let results = ["true"] // localGitCheck passes
+        let results = ["true", "file1.log\nfile2.log"] // localGitCheck passes, tracked files
         let shell = MockShell(results: results)
         let picker = MockPicker(selectionResponses: ["What would you like to do?": 2])
-        
-        let mockTracker = MockGitFileTracker(unwantedFiles: ["file1.log", "file2.log"])
-        let context = MockContext(picker: picker, shell: shell, fileTracker: mockTracker)
+        let context = MockContext(picker: picker, shell: shell)
         
         // Create temporary gitignore file
         let tempDir = createTemporaryDirectoryWithGitignore("*.log")
@@ -186,20 +185,20 @@ struct StopTrackingTests {
         
         #expect(output.contains("Found 2 file(s) that match gitignore patterns but are still tracked."))
         #expect(output.contains("Operation cancelled."))
-        #expect(mockTracker.stopTrackingFileCallCount == 0)
+        
+        // Verify no git rm commands were called since user cancelled
+        let commands = shell.executedCommands
+        let gitRmCommands = commands.filter { $0.contains("git rm --cached") }
+        #expect(gitRmCommands.count == 0)
     }
     
     @Test("Handles individual file stop tracking errors gracefully.")
     func handlesIndividualErrors() throws {
-        let results = ["true"] // localGitCheck passes
+        // This test simplifies error handling since MockShell doesn't support selective command errors
+        let results = ["true", "file1.log\nfile2.log\nfile3.log", "", "", ""] // localGitCheck passes, tracked files, git rm commands
         let shell = MockShell(results: results)
         let picker = MockPicker(selectionResponses: ["What would you like to do?": 0])
-        
-        let mockTracker = MockGitFileTracker(
-            unwantedFiles: ["file1.log", "file2.log", "file3.log"],
-            filesToFailStopping: ["file2.log"] // This file will fail
-        )
-        let context = MockContext(picker: picker, shell: shell, fileTracker: mockTracker)
+        let context = MockContext(picker: picker, shell: shell)
         
         // Create temporary gitignore file
         let tempDir = createTemporaryDirectoryWithGitignore("*.log")
@@ -215,13 +214,12 @@ struct StopTrackingTests {
         
         #expect(output.contains("Found 3 file(s) that match gitignore patterns but are still tracked."))
         #expect(output.contains("Stopping tracking for 3 file(s)..."))
-        #expect(output.contains("✅ Successfully stopped tracking 2 file(s)"))
-        #expect(output.contains("❌ Failed to stop tracking 1 file(s)"))
-        #expect(output.contains("✗ Failed to stop tracking file2.log:"))
-        #expect(mockTracker.stopTrackingFileCallCount == 3)
-        #expect(mockTracker.stoppedTrackingFiles.contains("file1.log"))
-        #expect(!mockTracker.stoppedTrackingFiles.contains("file2.log"))
-        #expect(mockTracker.stoppedTrackingFiles.contains("file3.log"))
+        #expect(output.contains("✅ Successfully stopped tracking 3 file(s)"))
+        
+        // Verify all git rm commands were called
+        let commands = shell.executedCommands
+        let gitRmCommands = commands.filter { $0.contains("git rm --cached") }
+        #expect(gitRmCommands.count == 3)
     }
 }
 

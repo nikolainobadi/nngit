@@ -1,5 +1,5 @@
 //
-//  DefaultGitFileTrackerTests.swift
+//  GitFileTrackerTests.swift
 //  nngitTests
 //
 //  Created by Nikolai Nobadi on 8/23/25.
@@ -11,8 +11,8 @@ import GitShellKit
 import GitCommandGen
 @testable import nngit
 
-@Suite("DefaultGitFileTracker Tests")
-struct DefaultGitFileTrackerTests {
+@Suite("GitFileTracker Tests")
+struct GitFileTrackerTests {
     @Test("Returns empty array when no tracked files exist.")
     func loadUnwantedFiles_noTrackedFiles() {
         let (sut, shell) = makeSUT(results: [""])
@@ -319,10 +319,10 @@ struct DefaultGitFileTrackerTests {
 
 
 // MARK: - SUT
-private extension DefaultGitFileTrackerTests {
-    func makeSUT(results: [String] = [], shouldThrowError: Bool = false) -> (sut: DefaultGitFileTracker, shell: MockShell) {
+private extension GitFileTrackerTests {
+    func makeSUT(results: [String] = [], shouldThrowError: Bool = false) -> (sut: GitFileTracker, shell: MockShell) {
         let shell = MockShell(results: results, shouldThrowError: shouldThrowError)
-        let sut = DefaultGitFileTracker(shell: shell)
+        let sut = GitFileTracker(shell: shell)
         
         return (sut, shell)
     }

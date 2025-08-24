@@ -14,8 +14,10 @@ struct StopTracking: ParsableCommand {
     )
     
     func run() throws {
+        let shell = Nngit.makeShell()
+        
         let manager = StopTrackingManager(
-            shell: Nngit.makeShell(),
+            shell: shell,
             picker: Nngit.makePicker(),
             tracker: Nngit.makeFileTracker()
         )

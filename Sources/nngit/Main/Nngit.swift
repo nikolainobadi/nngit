@@ -68,4 +68,9 @@ extension Nngit {
     static func makeFileCreator() -> GitFileCreator {
         return context.makeFileCreator()
     }
+    
+    /// Factory for obtaining the configured ``FileSystemManager`` instance.
+    static func makeFileSystemManager() -> FileSystemManager {
+        return context.makeFileSystemManager()
+    }
 }

@@ -25,4 +25,6 @@ protocol NnGitContext {
     func makeFileTracker() -> GitFileTracker
     /// Creates a file creator for managing git template files.
     func makeFileCreator() -> GitFileCreator
+    /// Creates a file system manager for file operations.
+    func makeFileSystemManager() -> FileSystemManager
 }

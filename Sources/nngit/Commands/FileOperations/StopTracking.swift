@@ -19,7 +19,8 @@ struct StopTracking: ParsableCommand {
         let manager = StopTrackingManager(
             shell: shell,
             picker: Nngit.makePicker(),
-            tracker: Nngit.makeFileTracker()
+            tracker: Nngit.makeFileTracker(),
+            fileSystemManager: Nngit.makeFileSystemManager()
         )
         
         try manager.stopTrackingIgnoredFiles()

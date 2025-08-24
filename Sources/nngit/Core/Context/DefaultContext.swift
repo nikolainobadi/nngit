@@ -51,4 +51,9 @@ struct DefaultContext: NnGitContext {
     func makeFileCreator() -> GitFileCreator {
         return DefaultGitFileCreator()
     }
+    
+    /// Default ``FileSystemManager`` for file operations.
+    func makeFileSystemManager() -> FileSystemManager {
+        return DefaultFileSystemManager()
+    }
 }

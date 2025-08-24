@@ -89,6 +89,10 @@ extension MockContext: NnGitContext {
     func makeFileCreator() -> GitFileCreator {
         return DefaultGitFileCreator()
     }
+    
+    func makeFileSystemManager() -> FileSystemManager {
+        return DefaultFileSystemManager()
+    }
 }
 
 // MARK: - Test Access

@@ -11,9 +11,11 @@ import SwiftPicker
 final class MockGitConfigLoader: GitConfigLoader {
     private(set) var addedGitFile: GitFile?
     private let shouldThrowOnAdd: Bool
+    private let customConfig: GitConfig?
     
-    init(shouldThrowOnAdd: Bool = false) {
+    init(shouldThrowOnAdd: Bool = false, customConfig: GitConfig? = nil) {
         self.shouldThrowOnAdd = shouldThrowOnAdd
+        self.customConfig = customConfig
     }
     
     func save(_ config: GitConfig) throws {
@@ -21,8 +23,7 @@ final class MockGitConfigLoader: GitConfigLoader {
     }
     
     func loadConfig() throws -> GitConfig {
-        // Not needed for these tests
-        return GitConfig.defaultConfig
+        return customConfig ?? GitConfig.defaultConfig
     }
     
     func addGitFile(_ gitFile: GitFile) throws {

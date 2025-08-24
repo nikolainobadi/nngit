@@ -18,6 +18,7 @@ final class MockContext {
     private var resetHelper: GitResetHelper?
     private var fileTracker: GitFileTracker?
     private var fileCreator: GitFileCreator?
+    private var fileSystemManager: FileSystemManager?
     
     init(picker: MockPicker? = nil,
          shell: MockShell? = nil,
@@ -25,7 +26,8 @@ final class MockContext {
          branchLoader: GitBranchLoader? = nil,
          resetHelper: GitResetHelper? = nil,
          fileTracker: GitFileTracker? = nil,
-         fileCreator: GitFileCreator? = nil) {
+         fileCreator: GitFileCreator? = nil,
+         fileSystemManager: FileSystemManager? = nil) {
         self.picker = picker
         self.shell = shell
         self.configLoader = configLoader
@@ -33,6 +35,7 @@ final class MockContext {
         self.resetHelper = resetHelper
         self.fileTracker = fileTracker
         self.fileCreator = fileCreator
+        self.fileSystemManager = fileSystemManager
     }
 }
 
@@ -95,6 +98,7 @@ extension MockContext: NnGitContext {
     }
     
     func makeFileSystemManager() -> FileSystemManager {
+        if let fileSystemManager { return fileSystemManager }
         return DefaultFileSystemManager()
     }
 }

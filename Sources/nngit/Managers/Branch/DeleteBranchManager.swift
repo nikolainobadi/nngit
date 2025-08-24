@@ -83,6 +83,29 @@ private extension DeleteBranchManager {
                 print("No merged branches found")
                 return nil
             }
+            
+            // Display branches that will be deleted
+            print("The following merged branches will be deleted:")
+            let displayCount = min(branchesToDelete.count, 10)
+            for i in 0..<displayCount {
+                print("  - \(branchesToDelete[i].name)")
+            }
+            
+            // If there are more than 10, show how many more
+            if branchesToDelete.count > 10 {
+                print("  ... and \(branchesToDelete.count - 10) more")
+            }
+            
+            print("\nTotal branches to delete: \(branchesToDelete.count)")
+            
+            // Prompt for confirmation
+            do {
+                try picker.requiredPermission("Do you want to proceed with deleting these \(branchesToDelete.count) merged branches?")
+            } catch {
+                print("Deletion cancelled")
+                return nil
+            }
+            
             return branchesToDelete
         } else {
             return picker.multiSelection("Select which branches to delete", items: eligibleBranches)

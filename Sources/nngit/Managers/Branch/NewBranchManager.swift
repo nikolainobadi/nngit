@@ -48,10 +48,8 @@ extension NewBranchManager {
         case .undetermined:
             throw NewBranchError.branchStatusUndetermined
         case .noRemoteBranch:
-            if isDefaultBranch(currentBranch) {
-                throw NewBranchError.noRemoteBranch
-            }
-            // Non-default branches without remote can create new branches
+            // Allow branch creation when there's no remote branch to compare with
+            // This is valid for both default and feature branches
             break
         }
     }

@@ -19,7 +19,7 @@ struct Nngit: ParsableCommand {
             Discard.self, Undo.self, BranchDiff.self,
             NewBranch.self, SwitchBranch.self, DeleteBranch.self, CheckoutRemote.self,
             Staging.self, StopTracking.self,
-            EditConfig.self
+            EditConfig.self, AddGitFile.self
         ]
     )
     
@@ -62,5 +62,10 @@ extension Nngit {
     /// Factory for obtaining the configured ``GitFileTracker`` instance.
     static func makeFileTracker() -> GitFileTracker {
         return context.makeFileTracker()
+    }
+    
+    /// Factory for obtaining the configured ``GitFileCreator`` instance.
+    static func makeFileCreator() -> GitFileCreator {
+        return context.makeFileCreator()
     }
 }

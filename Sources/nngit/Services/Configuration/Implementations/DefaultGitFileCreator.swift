@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftPicker
 
 /// Default implementation of ``GitFileCreator`` using Foundation's FileManager.
 struct DefaultGitFileCreator: GitFileCreator {
@@ -41,6 +42,24 @@ extension DefaultGitFileCreator {
             try createFile(named: gitFile.fileName, sourcePath: gitFile.localPath, destinationPath: destinationPath)
         }
     }
+    
+    /// Copies a source file to the templates directory and returns the final path.
+    func copyToTemplatesDirectory(sourcePath: String, fileName: String, picker: CommandLinePicker) throws -> String {
+        let templatesDirectory = try getOrCreateTemplatesDirectory(picker: picker)
+        let destinationURL = templatesDirectory.appendingPathComponent(fileName)
+        let sourceURL = URL(fileURLWithPath: sourcePath)
+        
+        if fileManager.fileExists(atPath: destinationURL.path) {
+            if !picker.getPermission("Template file '\(fileName)' already exists. Replace it?") {
+                return destinationURL.path
+            }
+            try fileManager.removeItem(at: destinationURL)
+        }
+        
+        try fileManager.copyItem(at: sourceURL, to: destinationURL)
+        
+        return destinationURL.path
+    }
 }
 
 
@@ -58,6 +77,24 @@ private extension DefaultGitFileCreator {
         
         return baseURL.appendingPathComponent(fileName)
     }
+    
+    /// Gets or creates the templates directory, asking for permission if needed.
+    func getOrCreateTemplatesDirectory(picker: CommandLinePicker) throws -> URL {
+        let homeDirectory = fileManager.homeDirectoryForCurrentUser
+        let configDirectory = homeDirectory.appendingPathComponent(".config")
+        let nngitDirectory = configDirectory.appendingPathComponent("nngit")
+        let templatesDirectory = nngitDirectory.appendingPathComponent("templates")
+        
+        if !fileManager.fileExists(atPath: templatesDirectory.path) {
+            if !picker.getPermission("Create templates directory at '\(templatesDirectory.path)'?") {
+                throw GitFileError.templateDirectoryCreationDenied
+            }
+            
+            try fileManager.createDirectory(at: templatesDirectory, withIntermediateDirectories: true)
+        }
+        
+        return templatesDirectory
+    }
 }
 
 
@@ -65,4 +102,5 @@ private extension DefaultGitFileCreator {
 enum GitFileError: Error {
     case missingSourcePath
     case sourceFileNotFound(String)
+    case templateDirectoryCreationDenied
 }

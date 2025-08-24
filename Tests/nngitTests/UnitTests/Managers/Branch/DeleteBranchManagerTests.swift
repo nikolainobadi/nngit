@@ -77,6 +77,21 @@ struct DeleteBranchManagerTests {
         #expect(!shell.executedCommands.contains { $0.contains("git branch") })
     }
     
+    @Test("Excludes current branch from eligible branches.")
+    func deleteBranchesExcludesCurrentBranch() throws {
+        // Branch names from git include "*" prefix for current branch
+        let branchLoader = StubBranchLoader(branchNames: ["main", "* feature", "develop"])
+        let picker = MockPicker()  // No selection needed as current branch should be filtered
+        let shell = MockShell()
+        let config = makeConfig(defaultBranch: "main")
+        let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
+        
+        try manager.deleteBranches(search: nil as String?, allMerged: false)
+        
+        // Only develop should be available (main is default, feature is current)
+        #expect(!shell.executedCommands.contains { $0.contains("feature") })
+    }
+    
     @Test("Handles no matches for search term")
     func deleteBranchesNoMatches() throws {
         let branchLoader = StubBranchLoader(branchNames: ["main", "feature"], filteredResults: [])
@@ -174,6 +189,26 @@ struct DeleteBranchManagerTests {
         
         // No branches should be deleted when user denies
         #expect(!shell.executedCommands.contains { $0.contains("git branch") })
+    }
+    
+    @Test("Excludes current branch from allMerged deletion.")
+    func deleteBranchesAllMergedExcludesCurrentBranch() throws {
+        // Create branches where develop is current (marked with *) but also merged
+        let developBranch = GitBranch(name: "develop", isMerged: true, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        let featureBranch = GitBranch(name: "feature", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let branches = [developBranch, featureBranch]
+        
+        let branchLoader = StubBranchLoader(localBranches: branches, branchNames: ["main", "* develop", "feature"])
+        let picker = MockPicker(permissionResponses: ["Do you want to proceed with deleting these 1 merged branches?": true])
+        let shell = MockShell()
+        let config = makeConfig(defaultBranch: "main")
+        let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
+        
+        try manager.deleteBranches(search: nil as String?, allMerged: true)
+        
+        // Only feature should be deleted, not develop (current branch)
+        #expect(shell.executedCommands.contains("git branch -d feature"))
+        #expect(!shell.executedCommands.contains { $0.contains("develop") })
     }
     
     @Test("Displays truncated list when more than 10 branches for allMerged.")

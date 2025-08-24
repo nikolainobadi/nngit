@@ -22,13 +22,15 @@ extension Nngit {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
             let configLoader = Nngit.makeConfigLoader()
+            let fileSystemManager = Nngit.makeFileSystemManager()
             
             try shell.verifyNoLocalGit()
             
             let manager = NewGitManager(
                 shell: shell,
                 picker: picker,
-                configLoader: configLoader
+                configLoader: configLoader,
+                fileSystemManager: fileSystemManager
             )
             
             try manager.initializeGitRepository()

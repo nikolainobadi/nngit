@@ -18,4 +18,8 @@ struct DefaultFileSystemManager: FileSystemManager {
     func contentsOfFile(atPath path: String, encoding: String.Encoding) throws -> String {
         return try String(contentsOfFile: path, encoding: encoding)
     }
+    
+    func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
+        try fileManager.copyItem(atPath: srcPath, toPath: dstPath)
+    }
 }

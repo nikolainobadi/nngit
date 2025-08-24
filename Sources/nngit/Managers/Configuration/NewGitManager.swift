@@ -14,11 +14,13 @@ struct NewGitManager {
     private let shell: GitShell
     private let picker: CommandLinePicker
     private let configLoader: GitConfigLoader
+    private let fileSystemManager: FileSystemManager
     
-    init(shell: GitShell, picker: CommandLinePicker, configLoader: GitConfigLoader) {
+    init(shell: GitShell, picker: CommandLinePicker, configLoader: GitConfigLoader, fileSystemManager: FileSystemManager) {
         self.shell = shell
         self.picker = picker
         self.configLoader = configLoader
+        self.fileSystemManager = fileSystemManager
     }
 }
 
@@ -83,11 +85,11 @@ private extension NewGitManager {
         let sourcePath = gitFile.localPath
         let destinationPath = gitFile.fileName
         
-        guard FileManager.default.fileExists(atPath: sourcePath) else {
+        guard fileSystemManager.fileExists(atPath: sourcePath) else {
             throw NewGitError.templateFileNotFound(sourcePath)
         }
         
-        if FileManager.default.fileExists(atPath: destinationPath) {
+        if fileSystemManager.fileExists(atPath: destinationPath) {
             let options = ["Yes", "No"]
             let choice = picker.singleSelection(
                 "File '\(destinationPath)' already exists. Overwrite?",
@@ -100,7 +102,7 @@ private extension NewGitManager {
             }
         }
         
-        try FileManager.default.copyItem(atPath: sourcePath, toPath: destinationPath)
+        try fileSystemManager.copyItem(atPath: sourcePath, toPath: destinationPath)
         print("📄 Added \(destinationPath)")
     }
 }

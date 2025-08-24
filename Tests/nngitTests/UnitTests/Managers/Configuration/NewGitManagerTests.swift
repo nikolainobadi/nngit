@@ -34,7 +34,7 @@ final class NewGitManagerTests {
 extension NewGitManagerTests {
     @Test("Successfully initializes git repository when no template files are configured.")
     func initializeGitWithoutTemplateFiles() throws {
-        let (sut, _, shell) = makeSUT()
+        let (sut, _, shell, _) = makeSUT()
         
         try sut.initializeGitRepository()
         
@@ -43,24 +43,23 @@ extension NewGitManagerTests {
     
     @Test("Successfully initializes git with template files when files are configured.")
     func initializeGitWithTemplateFiles() throws {
-        let templatePath = try createTempFile(named: "template.txt", content: "template content")
+        let templatePath = "/template/path/template.txt"
         let gitFile = GitFile(fileName: "README.md", nickname: "ReadMe", localPath: templatePath)
         let config = GitConfig(defaultBranch: "main", gitFiles: [gitFile])
         
-        let (sut, _, shell) = makeSUT(config: config)
+        let (sut, _, shell, fileSystemManager) = makeSUT(config: config)
         
-        // Change to temp directory to test file operations
-        let currentDirectory = fileManager.currentDirectoryPath
-        fileManager.changeCurrentDirectoryPath(tempDirectory.path)
-        defer { fileManager.changeCurrentDirectoryPath(currentDirectory) }
+        // Set up mock file system
+        fileSystemManager.addFile(path: templatePath, content: "template content")
         
         try sut.initializeGitRepository()
         
         #expect(shell.executedCommands.contains("git init"))
         
-        // Check if README.md file was created
-        let readmePath = tempDirectory.appendingPathComponent("README.md").path
-        #expect(fileManager.fileExists(atPath: readmePath))
+        // Verify file was copied
+        #expect(fileSystemManager.copiedFiles.count == 1)
+        #expect(fileSystemManager.copiedFiles[0].from == templatePath)
+        #expect(fileSystemManager.copiedFiles[0].to == "README.md")
     }
 }
 
@@ -70,21 +69,24 @@ private extension NewGitManagerTests {
     func makeSUT(config: GitConfig = GitConfig.defaultConfig) -> (
         sut: NewGitManager,
         configLoader: TestGitConfigLoader,
-        shell: MockShell
+        shell: MockShell,
+        fileSystemManager: MockFileSystemManager
     ) {
         let shell = MockShell(results: ["", "Initialized empty Git repository"])
         let picker = MockPicker(
             selectionResponses: ["Select template files to include:": 0]
         )
         let configLoader = TestGitConfigLoader(config: config)
+        let fileSystemManager = MockFileSystemManager()
         
         let sut = NewGitManager(
             shell: shell,
             picker: picker,
-            configLoader: configLoader
+            configLoader: configLoader,
+            fileSystemManager: fileSystemManager
         )
         
-        return (sut, configLoader, shell)
+        return (sut, configLoader, shell, fileSystemManager)
     }
     
     func createTempFile(named fileName: String, content: String) throws -> String {

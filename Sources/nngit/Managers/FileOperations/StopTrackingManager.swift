@@ -14,11 +14,13 @@ struct StopTrackingManager {
     private let shell: GitShell
     private let picker: CommandLinePicker
     private let tracker: GitFileTracker
+    private let fileSystemManager: FileSystemManager
     
-    init(shell: GitShell, picker: CommandLinePicker, tracker: GitFileTracker) {
+    init(shell: GitShell, picker: CommandLinePicker, tracker: GitFileTracker, fileSystemManager: FileSystemManager) {
         self.shell = shell
         self.picker = picker
         self.tracker = tracker
+        self.fileSystemManager = fileSystemManager
     }
 }
 
@@ -31,13 +33,13 @@ extension StopTrackingManager {
         
         // Check for gitignore file
         let gitignorePath = ".gitignore"
-        guard FileManager.default.fileExists(atPath: gitignorePath) else {
+        guard fileSystemManager.fileExists(atPath: gitignorePath) else {
             print("No .gitignore file found in the current directory.")
             return
         }
         
         // Read gitignore contents
-        let gitignoreContents = try String(contentsOfFile: gitignorePath, encoding: .utf8)
+        let gitignoreContents = try fileSystemManager.contentsOfFile(atPath: gitignorePath, encoding: .utf8)
         
         // Get files that should not be tracked
         let unwantedFiles = tracker.loadUnwantedFiles(gitignore: gitignoreContents)

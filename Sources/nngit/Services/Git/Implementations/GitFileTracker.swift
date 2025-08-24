@@ -1,5 +1,5 @@
 //
-//  DefaultGitFileTracker.swift
+//  GitFileTracker.swift
 //  nngit
 //
 //  Created by Nikolai Nobadi on 8/23/25.
@@ -8,8 +8,8 @@
 import Foundation
 import GitShellKit
 
-/// Concrete implementation of GitFileTracker for managing Git file tracking operations.
-struct DefaultGitFileTracker: GitFileTracker {
+/// Implementation for managing Git file tracking operations.
+struct GitFileTracker {
     private let shell: GitShell
     
     init(shell: GitShell) {
@@ -19,7 +19,7 @@ struct DefaultGitFileTracker: GitFileTracker {
 
 
 // MARK: - GitFileTracker Implementation
-extension DefaultGitFileTracker {
+extension GitFileTracker {
     func loadUnwantedFiles(gitignore: String) -> [String] {
         let trackedFiles = loadTrackedFiles()
         let ignorePatterns = parseGitignorePatterns(gitignore)
@@ -42,7 +42,7 @@ extension DefaultGitFileTracker {
 
 
 // MARK: - Private Methods
-private extension DefaultGitFileTracker {
+private extension GitFileTracker {
     func loadTrackedFiles() -> [String] {
         do {
             let trackedFileOutput = try shell.runWithOutput("git ls-files")
@@ -135,4 +135,3 @@ private extension DefaultGitFileTracker {
         }
     }
 }
-

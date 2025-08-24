@@ -32,15 +32,47 @@ extension DefaultGitConfigLoader {
                 defaultBranchName = try picker.getRequiredInput("Enter the name of your default branch.")
             }
             
-            let newConfig = GitConfig(defaultBranch: defaultBranchName)
+            let newConfig = GitConfig(defaultBranch: defaultBranchName, gitFiles: [])
             
             try save(newConfig)
             
             return newConfig
         }
     }
+    
+    /// Adds a GitFile to the configuration.
+    func addGitFile(_ gitFile: GitFile, picker: CommandLinePicker) throws {
+        var config = try loadConfig(picker: picker)
+        
+        if config.gitFiles.contains(where: { $0.fileName == gitFile.fileName }) {
+            if !picker.getPermission("GitFile with name '\(gitFile.fileName)' already exists. Replace it?") {
+                return
+            }
+            config.gitFiles.removeAll { $0.fileName == gitFile.fileName }
+        }
+        
+        config.gitFiles.append(gitFile)
+        try save(config)
+    }
+    
+    /// Removes a GitFile from the configuration by fileName. Returns true if removed, false if not found.
+    func removeGitFile(named fileName: String, picker: CommandLinePicker) throws -> Bool {
+        var config = try loadConfig(picker: picker)
+        let initialCount = config.gitFiles.count
+        
+        config.gitFiles.removeAll { $0.fileName == fileName }
+        
+        if config.gitFiles.count < initialCount {
+            try save(config)
+            return true
+        }
+        
+        return false
+    }
 }
 
+
+// MARK: - Private Methods
 private extension DefaultGitConfigLoader {
     /// Helper method reading the configuration from ``NnConfigManager``.
     func load() throws -> GitConfig {

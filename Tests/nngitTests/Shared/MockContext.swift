@@ -83,7 +83,15 @@ extension MockContext: NnGitContext {
     
     func makeFileTracker() -> GitFileTracker {
         if let fileTracker { return fileTracker }
-        return DefaultGitFileTracker(shell: makeShell())
+        return GitFileTracker(shell: makeShell())
+    }
+    
+    func makeFileCreator() -> GitFileCreator {
+        return DefaultGitFileCreator()
+    }
+    
+    func makeFileSystemManager() -> FileSystemManager {
+        return DefaultFileSystemManager()
     }
 }
 

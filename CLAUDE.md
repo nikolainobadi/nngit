@@ -30,7 +30,7 @@ Sources/nngit/
 │   └── Extensions/           # Type extensions (CommitInfo+Display)
 ├── Services/                 # External integrations & abstractions
 │   ├── Git/
-│   │   ├── Protocols/        # Git service contracts (GitBranchLoader, GitCommitManager, GitResetHelper)
+│   │   ├── Protocols/        # Git service contracts (GitBranchLoader, GitCommitManager, GitResetHelper, GitFileTracker)
 │   │   └── Implementations/  # Concrete implementations (DefaultGitBranchLoader, DefaultGitCommitManager, etc.)
 │   └── Configuration/
 │       ├── Protocols/        # Config contracts (GitConfigLoader)
@@ -38,17 +38,17 @@ Sources/nngit/
 │       └── Models/           # Config models (GitConfig, BranchPrefix)
 ├── Managers/                 # Business logic layer
 │   ├── Branch/               # Branch operations (SwitchBranchManager, DeleteBranchManager, etc.)
-│   ├── FileOperations/       # File handling (StageManager, UnstageManager, DiscardManager)
+│   ├── FileOperations/       # File handling (StageManager, UnstageManager, DiscardManager, StopTrackingManager)
 │   ├── Reset/                # Reset operations (SoftResetManager, HardResetManager)
 │   └── Utility/              # Utility functions (BranchDiffManager)
 ├── Commands/                 # CLI command definitions
 │   ├── Branch/               # Branch commands (NewBranch, SwitchBranch, DeleteBranch, CheckoutRemote)
-│   ├── FileOperations/       # File operation commands (Staging, Stage, Unstage, Discard)
+│   ├── FileOperations/       # File operation commands (Staging, Stage, Unstage, Discard, StopTracking)
 │   ├── Reset/                # Reset commands (Undo, SoftReset, HardReset)
 │   ├── Configuration/        # Config commands (EditConfig)
 │   └── BranchDiff.swift      # Branch comparison command
 ├── Errors/                   # Centralized error definitions
-└── Nngit.swift              # Main entry point (v0.4.1)
+└── Main/Nngit.swift         # Main entry point (v0.4.1)
 ```
 
 ### Key Components
@@ -143,6 +143,8 @@ Tests/nngitTests/
 - Mock objects simulate external dependencies
 - Stub loaders provide controlled test data
 - Tests use `@MainActor` when needed to ensure proper serialization
+- **Test Stability**: Fixed flaky tests through serialization (`.serialized` trait) and robust mock implementations
+- **Comprehensive Coverage**: 229 tests across all major functionality with stable execution
 
 ### Key Workflows
 
@@ -167,6 +169,14 @@ The `Staging` command (in `Commands/FileOperations/`) provides interactive file 
 - Uses `StageManager`/`UnstageManager` (in `Managers/FileOperations/`) for workflow coordination
 - Leverages `SwiftPicker` for interactive multi-selection interface
 - Executes individual `git add` and `git reset HEAD` commands per selected file
+
+#### Stop Tracking Workflow
+The `StopTracking` command (in `Commands/FileOperations/`) helps manage gitignore compliance:
+- Reads `.gitignore` patterns and identifies tracked files that should be untracked
+- Provides interactive selection between stopping all matching files or selecting specific ones
+- Uses `StopTrackingManager` (in `Managers/FileOperations/`) for workflow coordination
+- Leverages `DefaultGitFileTracker` (in `Services/Git/Implementations/`) for file pattern matching
+- Executes `git rm --cached` commands with proper file path escaping
 
 
 ## Development Notes

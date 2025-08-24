@@ -10,13 +10,36 @@ import Foundation
 import SwiftPicker
 @testable import nngit
 
-struct AddGitFileManagerTests {
+class AddGitFileManagerTests {
+    private let tempDirectory: URL
+    private let fileManager = FileManager.default
+    
+    init() {
+        // Create unique temp directory for this test instance
+        tempDirectory = fileManager.temporaryDirectory
+            .appendingPathComponent("AddGitFileManagerTests-\(UUID().uuidString)")
+        try! fileManager.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
+    }
+    
+    deinit {
+        // Clean up entire temp directory
+        try? fileManager.removeItem(at: tempDirectory)
+    }
+    
+    // MARK: - Helper Methods
+    private func createTempFile(named name: String, content: String = "test content") throws -> String {
+        let path = tempDirectory.appendingPathComponent(name).path
+        try content.write(toFile: path, atomically: true, encoding: .utf8)
+        return path
+    }
+    
+    private func tempPath(for fileName: String) -> String {
+        return tempDirectory.appendingPathComponent(fileName).path
+    }
+    
     @Test("Successfully adds GitFile with all parameters provided and direct path.")
     func addGitFileWithAllParametersDirectPath() throws {
-        let tempDir = FileManager.default.temporaryDirectory
-        let sourcePath = tempDir.appendingPathComponent("test.txt").path
-        try "test content".write(toFile: sourcePath, atomically: true, encoding: .utf8)
-        defer { try? FileManager.default.removeItem(atPath: sourcePath) }
+        let sourcePath = try createTempFile(named: "test.txt")
         
         let configLoader = MockGitConfigLoader()
         let fileCreator = MockGitFileCreator()
@@ -38,11 +61,8 @@ struct AddGitFileManagerTests {
     
     @Test("Successfully adds GitFile with all parameters provided and template copy.")
     func addGitFileWithAllParametersTemplateCopy() throws {
-        let tempDir = FileManager.default.temporaryDirectory
-        let sourcePath = tempDir.appendingPathComponent("test.txt").path
+        let sourcePath = try createTempFile(named: "test.txt")
         let copyPath = "/templates/test.txt"
-        try "test content".write(toFile: sourcePath, atomically: true, encoding: .utf8)
-        defer { try? FileManager.default.removeItem(atPath: sourcePath) }
         
         let configLoader = MockGitConfigLoader()
         let fileCreator = MockGitFileCreator(copyResult: copyPath)
@@ -66,10 +86,7 @@ struct AddGitFileManagerTests {
     
     @Test("Prompts for source path when not provided.")
     func addGitFilePromptsForSourcePath() throws {
-        let tempDir = FileManager.default.temporaryDirectory
-        let sourcePath = tempDir.appendingPathComponent("prompted.txt").path
-        try "content".write(toFile: sourcePath, atomically: true, encoding: .utf8)
-        defer { try? FileManager.default.removeItem(atPath: sourcePath) }
+        let sourcePath = try createTempFile(named: "prompted.txt", content: "content")
         
         let configLoader = MockGitConfigLoader()
         let fileCreator = MockGitFileCreator()
@@ -124,10 +141,7 @@ struct AddGitFileManagerTests {
     
     @Test("Uses source filename when fileName not provided.")
     func addGitFileUsesSourceFileNameWhenNotProvided() throws {
-        let tempDir = FileManager.default.temporaryDirectory
-        let sourcePath = tempDir.appendingPathComponent("source.txt").path
-        try "content".write(toFile: sourcePath, atomically: true, encoding: .utf8)
-        defer { try? FileManager.default.removeItem(atPath: sourcePath) }
+        let sourcePath = try createTempFile(named: "source.txt", content: "content")
         
         let configLoader = MockGitConfigLoader()
         let fileCreator = MockGitFileCreator()
@@ -147,9 +161,7 @@ struct AddGitFileManagerTests {
     
     @Test("Uses custom filename when prompted.")
     func addGitFileUsesCustomFileNameWhenPrompted() throws {
-        let tempDir = FileManager.default.temporaryDirectory
-        let sourcePath = tempDir.appendingPathComponent("source.txt").path
-        try "content".write(toFile: sourcePath, atomically: true, encoding: .utf8)
+        let sourcePath = try createTempFile(named: "source.txt", content: "content")
         
         let configLoader = MockGitConfigLoader()
         let fileCreator = MockGitFileCreator()
@@ -163,18 +175,13 @@ struct AddGitFileManagerTests {
             useDirectPath: true
         )
         
-        try? FileManager.default.removeItem(atPath: sourcePath)
-        
         let addedFile = try #require(configLoader.addedGitFile)
         #expect(addedFile.fileName == "custom.txt")
     }
     
     @Test("Uses filename as nickname when nickname not provided.")
     func addGitFileUsesFileNameAsNicknameWhenNotProvided() throws {
-        let tempDir = FileManager.default.temporaryDirectory
-        let sourcePath = tempDir.appendingPathComponent("test.txt").path
-        try "content".write(toFile: sourcePath, atomically: true, encoding: .utf8)
-        defer { try? FileManager.default.removeItem(atPath: sourcePath) }
+        let sourcePath = try createTempFile(named: "test.txt", content: "content")
         
         let configLoader = MockGitConfigLoader()
         let fileCreator = MockGitFileCreator()
@@ -194,10 +201,7 @@ struct AddGitFileManagerTests {
     
     @Test("Uses custom nickname when prompted.")
     func addGitFileUsesCustomNicknameWhenPrompted() throws {
-        let tempDir = FileManager.default.temporaryDirectory
-        let sourcePath = tempDir.appendingPathComponent("test.txt").path
-        try "content".write(toFile: sourcePath, atomically: true, encoding: .utf8)
-        defer { try? FileManager.default.removeItem(atPath: sourcePath) }
+        let sourcePath = try createTempFile(named: "test.txt", content: "content")
         
         let configLoader = MockGitConfigLoader()
         let fileCreator = MockGitFileCreator()
@@ -217,11 +221,8 @@ struct AddGitFileManagerTests {
     
     @Test("Handles file copy operation when not using direct path.")
     func addGitFileHandlesFileCopyOperation() throws {
-        let tempDir = FileManager.default.temporaryDirectory
-        let sourcePath = tempDir.appendingPathComponent("original.txt").path
+        let sourcePath = try createTempFile(named: "original.txt", content: "content")
         let copyPath = "/templates/copied.txt"
-        try "content".write(toFile: sourcePath, atomically: true, encoding: .utf8)
-        defer { try? FileManager.default.removeItem(atPath: sourcePath) }
         
         let configLoader = MockGitConfigLoader()
         let fileCreator = MockGitFileCreator(copyResult: copyPath)
@@ -243,10 +244,7 @@ struct AddGitFileManagerTests {
     
     @Test("Propagates errors from config loader.")
     func addGitFilePropagatesConfigLoaderErrors() throws {
-        let tempDir = FileManager.default.temporaryDirectory
-        let sourcePath = tempDir.appendingPathComponent("test.txt").path
-        try "content".write(toFile: sourcePath, atomically: true, encoding: .utf8)
-        defer { try? FileManager.default.removeItem(atPath: sourcePath) }
+        let sourcePath = try createTempFile(named: "test.txt", content: "content")
         
         let configLoader = MockGitConfigLoader(shouldThrowOnAdd: true)
         let fileCreator = MockGitFileCreator()
@@ -265,10 +263,7 @@ struct AddGitFileManagerTests {
     
     @Test("Propagates errors from file creator.")
     func addGitFilePropagatesFileCreatorErrors() throws {
-        let tempDir = FileManager.default.temporaryDirectory
-        let sourcePath = tempDir.appendingPathComponent("test.txt").path
-        try "content".write(toFile: sourcePath, atomically: true, encoding: .utf8)
-        defer { try? FileManager.default.removeItem(atPath: sourcePath) }
+        let sourcePath = try createTempFile(named: "test.txt", content: "content")
         
         let configLoader = MockGitConfigLoader()
         let fileCreator = MockGitFileCreator(shouldThrowOnCopy: true)

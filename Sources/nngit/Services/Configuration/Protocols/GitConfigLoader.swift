@@ -1,3 +1,10 @@
+//
+//  GitConfigLoader.swift
+//  nngit
+//
+//  Created by Nikolai Nobadi on 8/24/25.
+//
+
 import SwiftPicker
 
 protocol GitConfigLoader {

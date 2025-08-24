@@ -34,6 +34,14 @@ extension Nngit {
             )
             
             try manager.initializeGitRepository()
+            
+            // Prompt user for GitHub remote repository creation
+            let choice = picker.getPermission("Would you like to create a GitHub remote repository for this project?")
+            
+            if choice {
+                let remoteManager = NewRemoteManager(shell: shell, picker: picker)
+                try remoteManager.initializeGitHubRemote()
+            }
         }
     }
 }

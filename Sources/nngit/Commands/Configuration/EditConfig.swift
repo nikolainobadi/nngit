@@ -25,7 +25,7 @@ extension Nngit {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
             let loader = Nngit.makeConfigLoader()
-            let config = try loader.loadConfig(picker: picker)
+            let config = try loader.loadConfig()
 
             try shell.verifyLocalGitExists()
             var updated = config

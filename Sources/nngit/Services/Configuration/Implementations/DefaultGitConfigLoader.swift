@@ -11,6 +11,11 @@ import SwiftPicker
 /// Default implementation of ``GitConfigLoader`` backed by ``NnConfigManager``.
 struct DefaultGitConfigLoader: GitConfigLoader {
     private let manager = NnConfigManager<GitConfig>(projectName: "nngit")
+    private let picker: CommandLinePicker
+    
+    init(picker: CommandLinePicker) {
+        self.picker = picker
+    }
 }
 
 
@@ -22,7 +27,7 @@ extension DefaultGitConfigLoader {
     }
 
     /// Loads the configuration from disk or creates a new one by prompting the user.
-    func loadConfig(picker: CommandLinePicker) throws -> GitConfig {
+    func loadConfig() throws -> GitConfig {
         do {
             return try load()
         } catch {
@@ -41,8 +46,8 @@ extension DefaultGitConfigLoader {
     }
     
     /// Adds a GitFile to the configuration.
-    func addGitFile(_ gitFile: GitFile, picker: CommandLinePicker) throws {
-        var config = try loadConfig(picker: picker)
+    func addGitFile(_ gitFile: GitFile) throws {
+        var config = try loadConfig()
         
         if config.gitFiles.contains(where: { $0.fileName == gitFile.fileName }) {
             if !picker.getPermission("GitFile with name '\(gitFile.fileName)' already exists. Replace it?") {
@@ -56,8 +61,8 @@ extension DefaultGitConfigLoader {
     }
     
     /// Removes a GitFile from the configuration by fileName. Returns true if removed, false if not found.
-    func removeGitFile(named fileName: String, picker: CommandLinePicker) throws -> Bool {
-        var config = try loadConfig(picker: picker)
+    func removeGitFile(named fileName: String) throws -> Bool {
+        var config = try loadConfig()
         let initialCount = config.gitFiles.count
         
         config.gitFiles.removeAll { $0.fileName == fileName }

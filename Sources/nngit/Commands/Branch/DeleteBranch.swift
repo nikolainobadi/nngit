@@ -28,7 +28,7 @@ extension Nngit {
             let picker = Nngit.makePicker()
             try shell.verifyLocalGitExists()
             let branchLoader = Nngit.makeBranchLoader()
-            let config = try Nngit.makeConfigLoader().loadConfig(picker: picker)
+            let config = try Nngit.makeConfigLoader().loadConfig()
             let manager = DeleteBranchManager(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
             
             try manager.deleteBranches(search: search, allMerged: allMerged)

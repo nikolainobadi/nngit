@@ -28,7 +28,7 @@ extension Nngit {
             
             let branchName = try name ?? picker.getRequiredInput("Enter the name of your new branch.")
             let formattedBranchName = branchName.formattedBranchName
-            let config = try configLoader.loadConfig(picker: picker)
+            let config = try configLoader.loadConfig()
             let manager = NewBranchManager(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
             
             if try shell.remoteExists(path: nil) {

@@ -26,7 +26,7 @@ struct DefaultContext: NnGitContext {
 
     /// Returns a loader for the application's git configuration.
     func makeConfigLoader() -> GitConfigLoader {
-        return DefaultGitConfigLoader()
+        return DefaultGitConfigLoader(picker: makePicker())
     }
 
     /// Provides the default branch loader for the repository.

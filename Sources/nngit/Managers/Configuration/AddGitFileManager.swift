@@ -12,10 +12,12 @@ import SwiftPicker
 struct AddGitFileManager {
     private let configLoader: GitConfigLoader
     private let fileCreator: GitFileCreator
+    private let picker: CommandLinePicker
     
-    init(configLoader: GitConfigLoader, fileCreator: GitFileCreator) {
+    init(configLoader: GitConfigLoader, fileCreator: GitFileCreator, picker: CommandLinePicker) {
         self.configLoader = configLoader
         self.fileCreator = fileCreator
+        self.picker = picker
     }
 }
 
@@ -27,12 +29,11 @@ extension AddGitFileManager {
         sourcePath: String?,
         fileName: String?,
         nickname: String?,
-        useDirectPath: Bool,
-        picker: CommandLinePicker
+        useDirectPath: Bool
     ) throws {
-        let resolvedSourcePath = try getSourcePath(sourcePath: sourcePath, picker: picker)
-        let resolvedFileName = try getFileName(fileName: fileName, sourcePath: resolvedSourcePath, picker: picker)
-        let resolvedNickname = try getNickname(nickname: nickname, fileName: resolvedFileName, picker: picker)
+        let resolvedSourcePath = try getSourcePath(sourcePath: sourcePath)
+        let resolvedFileName = try getFileName(fileName: fileName, sourcePath: resolvedSourcePath)
+        let resolvedNickname = try getNickname(nickname: nickname, fileName: resolvedFileName)
         
         let finalPath: String
         
@@ -42,8 +43,7 @@ extension AddGitFileManager {
         } else {
             finalPath = try copyToTemplatesDirectory(
                 sourcePath: resolvedSourcePath,
-                fileName: resolvedFileName,
-                picker: picker
+                fileName: resolvedFileName
             )
             print("Copied template to: \(finalPath)")
         }
@@ -64,7 +64,7 @@ extension AddGitFileManager {
 // MARK: - Interactive Input Resolution
 private extension AddGitFileManager {
     /// Gets the source path, prompting if not provided.
-    func getSourcePath(sourcePath: String?, picker: CommandLinePicker) throws -> String {
+    func getSourcePath(sourcePath: String?) throws -> String {
         if let sourcePath = sourcePath {
             guard FileManager.default.fileExists(atPath: sourcePath) else {
                 throw AddGitFileError.sourceFileNotFound(sourcePath)
@@ -81,7 +81,7 @@ private extension AddGitFileManager {
     }
     
     /// Gets the output filename, prompting with default if not provided.
-    func getFileName(fileName: String?, sourcePath: String, picker: CommandLinePicker) throws -> String {
+    func getFileName(fileName: String?, sourcePath: String) throws -> String {
         if let fileName = fileName {
             return fileName
         }
@@ -93,7 +93,7 @@ private extension AddGitFileManager {
     }
     
     /// Gets the nickname, prompting with default if not provided.
-    func getNickname(nickname: String?, fileName: String, picker: CommandLinePicker) throws -> String {
+    func getNickname(nickname: String?, fileName: String) throws -> String {
         if let nickname = nickname {
             return nickname
         }
@@ -106,8 +106,7 @@ private extension AddGitFileManager {
     /// Copies the source file to the templates directory and returns the final path.
     func copyToTemplatesDirectory(
         sourcePath: String,
-        fileName: String,
-        picker: CommandLinePicker
+        fileName: String
     ) throws -> String {
         return try fileCreator.copyToTemplatesDirectory(
             sourcePath: sourcePath,
@@ -119,7 +118,7 @@ private extension AddGitFileManager {
 
 
 // MARK: - Errors
-enum AddGitFileError: Error {
+enum AddGitFileError: Error, Equatable {
     case sourceFileNotFound(String)
     case templateDirectoryCreationFailed
     case fileCopyFailed(String)

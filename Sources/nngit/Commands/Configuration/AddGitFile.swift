@@ -40,15 +40,15 @@ extension Nngit {
             
             let manager = AddGitFileManager(
                 configLoader: configLoader,
-                fileCreator: fileCreator
+                fileCreator: fileCreator,
+                picker: picker
             )
             
             try manager.addGitFile(
                 sourcePath: sourcePath,
                 fileName: fileName,
                 nickname: nickname,
-                useDirectPath: useDirectPath,
-                picker: picker
+                useDirectPath: useDirectPath
             )
         }
     }

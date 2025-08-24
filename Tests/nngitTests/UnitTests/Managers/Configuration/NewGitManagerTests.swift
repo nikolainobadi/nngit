@@ -68,7 +68,7 @@ extension NewGitManagerTests {
 private extension NewGitManagerTests {
     func makeSUT(config: GitConfig = GitConfig.defaultConfig) -> (
         sut: NewGitManager,
-        configLoader: TestGitConfigLoader,
+        configLoader: MockGitConfigLoader,
         shell: MockShell,
         fileSystemManager: MockFileSystemManager
     ) {
@@ -76,7 +76,7 @@ private extension NewGitManagerTests {
         let picker = MockPicker(
             selectionResponses: ["Select template files to include:": 0]
         )
-        let configLoader = TestGitConfigLoader(config: config)
+        let configLoader = MockGitConfigLoader(customConfig: config)
         let fileSystemManager = MockFileSystemManager()
         
         let sut = NewGitManager(
@@ -96,28 +96,3 @@ private extension NewGitManagerTests {
     }
 }
 
-
-// MARK: - Test GitConfigLoader
-private class TestGitConfigLoader: GitConfigLoader {
-    private let config: GitConfig
-    
-    init(config: GitConfig) {
-        self.config = config
-    }
-    
-    func save(_ config: GitConfig) throws {
-        // Not needed for these tests
-    }
-    
-    func loadConfig() throws -> GitConfig {
-        return config
-    }
-    
-    func addGitFile(_ gitFile: GitFile) throws {
-        // Not needed for these tests
-    }
-    
-    func removeGitFile(named fileName: String) throws -> Bool {
-        return true
-    }
-}

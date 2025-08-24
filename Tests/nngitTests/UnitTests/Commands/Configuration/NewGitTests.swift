@@ -12,13 +12,8 @@ import GitShellKit
 import NnShellKit
 @testable import nngit
 
-final class NewGitTests {
-}
-
-
-// MARK: - Tests
 @MainActor
-extension NewGitTests {
+struct NewGitTests {
     @Test("Successfully initializes git repository when no git files are configured.")
     func initializeGitWithoutTemplateFiles() throws {
         let configLoader = MockGitConfigLoader()

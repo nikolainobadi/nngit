@@ -32,8 +32,6 @@ $ nngit switch-branch
 $ nngit new-push                   # Push new branch with safety checks
 $ nngit delete-branch -m           # Delete all merged branches (short flag)
 $ nngit delete-branch --all-merged # Delete all merged branches (long flag)
-$ nngit staging stage              # Interactive file staging
-$ nngit staging unstage            # Interactive file unstaging  
 $ nngit discard --files both       # Discard staged and unstaged changes
 $ nngit undo hard 2 --select       # Interactive selection of commits to hard reset
 $ nngit stop-tracking              # Stop tracking files matching gitignore patterns
@@ -54,22 +52,6 @@ $ nngit new-push                     # Push current branch with safety checks
 - Compares with default branch and warns if behind (with user confirmation)
 - Sets upstream tracking automatically
 - Prevents accidental pushes with clear error messages
-
-### Interactive Staging Workflow
-Use the staging commands to selectively stage or unstage files:
-
-```bash
-# Stage specific files interactively
-$ nngit staging stage
-# (shows list of unstaged/untracked files for multi-selection)
-
-# Unstage specific files interactively  
-$ nngit staging unstage
-# (shows list of staged files for multi-selection)
-
-# Default subcommand is 'stage'
-$ nngit staging  # same as 'nngit staging stage'
-```
 
 
 ### Undo Workflow
@@ -136,12 +118,12 @@ Sources/nngit/
 │   └── Configuration/        # Config management
 ├── Managers/                 # Business logic
 │   ├── Branch/               # Branch-related workflows (including NewPushManager)
-│   ├── FileOperations/       # File staging/unstaging/discarding/stop-tracking
+│   ├── FileOperations/       # File discarding/stop-tracking
 │   ├── Reset/                # Commit reset operations
 │   └── Utility/              # Utility functions
 ├── Commands/                 # CLI command definitions
 │   ├── Branch/               # Branch commands (NewBranch, SwitchBranch, DeleteBranch, NewPush)
-│   ├── FileOperations/       # File operation commands (Staging, Discard, StopTracking)
+│   ├── FileOperations/       # File operation commands (Discard, StopTracking)
 │   ├── Reset/                # Reset commands (Undo with soft/hard variants)
 │   └── Configuration/        # Config commands (EditConfig, AddGitFile, NewGit, NewRemote)
 ├── Errors/                   # Error definitions

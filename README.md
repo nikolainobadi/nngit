@@ -5,14 +5,13 @@
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ## Overview
-A command-line utility for managing Git branches and history. `nngit` offers helpers for creating, switching, and deleting branches, interactive file staging/unstaging, discarding local changes, and undoing commits.
+A command-line utility for managing Git branches and history. `nngit` offers helpers for creating, switching, and deleting branches, discarding local changes, and undoing commits.
 
 ## Features
 - Create branches with optional prefixes and issue numbers
 - Switch between local and remote branches
 - Delete merged branches with optional origin pruning (supports `-m` and `--all-merged` flags)
 - **Push new branches** with safety checks and upstream tracking
-- **Interactive file staging and unstaging** with multi-selection
 - Discard staged/unstaged changes with file selection options
 - **Enhanced undo commits** with soft/hard reset strategies, safety checks, and interactive selection
 - **Stop tracking files** that match gitignore patterns with interactive selection

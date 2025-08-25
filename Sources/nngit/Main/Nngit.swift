@@ -17,7 +17,7 @@ struct Nngit: ParsableCommand {
         version: "0.4.1",
         subcommands: [
             Discard.self, Undo.self, BranchDiff.self,
-            NewBranch.self, SwitchBranch.self, DeleteBranch.self, CheckoutRemote.self,
+            NewBranch.self, SwitchBranch.self, DeleteBranch.self, CheckoutRemote.self, NewPush.self,
             StopTracking.self,
             EditConfig.self, AddGitFile.self, NewGit.self, NewRemote.self
         ]

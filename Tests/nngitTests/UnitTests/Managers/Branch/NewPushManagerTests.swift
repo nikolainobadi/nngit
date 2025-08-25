@@ -92,6 +92,29 @@ struct NewPushManagerTests {
         #expect(picker.requiredPermissions.contains("⚠️  Warning: Your branch is 2 commit(s) behind 'main'. Consider rebasing before pushing to avoid potential conflicts. Continue with push anyway?"))
     }
     
+    @Test("Throws error when user denies push while behind default branch.")
+    func pushNewBranchBehindUserDenies() throws {
+        let permissionResponses = ["⚠️  Warning: Your branch is 3 commit(s) behind 'main'. Consider rebasing before pushing to avoid potential conflicts. Continue with push anyway?": false]
+        let results = [
+            "origin",           // checkForRemote (remote exists)
+            "feature-branch",   // getCurrentBranchName
+            "",                 // fetchOrigin
+            "",                 // listRemoteBranches
+            "",                 // getLocalChanges
+            "2\t3"              // compareBranchAndRemote (ahead 2, behind 3)
+            // No pushNewRemote - should not reach this step
+        ]
+        let (sut, shell, picker) = makeSUT(permissionResponses: permissionResponses, shellResults: results)
+        
+        #expect(throws: (any Error).self) {
+            try sut.pushNewBranch()
+        }
+        
+        #expect(shell.executedCommands.contains("git fetch origin"))
+        #expect(!shell.executedCommands.contains("git push -u origin feature-branch"))
+        #expect(picker.requiredPermissions.contains("⚠️  Warning: Your branch is 3 commit(s) behind 'main'. Consider rebasing before pushing to avoid potential conflicts. Continue with push anyway?"))
+    }
+    
     @Test("Pushes branch successfully when ahead of default branch.")
     func pushNewBranchAhead() throws {
         let results = [

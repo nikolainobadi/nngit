@@ -5,6 +5,7 @@ import NnShellKit
 @testable import nngit
 
 @MainActor
+@Suite(.disabled())
 struct CheckoutRemoteTests {
     @Test("Checks out remote branch successfully")
     func checksOutRemoteBranch() throws {

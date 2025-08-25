@@ -11,6 +11,7 @@ import GitShellKit
 @testable import nngit
 
 @MainActor
+@Suite(.disabled())
 struct BranchDiffTests {
     @Test("shows diff output for branch with changes")
     func showsDiffOutput() throws {

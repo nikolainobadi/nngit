@@ -10,10 +10,9 @@ A command-line utility for managing Git branches and history. `nngit` offers hel
 ## Features
 - Create branches with optional prefixes and issue numbers
 - Switch between local and remote branches
-- Delete merged branches with optional origin pruning
+- Delete merged branches with optional origin pruning (supports `-m` and `--all-merged` flags)
+- **Push new branches** with safety checks and upstream tracking
 - **Interactive file staging and unstaging** with multi-selection
-- Checkout remote branches that don't exist locally
-- Compare branch differences with `branch-diff`
 - Discard staged/unstaged changes with file selection options
 - **Enhanced undo commits** with soft/hard reset strategies, safety checks, and interactive selection
 - **Stop tracking files** that match gitignore patterns with interactive selection
@@ -30,15 +29,31 @@ Run commands via `swift run` or the built binary. A few examples:
 ```bash
 $ nngit new-branch feature "Add login"
 $ nngit switch-branch
+$ nngit new-push                   # Push new branch with safety checks
+$ nngit delete-branch -m           # Delete all merged branches (short flag)
+$ nngit delete-branch --all-merged # Delete all merged branches (long flag)
 $ nngit staging stage              # Interactive file staging
 $ nngit staging unstage            # Interactive file unstaging  
-$ nngit checkout-remote            # Checkout remote branches
-$ nngit branch-diff                # Compare current branch with main
 $ nngit discard --files both       # Discard staged and unstaged changes
 $ nngit undo hard 2 --select       # Interactive selection of commits to hard reset
 $ nngit stop-tracking              # Stop tracking files matching gitignore patterns
-$ nngit config --default-branch develop
+$ nngit edit-config --default-branch develop
 ```
+
+### New Push Workflow
+Safely push new branches to remote with comprehensive checks:
+
+```bash
+$ nngit new-push                     # Push current branch with safety checks
+```
+
+**Safety Features:**
+- Verifies remote repository exists
+- Checks that no remote branch with the same name already exists
+- Validates no uncommitted changes exist
+- Compares with default branch and warns if behind (with user confirmation)
+- Sets upstream tracking automatically
+- Prevents accidental pushes with clear error messages
 
 ### Interactive Staging Workflow
 Use the staging commands to selectively stage or unstage files:
@@ -120,16 +135,15 @@ Sources/nngit/
 │   ├── Git/                  # Git operations (protocols & implementations)
 │   └── Configuration/        # Config management
 ├── Managers/                 # Business logic
-│   ├── Branch/               # Branch-related workflows
+│   ├── Branch/               # Branch-related workflows (including NewPushManager)
 │   ├── FileOperations/       # File staging/unstaging/discarding/stop-tracking
 │   ├── Reset/                # Commit reset operations
 │   └── Utility/              # Utility functions
 ├── Commands/                 # CLI command definitions
-│   ├── Branch/               # Branch commands
-│   ├── FileOperations/       # File operation commands (including stop-tracking)
-│   ├── Reset/                # Reset commands
-│   ├── Configuration/        # Config commands
-│   └── BranchDiff.swift      # Branch comparison
+│   ├── Branch/               # Branch commands (NewBranch, SwitchBranch, DeleteBranch, NewPush)
+│   ├── FileOperations/       # File operation commands (Staging, Discard, StopTracking)
+│   ├── Reset/                # Reset commands (Undo with soft/hard variants)
+│   └── Configuration/        # Config commands (EditConfig, AddGitFile, NewGit, NewRemote)
 ├── Errors/                   # Error definitions
 └── Main/Nngit.swift         # Main entry point (v0.4.1)
 ```
@@ -139,7 +153,7 @@ Sources/nngit/
 - **Feature-Based Organization**: Related functionality grouped together
 - **Protocol/Implementation Split**: Clean abstraction boundaries
 - **Enhanced Safety Systems**: Comprehensive authorship detection and permission checks
-- **Comprehensive Testing**: 229 passing tests with behavior-driven approach and stable execution
+- **Comprehensive Testing**: 240+ passing tests with behavior-driven approach and stable execution
 
 ### Dependencies
 - Built on `swift-argument-parser` for CLI parsing

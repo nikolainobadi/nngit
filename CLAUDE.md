@@ -37,16 +37,15 @@ Sources/nngit/
 │       ├── Implementations/  # Config implementations (DefaultGitConfigLoader)
 │       └── Models/           # Config models (GitConfig, BranchPrefix)
 ├── Managers/                 # Business logic layer
-│   ├── Branch/               # Branch operations (SwitchBranchManager, DeleteBranchManager, etc.)
+│   ├── Branch/               # Branch operations (SwitchBranchManager, DeleteBranchManager, NewPushManager, etc.)
 │   ├── FileOperations/       # File handling (StageManager, UnstageManager, DiscardManager, StopTrackingManager)
 │   ├── Reset/                # Reset operations (SoftResetManager, HardResetManager)
 │   └── Utility/              # Utility functions (BranchDiffManager)
 ├── Commands/                 # CLI command definitions
-│   ├── Branch/               # Branch commands (NewBranch, SwitchBranch, DeleteBranch, CheckoutRemote)
-│   ├── FileOperations/       # File operation commands (Staging, Stage, Unstage, Discard, StopTracking)
-│   ├── Reset/                # Reset commands (Undo, SoftReset, HardReset)
-│   ├── Configuration/        # Config commands (EditConfig)
-│   └── BranchDiff.swift      # Branch comparison command
+│   ├── Branch/               # Branch commands (NewBranch, SwitchBranch, DeleteBranch, NewPush)
+│   ├── FileOperations/       # File operation commands (Staging, Discard, StopTracking)
+│   ├── Reset/                # Reset commands (Undo)
+│   └── Configuration/        # Config commands (EditConfig, AddGitFile, NewGit, NewRemote)
 ├── Errors/                   # Centralized error definitions
 └── Main/Nngit.swift         # Main entry point (v0.4.1)
 ```
@@ -65,18 +64,17 @@ Sources/nngit/
 
 #### Managers Layer
 Business logic components that coordinate complex workflows:
-- **Branch Managers**: Handle branch switching, deletion, creation, and remote checkout
+- **Branch Managers**: Handle branch switching, deletion, creation, and new push operations with safety checks
 - **File Operation Managers**: Manage staging, unstaging, and discarding of changes
 - **Reset Managers**: Coordinate commit reset operations with safety checks
 - **Utility Managers**: Provide specialized functions like branch diff generation
 
 #### Commands Layer
 CLI command definitions organized by feature area:
-- **Branch Commands**: User-facing branch operations
+- **Branch Commands**: User-facing branch operations including new push with safety checks
 - **File Operation Commands**: Interactive file staging/unstaging/discarding
 - **Reset Commands**: Commit undo operations with enhanced safety
-- **Configuration Commands**: Settings management
-- **Utility Commands**: Branch comparison and other utilities
+- **Configuration Commands**: Settings management and project setup
 
 ### Configuration System
 - Configuration stored at `~/.config/nngit/config.json`
@@ -112,7 +110,7 @@ Tests/nngitTests/
 
 **Testing Approach:**
 - **Behavior-driven**: Tests focus on public interfaces and expected behaviors
-- **Comprehensive Coverage**: 171 tests covering all major functionality
+- **Comprehensive Coverage**: 240+ tests covering all major functionality
 - **Enhanced Safety Testing**: Authorship validation with git username and email
 - **Permission Verification**: Reset operations include extensive safety checks
 - **Mock-based**: Clean separation using dependency injection for testability
@@ -144,9 +142,20 @@ Tests/nngitTests/
 - Stub loaders provide controlled test data
 - Tests use `@MainActor` when needed to ensure proper serialization
 - **Test Stability**: Fixed flaky tests through serialization (`.serialized` trait) and robust mock implementations
-- **Comprehensive Coverage**: 229 tests across all major functionality with stable execution
+- **Comprehensive Coverage**: 240+ tests across all major functionality with stable execution
 
 ### Key Workflows
+
+#### New Push Workflow
+The `NewPush` command (in `Commands/Branch/`) provides safe branch pushing with comprehensive checks:
+- Verifies remote repository exists before attempting push
+- Checks that no remote branch with same name already exists
+- Validates no uncommitted changes are present
+- Compares with default branch and prompts user if behind (with option to continue or cancel)
+- Sets upstream tracking automatically with `git push -u origin <branch>`
+- Uses `NewPushManager` (in `Managers/Branch/`) for business logic coordination
+- Includes comprehensive error handling with `NewPushError` enum
+- Supports all safety checks while maintaining clean user experience
 
 #### Branch Prefix Workflow
 Branch prefixes are stored in the configuration and can optionally require issue numbers. Prefixes support multiple issue prefixes (e.g., "FRA-", "RAPP-") and default values (e.g., "NO-JIRA"). The system combines prefix + issue prefix + issue number + description to generate branch names (e.g., `feature/FRA-42/add-login-screen`).

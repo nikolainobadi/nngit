@@ -104,8 +104,8 @@ struct DeleteBranchTests {
 
 
 
-    @Test("Deletes all merged branches with flag")
-    func deleteAllMerged() throws {
+    @Test("Deletes all merged branches with flag", arguments: ["-m", "--all-merged"])
+    func deleteAllMerged(allMergedFlag: String) throws {
         let deleteFoo = makeGitCommand(.deleteBranch(name: "foo", forced: false), path: nil)
         let deleteBar = makeGitCommand(.deleteBranch(name: "bar", forced: false), path: nil)
         let results = [
@@ -122,7 +122,7 @@ struct DeleteBranchTests {
         let configLoader = StubConfigLoader(initialConfig: .defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
-        try Nngit.testRun(context: context, args: ["delete-branch", "--all-merged"])
+        try Nngit.testRun(context: context, args: ["delete-branch", allMergedFlag])
 
         #expect(shell.executedCommands.contains(deleteFoo))
         #expect(shell.executedCommands.contains(deleteBar))

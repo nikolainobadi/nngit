@@ -16,7 +16,7 @@ extension Nngit {
             abstract: "Lists all available local branches, deletes the selected branches, and prunes the remote origin."
         )
 
-        @Flag(name: .long, help: "Delete all merged branches without prompting")
+        @Flag(name: [.customShort("m"), .customLong("all-merged")], help: "Delete all merged branches without prompting")
         var allMerged: Bool = false
 
         @Argument(help: "Name (or partial name) of the branch to delete")

@@ -10,6 +10,7 @@ import GitShellKit
 import NnShellKit
 @testable import nngit
 
+@Suite(.disabled())
 struct BranchDiffManagerTests {
     @Test("Successfully generates diff output between branches")
     func generateDiffSuccess() throws {

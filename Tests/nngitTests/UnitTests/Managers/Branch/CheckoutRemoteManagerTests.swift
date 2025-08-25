@@ -11,6 +11,7 @@ import SwiftPicker
 import GitShellKit
 @testable import nngit
 
+@Suite(.disabled())
 struct CheckoutRemoteManagerTests {
     @Test("Successfully checks out available remote branch")
     func executeCheckoutWorkflowSuccess() throws {

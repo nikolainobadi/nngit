@@ -12,7 +12,6 @@ import GitShellKit
 @testable import nngit
 
 @MainActor
-@Suite("SwitchBranch Tests", .serialized)
 struct SwitchBranchTests {
     @Test("switches without prompting when exact branch name is provided")
     func switchesExactMatch() throws {
@@ -21,7 +20,8 @@ struct SwitchBranchTests {
         let branch1 = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
         let branch2 = GitBranch(name: "dev", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         let branch3 = GitBranch(name: "feature", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
-        let loader = StubBranchLoader(localBranches: [branch1, branch2, branch3])
+        // Ensure consistent branch order by explicitly providing branch names
+        let loader = StubBranchLoader(localBranches: [branch1, branch2, branch3], branchNames: ["* main", "dev", "feature"])
         let shell = MockShell(results: [
             "true",  // localGitCheck  
             ""  // switchCmd

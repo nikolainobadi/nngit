@@ -1,5 +1,6 @@
 # nngit
 
+![Build Status](https://github.com/nikolainobadi/nngit/actions/workflows/ci.yml/badge.svg)
 ![Swift Version](https://badgen.net/badge/swift/6.0%2B/purple)
 ![Platform](https://img.shields.io/badge/platform-macOS%2014-blue)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -12,6 +13,8 @@ A command-line utility for managing Git branches and history. `nngit` offers hel
 - Switch between local and remote branches
 - Delete merged branches with optional origin pruning (supports `-m` and `--all-merged` flags)
 - **Push new branches** with safety checks and upstream tracking
+- **Git activity reporting** with colorized output and optional daily breakdowns
+- Stage and unstage files with interactive multi-selection
 - Discard staged/unstaged changes with file selection options
 - **Enhanced undo commits** with soft/hard reset strategies, safety checks, and interactive selection
 - **Stop tracking files** that match gitignore patterns with interactive selection
@@ -29,6 +32,10 @@ Run commands via `swift run` or the built binary. A few examples:
 $ nngit new-branch feature "Add login"
 $ nngit switch-branch
 $ nngit new-push                   # Push new branch with safety checks
+$ nngit activity --days 7          # Show Git activity for last 7 days
+$ nngit activity --days 30 --verbose # Activity with daily breakdown
+$ nngit staging stage              # Interactively stage files
+$ nngit staging unstage            # Interactively unstage files
 $ nngit delete-branch -m           # Delete all merged branches (short flag)
 $ nngit delete-branch --all-merged # Delete all merged branches (long flag)
 $ nngit discard --files both       # Discard staged and unstaged changes
@@ -52,6 +59,37 @@ $ nngit new-push                     # Push current branch with safety checks
 - Sets upstream tracking automatically
 - Prevents accidental pushes with clear error messages
 
+### Git Activity Reporting
+View Git activity statistics with colorized output and optional daily breakdowns:
+
+```bash
+$ nngit activity                     # Show today's activity (default: 1 day)
+$ nngit activity --days 7            # Show activity for last 7 days
+$ nngit activity --days 30 --verbose # Show 30-day activity with daily breakdown
+$ nngit activity --no-color          # Disable colored output
+```
+
+**Features:**
+- Colorized output using terminal colors (automatically disabled in CI/testing environments)
+- Daily breakdown for multi-day periods with `--verbose` flag
+- Statistics include: commits, files changed, lines added/deleted, total modifications
+- Intelligent singular/plural formatting based on counts
+- Comprehensive git log parsing with proper error handling
+- Respects `NO_COLOR` environment variable
+
+### Staging Workflow
+Interactively stage and unstage files with multi-selection:
+
+```bash
+$ nngit staging stage                # Select from unstaged/untracked files to stage
+$ nngit staging unstage              # Select from staged files to unstage
+```
+
+**Features:**
+- Multi-selection interface using arrow keys and space to select
+- Lists all relevant files (unstaged, untracked, or staged depending on command)
+- Executes individual git commands for each selected file
+- Clean, user-friendly selection process
 
 ### Undo Workflow
 Undo commits using soft or hard reset strategies with enhanced safety features:
@@ -117,13 +155,14 @@ Sources/nngit/
 │   └── Configuration/        # Config management
 ├── Managers/                 # Business logic
 │   ├── Branch/               # Branch-related workflows (including NewPushManager)
-│   ├── FileOperations/       # File discarding/stop-tracking
+│   ├── FileOperations/       # File staging/unstaging/discarding/stop-tracking
 │   ├── Reset/                # Commit reset operations
-│   └── Utility/              # Utility functions
+│   └── Utility/              # Utility functions (including GitActivityManager)
 ├── Commands/                 # CLI command definitions
 │   ├── Branch/               # Branch commands (NewBranch, SwitchBranch, DeleteBranch, NewPush)
-│   ├── FileOperations/       # File operation commands (Discard, StopTracking)
+│   ├── FileOperations/       # File operation commands (Staging, Discard, StopTracking)
 │   ├── Reset/                # Reset commands (Undo with soft/hard variants)
+│   ├── Utility/              # Utility commands (GitActivity)
 │   └── Configuration/        # Config commands (EditConfig, AddGitFile, NewGit, NewRemote)
 ├── Errors/                   # Error definitions
 └── Main/Nngit.swift         # Main entry point (v0.4.1)
@@ -134,7 +173,7 @@ Sources/nngit/
 - **Feature-Based Organization**: Related functionality grouped together
 - **Protocol/Implementation Split**: Clean abstraction boundaries
 - **Enhanced Safety Systems**: Comprehensive authorship detection and permission checks
-- **Comprehensive Testing**: 240+ passing tests with behavior-driven approach and stable execution
+- **Comprehensive Testing**: 250+ passing tests with behavior-driven approach and stable execution
 
 ### Dependencies
 - Built on `swift-argument-parser` for CLI parsing

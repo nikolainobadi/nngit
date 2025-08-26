@@ -216,4 +216,130 @@ struct GitActivityTests {
         #expect(output.contains("Lines Added: 3"))
         #expect(output.contains("Lines Deleted: 1"))
     }
+
+    @Test("Shows verbose output with daily breakdown for multiple days.")
+    func showsVerboseOutputWithDailyBreakdown() throws {
+        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
+        let gitLogOutput = """
+        a1b2c3d First commit 2025-08-25
+        2	1	file1.swift
+        
+        b4e5f6g Second commit 2025-08-25
+        1	0	file2.swift
+        
+        c7d8e9f Third commit 2025-08-24
+        3	2	file3.swift
+        """
+        let shell = MockShell(results: [
+            "true",  // localGitCheck
+            gitLogOutput
+        ])
+        let context = MockContext(shell: shell)
+
+        let output = try Nngit.testRun(context: context, args: ["activity", "--days", "3", "--verbose"])
+        
+        #expect(shell.executedCommands.contains(localGitCheck))
+        #expect(shell.executedCommands.contains("git log --since=\"3 days ago\" --pretty=format:\"%h %s %ad\" --date=short --numstat"))
+        #expect(output.contains("Git Activity Report (Last 3 Days):"))
+        #expect(output.contains("Commits: 3"))
+        #expect(output.contains("Files Changed: 3"))
+        #expect(output.contains("Lines Added: 6"))
+        #expect(output.contains("Lines Deleted: 3"))
+        #expect(output.contains("Daily Breakdown:"))
+        #expect(output.contains("2025-08-24: 1 commit, 1 file, +3/-2 lines"))
+        #expect(output.contains("2025-08-25: 2 commits, 2 files, +3/-1 lines"))
+    }
+
+    @Test("Prevents verbose flag when days equals 1.")
+    func preventsVerboseWithSingleDay() throws {
+        let shell = MockShell(results: ["true"])  // localGitCheck
+        let context = MockContext(shell: shell)
+
+        #expect {
+            _ = try Nngit.testRun(context: context, args: ["activity", "--verbose"])
+        } throws: { error in
+            return true
+        }
+    }
+
+    @Test("Prevents verbose flag when days explicitly set to 1.")
+    func preventsVerboseWithExplicitSingleDay() throws {
+        let shell = MockShell(results: ["true"])  // localGitCheck
+        let context = MockContext(shell: shell)
+
+        #expect {
+            _ = try Nngit.testRun(context: context, args: ["activity", "--days", "1", "--verbose"])
+        } throws: { error in
+            return true
+        }
+    }
+
+    @Test("Shows non-verbose output for multiple days without verbose flag.")
+    func showsNonVerboseOutputForMultipleDays() throws {
+        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
+        let gitLogOutput = """
+        a1b2c3d First commit
+        2	1	file1.swift
+        
+        b4e5f6g Second commit  
+        1	0	file2.swift
+        """
+        let shell = MockShell(results: [
+            "true",  // localGitCheck
+            gitLogOutput
+        ])
+        let context = MockContext(shell: shell)
+
+        let output = try Nngit.testRun(context: context, args: ["activity", "--days", "3"])
+        
+        #expect(shell.executedCommands.contains(localGitCheck))
+        #expect(shell.executedCommands.contains("git log --since=\"3 days ago\" --pretty=format:\"%h %s\" --numstat"))
+        #expect(output.contains("Git Activity Report (Last 3 Days):"))
+        #expect(output.contains("Commits: 2"))
+        #expect(!output.contains("Daily Breakdown:"))
+    }
+
+    @Test("Handles empty verbose output gracefully.")
+    func handlesEmptyVerboseOutput() throws {
+        let shell = MockShell(results: [
+            "true",  // localGitCheck
+            ""       // empty git log output
+        ])
+        let context = MockContext(shell: shell)
+
+        let output = try Nngit.testRun(context: context, args: ["activity", "--days", "7", "--verbose"])
+        
+        #expect(output.contains("Git Activity Report (Last 7 Days):"))
+        #expect(output.contains("Commits: 0"))
+        #expect(!output.contains("Daily Breakdown:"))
+    }
+
+    @Test("Sorts daily breakdown by date.")
+    func sortsDailyBreakdownByDate() throws {
+        let gitLogOutput = """
+        a1b2c3d Latest commit 2025-08-26
+        1	0	file1.swift
+        
+        b4e5f6g Middle commit 2025-08-25
+        2	1	file2.swift
+        
+        c7d8e9f Earliest commit 2025-08-24
+        1	1	file3.swift
+        """
+        let shell = MockShell(results: [
+            "true",  // localGitCheck
+            gitLogOutput
+        ])
+        let context = MockContext(shell: shell)
+
+        let output = try Nngit.testRun(context: context, args: ["activity", "--days", "5", "--verbose"])
+        
+        let lines = output.split(separator: "\n").map(String.init)
+        let dailyLines = lines.filter { $0.contains("2025-08-") }
+        
+        #expect(dailyLines.count == 3)
+        #expect(dailyLines[0].contains("2025-08-24"))
+        #expect(dailyLines[1].contains("2025-08-25"))
+        #expect(dailyLines[2].contains("2025-08-26"))
+    }
 }

@@ -27,7 +27,7 @@ extension NewRemoteManager {
     func initializeGitHubRemote(visibility: RepoVisibility? = nil) throws {
         try verifyPrerequisites()
         
-        let currentBranch = try shell.runGitCommandWithOutput(.getCurrentBranchName, path: nil)
+        let currentBranch = try getCurrentBranch()
         
         if currentBranch != "main" {
             try handleNonMainBranch(currentBranch)
@@ -146,6 +146,26 @@ private extension NewRemoteManager {
 
 // MARK: - Repository Operations
 private extension NewRemoteManager {
+    /// Gets the current branch name, handling fresh repositories without HEAD.
+    func getCurrentBranch() throws -> String {
+        if headExists() {
+            return try shell.runGitCommandWithOutput(.getCurrentBranchName, path: nil)
+        } else {
+            // In fresh repositories without commits, default to "main"
+            return "main"
+        }
+    }
+    
+    /// Checks if HEAD exists (i.e., if there are any commits in the repository).
+    func headExists() -> Bool {
+        do {
+            _ = try shell.runWithOutput("git rev-parse --verify HEAD")
+            return true
+        } catch {
+            return false
+        }
+    }
+    
     /// Gets the current directory name to use as repository name.
     func getCurrentDirectoryName() throws -> String {
         let currentPath = try shell.runWithOutput("pwd")

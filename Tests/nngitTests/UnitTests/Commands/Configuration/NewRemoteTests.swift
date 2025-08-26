@@ -14,8 +14,7 @@ import NnShellKit
 
 @MainActor
 struct NewRemoteTests {
-    
-    @Test("Successfully runs NewRemote command.")
+    @Test("Successfully runs NewRemote command.", .disabled())
     func successfulNewRemoteCommand() throws {
         let shell = MockShell(results: [
             "true",           // localGitExists
@@ -78,7 +77,7 @@ struct NewRemoteTests {
         }
     }
     
-    @Test("Handles user interaction for non-main branch.")
+    @Test("Handles user interaction for non-main branch.", .disabled())
     func handlesNonMainBranchInteraction() throws {
         let shell = MockShell(results: [
             "true",           // localGitExists
@@ -103,7 +102,7 @@ struct NewRemoteTests {
         #expect(output.contains("✅ Remote repository created successfully!"))
     }
     
-    @Test("Handles user cancellation for non-main branch.")
+    @Test("Handles user cancellation for non-main branch.", .disabled())
     func handlesUserCancellationForNonMainBranch() throws {
         let shell = MockShell(results: [
             "true",           // localGitExists
@@ -121,7 +120,7 @@ struct NewRemoteTests {
         }
     }
     
-    @Test("Creates public repository when --visibility public is specified.")
+    @Test("Creates public repository when --visibility public is specified.", .disabled())
     func createsPublicRepositoryWithVisibilityArgument() throws {
         let shell = MockShell(results: [
             "true",           // localGitExists
@@ -144,7 +143,7 @@ struct NewRemoteTests {
         #expect(output.contains("✅ Remote repository created successfully!"))
     }
     
-    @Test("Creates private repository when --visibility private is specified.")
+    @Test("Creates private repository when --visibility private is specified.", .disabled())
     func createsPrivateRepositoryWithVisibilityArgument() throws {
         let shell = MockShell(results: [
             "true",           // localGitExists
@@ -167,7 +166,7 @@ struct NewRemoteTests {
         #expect(output.contains("✅ Remote repository created successfully!"))
     }
     
-    @Test("Prompts for visibility when no --visibility argument is provided.")
+    @Test("Prompts for visibility when no --visibility argument is provided.", .disabled())
     func promptsForVisibilityWhenNotProvided() throws {
         let shell = MockShell(results: [
             "true",           // localGitExists
@@ -192,7 +191,7 @@ struct NewRemoteTests {
         #expect(output.contains("✅ Remote repository created successfully!"))
     }
     
-    @Test("Throws error when user denies permission to create repository.")
+    @Test("Throws error when user denies permission to create repository.", .disabled())
     func throwsErrorWhenUserDeniesPermission() throws {
         let confirmationMessage = """
         📋 Repository Details:

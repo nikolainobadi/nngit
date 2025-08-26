@@ -33,11 +33,13 @@ extension Nngit {
             let manager = GitActivityManager(shell: shell)
             let report = try manager.generateActivityReport(days: days, verbose: verbose)
             
+            print("")
             if shouldUseColor {
                 print(colorizeOutput(report))
             } else {
                 print(report)
             }
+            print("")
         }
     }
 }

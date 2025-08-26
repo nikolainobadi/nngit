@@ -40,11 +40,12 @@ Sources/nngit/
 │   ├── Branch/               # Branch operations (SwitchBranchManager, DeleteBranchManager, NewPushManager, etc.)
 │   ├── FileOperations/       # File handling (StageManager, UnstageManager, DiscardManager, StopTrackingManager)
 │   ├── Reset/                # Reset operations (SoftResetManager, HardResetManager)
-│   └── Utility/              # Utility functions (BranchDiffManager)
+│   └── Utility/              # Utility functions (BranchDiffManager, GitActivityManager)
 ├── Commands/                 # CLI command definitions
 │   ├── Branch/               # Branch commands (NewBranch, SwitchBranch, DeleteBranch, NewPush)
 │   ├── FileOperations/       # File operation commands (Staging, Discard, StopTracking)
 │   ├── Reset/                # Reset commands (Undo)
+│   ├── Utility/              # Utility commands (GitActivity)
 │   └── Configuration/        # Config commands (EditConfig, AddGitFile, NewGit, NewRemote)
 ├── Errors/                   # Centralized error definitions
 └── Main/Nngit.swift         # Main entry point (v0.4.1)
@@ -67,13 +68,14 @@ Business logic components that coordinate complex workflows:
 - **Branch Managers**: Handle branch switching, deletion, creation, and new push operations with safety checks
 - **File Operation Managers**: Manage staging, unstaging, and discarding of changes
 - **Reset Managers**: Coordinate commit reset operations with safety checks
-- **Utility Managers**: Provide specialized functions like branch diff generation
+- **Utility Managers**: Provide specialized functions like branch diff generation and Git activity reporting
 
 #### Commands Layer
 CLI command definitions organized by feature area:
 - **Branch Commands**: User-facing branch operations including new push with safety checks
 - **File Operation Commands**: Interactive file staging/unstaging/discarding
 - **Reset Commands**: Commit undo operations with enhanced safety
+- **Utility Commands**: Git activity reporting with colorized output and daily breakdowns
 - **Configuration Commands**: Settings management and project setup
 
 ### Configuration System
@@ -110,7 +112,7 @@ Tests/nngitTests/
 
 **Testing Approach:**
 - **Behavior-driven**: Tests focus on public interfaces and expected behaviors
-- **Comprehensive Coverage**: 240+ tests covering all major functionality
+- **Comprehensive Coverage**: 250+ tests covering all major functionality
 - **Enhanced Safety Testing**: Authorship validation with git username and email
 - **Permission Verification**: Reset operations include extensive safety checks
 - **Mock-based**: Clean separation using dependency injection for testability
@@ -142,7 +144,7 @@ Tests/nngitTests/
 - Stub loaders provide controlled test data
 - Tests use `@MainActor` when needed to ensure proper serialization
 - **Test Stability**: Fixed flaky tests through serialization (`.serialized` trait) and robust mock implementations
-- **Comprehensive Coverage**: 240+ tests across all major functionality with stable execution
+- **Comprehensive Coverage**: 250+ tests across all major functionality with stable execution
 
 ### Key Workflows
 
@@ -187,6 +189,17 @@ The `StopTracking` command (in `Commands/FileOperations/`) helps manage gitignor
 - Leverages `DefaultGitFileTracker` (in `Services/Git/Implementations/`) for file pattern matching
 - Executes `git rm --cached` commands with proper file path escaping
 
+#### GitActivity Workflow
+The `GitActivity` command (in `Commands/Utility/`) provides Git activity reporting with colorized output:
+- Shows commits, files changed, lines added/deleted, and total modifications for specified time periods
+- Default period is 1 day (today), with `--days` flag for custom periods
+- `--verbose` flag provides daily breakdown for multi-day periods (not allowed for single day)
+- Colorized output using SwiftPicker's ANSITerminal extensions (.cyan.bold, .green.bold, etc.)
+- Respects `NO_COLOR` environment variable and includes `--no-color` flag
+- Uses `GitActivityManager` (in `Managers/Utility/`) for business logic coordination
+- Comprehensive git log parsing with proper error handling and validation
+- Includes comprehensive error definitions with `GitActivityError` enum
+- Enhanced with empty line padding for better visual presentation
 
 ## Development Notes
 

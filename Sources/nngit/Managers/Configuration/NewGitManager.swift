@@ -39,8 +39,8 @@ extension NewGitManager {
         
         let selectedFiles = try selectGitFiles(from: config.gitFiles)
         
-        try initializeGit()
         try copySelectedFiles(selectedFiles)
+        try initializeGit()
         
         print("✅ Git repository initialized with \(selectedFiles.count) template file(s)")
     }

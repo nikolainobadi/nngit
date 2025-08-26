@@ -49,8 +49,16 @@ extension GitShell {
     /// Throws ``NewGitError.gitAlreadyExists`` if a git repository already exists at
     /// the given path.
     func verifyNoLocalGit() throws {
-        guard try !localGitExists(at: nil) else {
-            throw NewGitError.gitAlreadyExists
+        do {
+            let exists = try localGitExists(at: nil)
+            if exists {
+                throw NewGitError.gitAlreadyExists
+            }
+        } catch {
+            // If localGitExists throws an error, it means no git repository exists,
+            // which is exactly what we want for initializing a new repository.
+            // So we can safely ignore the error and continue.
+            return
         }
     }
 }

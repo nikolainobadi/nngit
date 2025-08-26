@@ -21,8 +21,18 @@ private extension Nngit {
         let originalStdout = dup(STDOUT_FILENO)
         dup2(writeHandle.fileDescriptor, STDOUT_FILENO)
 
-        var command = try Self.parseAsRoot(args)
-        try command.run()
+        do {
+            var command = try Self.parseAsRoot(args)
+            try command.run()
+        } catch {
+            // Restore stdout before rethrowing
+            fflush(stdout)
+            dup2(originalStdout, STDOUT_FILENO)
+            close(originalStdout)
+            writeHandle.closeFile()
+            readHandle.closeFile()
+            throw error
+        }
 
         fflush(stdout)
         dup2(originalStdout, STDOUT_FILENO)

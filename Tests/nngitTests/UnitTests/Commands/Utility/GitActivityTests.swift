@@ -31,7 +31,7 @@ struct GitActivityTests {
         ])
         let context = MockContext(shell: shell)
 
-        let output = try Nngit.testRun(context: context, args: ["activity"])
+        let output = try runCommand(context: context)
         
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(shell.executedCommands.contains("git log --since=\"midnight\" --pretty=format:\"%h %s\" --numstat"))
@@ -59,7 +59,7 @@ struct GitActivityTests {
         ])
         let context = MockContext(shell: shell)
 
-        let output = try Nngit.testRun(context: context, args: ["activity", "--days", "7"])
+        let output = try runCommand(context: context, additionalArgs: ["--days", "7"])
         
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(shell.executedCommands.contains("git log --since=\"7 days ago\" --pretty=format:\"%h %s\" --numstat"))
@@ -79,7 +79,7 @@ struct GitActivityTests {
         ])
         let context = MockContext(shell: shell)
 
-        let output = try Nngit.testRun(context: context, args: ["activity"])
+        let output = try runCommand(context: context)
         
         #expect(output.contains("Git Activity Report (Last 1 Day):"))
         #expect(output.contains("Commits: 0"))
@@ -105,7 +105,7 @@ struct GitActivityTests {
         ])
         let context = MockContext(shell: shell)
 
-        let output = try Nngit.testRun(context: context, args: ["activity"])
+        let output = try runCommand(context: context)
         
         #expect(output.contains("Commits: 2"))
         #expect(output.contains("Files Changed: 3"))
@@ -122,7 +122,7 @@ struct GitActivityTests {
         ])
         let context = MockContext(shell: shell)
 
-        let output = try Nngit.testRun(context: context, args: ["activity", "--days", "1"])
+        let output = try runCommand(context: context, additionalArgs: ["--days", "1"])
         
         #expect(output.contains("Git Activity Report (Last 1 Day):"))
     }
@@ -135,7 +135,7 @@ struct GitActivityTests {
         ])
         let context = MockContext(shell: shell)
 
-        let output = try Nngit.testRun(context: context, args: ["activity", "--days", "30"])
+        let output = try runCommand(context: context, additionalArgs: ["--days", "30"])
         
         #expect(output.contains("Git Activity Report (Last 30 Days):"))
     }
@@ -152,7 +152,7 @@ struct GitActivityTests {
         ])
         let context = MockContext(shell: shell)
 
-        let output = try Nngit.testRun(context: context, args: ["activity"])
+        let output = try runCommand(context: context)
         
         #expect(output.contains("Commit: 1"))
         #expect(output.contains("File Changed: 1"))
@@ -173,7 +173,7 @@ struct GitActivityTests {
         ])
         let context = MockContext(shell: shell)
 
-        let output = try Nngit.testRun(context: context, args: ["activity"])
+        let output = try runCommand(context: context)
         
         #expect(output.contains("Commits: 2"))
         #expect(output.contains("Files Changed: 2"))
@@ -186,7 +186,7 @@ struct GitActivityTests {
 
         // Note: This test verifies runtime validation, not ArgumentParser validation
         #expect {
-            _ = try Nngit.testRun(context: context, args: ["activity", "--days", "0"])
+            _ = try runCommand(context: context, additionalArgs: ["--days", "0"])
         } throws: { error in
             // Any error thrown indicates validation worked
             return true
@@ -209,7 +209,7 @@ struct GitActivityTests {
         ])
         let context = MockContext(shell: shell)
 
-        let output = try Nngit.testRun(context: context, args: ["activity"])
+        let output = try runCommand(context: context)
         
         #expect(output.contains("Commit: 1"))
         #expect(output.contains("File Changed: 1"))
@@ -236,7 +236,7 @@ struct GitActivityTests {
         ])
         let context = MockContext(shell: shell)
 
-        let output = try Nngit.testRun(context: context, args: ["activity", "--days", "3", "--verbose"])
+        let output = try runCommand(context: context, additionalArgs: ["--days", "3", "--verbose"])
         
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(shell.executedCommands.contains("git log --since=\"3 days ago\" --pretty=format:\"%h %s %ad\" --date=short --numstat"))
@@ -256,7 +256,7 @@ struct GitActivityTests {
         let context = MockContext(shell: shell)
 
         #expect {
-            _ = try Nngit.testRun(context: context, args: ["activity", "--verbose"])
+            _ = try runCommand(context: context, additionalArgs: ["--verbose"])
         } throws: { error in
             return true
         }
@@ -268,7 +268,7 @@ struct GitActivityTests {
         let context = MockContext(shell: shell)
 
         #expect {
-            _ = try Nngit.testRun(context: context, args: ["activity", "--days", "1", "--verbose"])
+            _ = try runCommand(context: context, additionalArgs: ["--days", "1", "--verbose"])
         } throws: { error in
             return true
         }
@@ -290,7 +290,7 @@ struct GitActivityTests {
         ])
         let context = MockContext(shell: shell)
 
-        let output = try Nngit.testRun(context: context, args: ["activity", "--days", "3"])
+        let output = try runCommand(context: context, additionalArgs: ["--days", "3"])
         
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(shell.executedCommands.contains("git log --since=\"3 days ago\" --pretty=format:\"%h %s\" --numstat"))
@@ -307,7 +307,7 @@ struct GitActivityTests {
         ])
         let context = MockContext(shell: shell)
 
-        let output = try Nngit.testRun(context: context, args: ["activity", "--days", "7", "--verbose"])
+        let output = try runCommand(context: context, additionalArgs: ["--days", "7", "--verbose"])
         
         #expect(output.contains("Git Activity Report (Last 7 Days):"))
         #expect(output.contains("Commits: 0"))
@@ -332,7 +332,7 @@ struct GitActivityTests {
         ])
         let context = MockContext(shell: shell)
 
-        let output = try Nngit.testRun(context: context, args: ["activity", "--days", "5", "--verbose"])
+        let output = try runCommand(context: context, additionalArgs: ["--days", "5", "--verbose"])
         
         let lines = output.split(separator: "\n").map(String.init)
         let dailyLines = lines.filter { $0.contains("2025-08-") }
@@ -341,5 +341,13 @@ struct GitActivityTests {
         #expect(dailyLines[0].contains("2025-08-24"))
         #expect(dailyLines[1].contains("2025-08-25"))
         #expect(dailyLines[2].contains("2025-08-26"))
+    }
+}
+
+
+// MARK: - Run
+private extension GitActivityTests {
+    func runCommand(context: MockContext, additionalArgs: [String] = []) throws -> String {
+        return try Nngit.testRun(context: context, args: ["activity", "--no-color"] + additionalArgs)
     }
 }

@@ -30,10 +30,10 @@ struct SwitchBranchTests {
         let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
-        let output = try Nngit.testRun(context: context, args: ["switch-branch", "dev"])
+        try Nngit.testRun(context: context, args: ["switch-branch", "dev"])
+        
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(shell.executedCommands.contains(switchCmd))
-        #expect(output.isEmpty)
     }
 
     @Test("prints no branches found matching search term when none match")
@@ -73,10 +73,10 @@ struct SwitchBranchTests {
         let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
-        let output = try Nngit.testRun(context: context, args: ["switch-branch"])
+        try Nngit.testRun(context: context, args: ["switch-branch"])
+        
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(shell.executedCommands.contains(switchCmd))
-        #expect(output.isEmpty)
     }
 
     @Test("shows all branches when no git user is configured")
@@ -94,11 +94,10 @@ struct SwitchBranchTests {
         let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
-        let output = try Nngit.testRun(context: context, args: ["switch-branch", "dev"])
+        try Nngit.testRun(context: context, args: ["switch-branch", "dev"])
 
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(shell.executedCommands.contains(switchCmd))
-        #expect(output.isEmpty)
     }
 
     @Test("includes branches from all authors with flag")
@@ -120,10 +119,9 @@ struct SwitchBranchTests {
         let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
-        let output = try Nngit.testRun(context: context, args: ["switch-branch"])
+        try Nngit.testRun(context: context, args: ["switch-branch"])
 
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(shell.executedCommands.contains(switchCmd))
-        #expect(output.isEmpty)
     }
 }

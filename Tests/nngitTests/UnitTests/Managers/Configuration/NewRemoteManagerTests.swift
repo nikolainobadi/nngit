@@ -43,7 +43,7 @@ struct NewRemoteManagerTests {
         #expect(shell.executedCommands.contains("git push -u origin main"))
     }
     
-    @Test("Successfully creates remote repository for fresh repository without HEAD.", .disabled())
+    @Test("Successfully creates remote repository for fresh repository without HEAD.")
     func successfulRemoteCreationWithoutHead() throws {
         let results = [
             "true",           // localGitExists check (verifyLocalGitExists)
@@ -103,7 +103,7 @@ struct NewRemoteManagerTests {
         }
     }
     
-    @Test("Prompts user when current branch is not main.", .disabled())
+    @Test("Prompts user when current branch is not main.")
     func promptsUserForNonMainBranch() throws {
         let selectionResponses = [
             "Current branch is 'feature-branch', not 'main'. Create remote repository with this branch?": 0
@@ -112,6 +112,7 @@ struct NewRemoteManagerTests {
             "true",           // localGitExists
             "/usr/bin/gh",    // which gh
             "",               // checkForRemote (no remote)
+            "HEAD",           // git rev-parse --verify HEAD (headExists)
             "feature-branch", // getCurrentBranchName (not main)
             "/Users/test/project", // pwd
             "testuser",       // gh api user
@@ -127,7 +128,7 @@ struct NewRemoteManagerTests {
         #expect(shell.executedCommands.contains("git push -u origin feature-branch"))
     }
     
-    @Test("Throws error when user cancels non-main branch creation.", .disabled())
+    @Test("Throws error when user cancels non-main branch creation.")
     func throwsErrorWhenUserCancelsNonMainBranch() throws {
         let selectionResponses = [
             "Current branch is 'feature-branch', not 'main'. Create remote repository with this branch?": 1
@@ -136,6 +137,7 @@ struct NewRemoteManagerTests {
             "true",           // localGitExists
             "/usr/bin/gh",    // which gh
             "",               // checkForRemote
+            "HEAD",           // git rev-parse --verify HEAD (headExists)
             "feature-branch"  // getCurrentBranchName
         ]
         let (sut, _) = makeSUT(selectionResponses: selectionResponses, results: results)
@@ -151,6 +153,7 @@ struct NewRemoteManagerTests {
             "true",        // localGitExists
             "/usr/bin/gh", // which gh
             "",            // checkForRemote
+            "HEAD",        // git rev-parse --verify HEAD (headExists)
             "main",        // getCurrentBranchName
             "/"            // pwd - root directory with no name
         ])
@@ -166,6 +169,7 @@ struct NewRemoteManagerTests {
             "true",                   // localGitExists
             "/usr/bin/gh",           // which gh
             "",                      // checkForRemote
+            "HEAD",                  // git rev-parse --verify HEAD (headExists)
             "main",                  // getCurrentBranchName
             "/Users/test/project"    // pwd
         ], shouldThrowShellError: true) // gh api user will throw
@@ -175,12 +179,13 @@ struct NewRemoteManagerTests {
         }
     }
     
-    @Test("Creates public repository when visibility is specified.", .disabled())
+    @Test("Creates public repository when visibility is specified.")
     func createsPublicRepositoryWhenVisibilitySpecified() throws {
         let results = [
             "true",           // localGitExists
             "/usr/bin/gh",    // which gh
             "",               // checkForRemote
+            "HEAD",           // git rev-parse --verify HEAD (headExists)
             "main",           // getCurrentBranchName
             "/Users/test/project", // pwd
             "testuser",       // gh api user
@@ -196,12 +201,13 @@ struct NewRemoteManagerTests {
         #expect(shell.executedCommands.contains("gh repo create project --public -d 'Repository created via nngit'"))
     }
     
-    @Test("Creates private repository when visibility is specified.", .disabled())
+    @Test("Creates private repository when visibility is specified.")
     func createsPrivateRepositoryWhenVisibilitySpecified() throws {
         let results = [
             "true",           // localGitExists
             "/usr/bin/gh",    // which gh
             "",               // checkForRemote
+            "HEAD",           // git rev-parse --verify HEAD (headExists)
             "main",           // getCurrentBranchName
             "/Users/test/project", // pwd
             "testuser",       // gh api user
@@ -217,7 +223,7 @@ struct NewRemoteManagerTests {
         #expect(shell.executedCommands.contains("gh repo create project --private -d 'Repository created via nngit'"))
     }
     
-    @Test("Prompts for visibility when not specified and creates repository accordingly.", .disabled())
+    @Test("Prompts for visibility when not specified and creates repository accordingly.")
     func promptsForVisibilityWhenNotSpecified() throws {
         let selectionResponses = [
             "Select repository visibility:": 1  // "Public"
@@ -226,6 +232,7 @@ struct NewRemoteManagerTests {
             "true",           // localGitExists
             "/usr/bin/gh",    // which gh
             "",               // checkForRemote
+            "HEAD",           // git rev-parse --verify HEAD (headExists)
             "main",           // getCurrentBranchName
             "/Users/test/project", // pwd
             "testuser",       // gh api user
@@ -241,12 +248,13 @@ struct NewRemoteManagerTests {
         #expect(shell.executedCommands.contains("gh repo create project --public -d 'Repository created via nngit'"))
     }
     
-    @Test("Prompts user to confirm repository details before creation.", .disabled())
+    @Test("Prompts user to confirm repository details before creation.")
     func promptsUserToConfirmRepositoryDetails() throws {
         let results = [
             "true",           // localGitExists
             "/usr/bin/gh",    // which gh
             "",               // checkForRemote
+            "HEAD",           // git rev-parse --verify HEAD (headExists)
             "main",           // getCurrentBranchName
             "/Users/test/project", // pwd
             "testuser",       // gh api user
@@ -268,7 +276,7 @@ struct NewRemoteManagerTests {
         #expect(confirmationPrompt.contains("Private"))
     }
     
-    @Test("Throws error when user denies permission to create repository.", .disabled())
+    @Test("Throws error when user denies permission to create repository.")
     func throwsErrorWhenUserDeniesPermission() throws {
         let confirmationMessage = """
         📋 Repository Details:
@@ -286,6 +294,7 @@ struct NewRemoteManagerTests {
             "true",           // localGitExists
             "/usr/bin/gh",    // which gh
             "",               // checkForRemote
+            "HEAD",           // git rev-parse --verify HEAD (headExists)
             "main",           // getCurrentBranchName
             "/Users/test/project", // pwd
             "testuser"        // gh api user

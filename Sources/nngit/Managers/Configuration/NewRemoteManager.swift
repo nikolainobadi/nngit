@@ -159,8 +159,8 @@ private extension NewRemoteManager {
     /// Checks if HEAD exists (i.e., if there are any commits in the repository).
     func headExists() -> Bool {
         do {
-            _ = try shell.runWithOutput("git rev-parse --verify HEAD")
-            return true
+            let result = try shell.runWithOutput("git rev-parse --verify HEAD")
+            return !result.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         } catch {
             return false
         }

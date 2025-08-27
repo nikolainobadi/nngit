@@ -100,6 +100,9 @@ private extension NewGitManager {
                 print("⏭️  Skipped \(destinationPath)")
                 return
             }
+            
+            // Remove existing file before copying
+            try fileSystemManager.removeItem(atPath: destinationPath)
         }
         
         try fileSystemManager.copyItem(atPath: sourcePath, toPath: destinationPath)

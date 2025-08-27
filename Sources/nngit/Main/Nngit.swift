@@ -14,7 +14,7 @@ import ArgumentParser
 struct Nngit: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "A utility for working with Git.",
-        version: "v0.5.1",
+        version: "v0.5.2",
         subcommands: [
             Discard.self, Undo.self, GitActivity.self,
 //            BranchDiff.self, CheckoutRemote.self,

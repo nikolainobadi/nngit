@@ -29,9 +29,10 @@ struct NewGitTests {
         )
         
         #expect(output.contains("No template files configured"))
-        #expect(output.contains("📁 Initialized empty Git repository"))
-        #expect(shell.executedCommands.count >= 1)
+        #expect(shell.executedCommands.count >= 3)
         #expect(shell.executedCommands.contains("git init"))
+        #expect(shell.executedCommands.contains("git add ."))
+        #expect(shell.executedCommands.contains("git commit -m \"Initial commit from nngit\""))
     }
     
     @Test("Creates GitHub remote when user accepts prompt after git initialization.")
@@ -39,6 +40,8 @@ struct NewGitTests {
         let configLoader = MockGitConfigLoader()
         let shell = MockShell(results: [
             "", "Initialized empty Git repository",  // git init results
+            "",               // git add .
+            "",               // git commit
             "true",           // localGitExists (for NewRemoteManager)
             "/usr/bin/gh",    // which gh
             "",               // checkForRemote
@@ -73,9 +76,10 @@ struct NewGitTests {
             args: ["new-git"]
         )
         
-        #expect(output.contains("📁 Initialized empty Git repository"))
         #expect(output.contains("✅ Remote repository created successfully!"))
         #expect(shell.executedCommands.contains("git init"))
+        #expect(shell.executedCommands.contains("git add ."))
+        #expect(shell.executedCommands.contains("git commit -m \"Initial commit from nngit\""))
         #expect(shell.executedCommands.contains("which gh"))
     }
 }

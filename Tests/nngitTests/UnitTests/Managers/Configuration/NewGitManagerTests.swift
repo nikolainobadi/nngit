@@ -39,6 +39,8 @@ extension NewGitManagerTests {
         try sut.initializeGitRepository()
         
         #expect(shell.executedCommands.contains("git init"))
+        #expect(shell.executedCommands.contains("git add ."))
+        #expect(shell.executedCommands.contains("git commit -m \"Initial commit from nngit\""))
     }
     
     @Test("Successfully initializes git with template files when files are configured.")
@@ -55,6 +57,8 @@ extension NewGitManagerTests {
         try sut.initializeGitRepository()
         
         #expect(shell.executedCommands.contains("git init"))
+        #expect(shell.executedCommands.contains("git add ."))
+        #expect(shell.executedCommands.contains("git commit -m \"Initial commit from nngit\""))
         
         // Verify file was copied
         #expect(fileSystemManager.copiedFiles.count == 1)
@@ -82,6 +86,8 @@ extension NewGitManagerTests {
         try sut.initializeGitRepository()
         
         #expect(shell.executedCommands.contains("git init"))
+        #expect(shell.executedCommands.contains("git add ."))
+        #expect(shell.executedCommands.contains("git commit -m \"Initial commit from nngit\""))
         
         // Verify the existing file was removed before copying
         #expect(fileSystemManager.removedFiles.count == 1)
@@ -113,6 +119,8 @@ extension NewGitManagerTests {
         try sut.initializeGitRepository()
         
         #expect(shell.executedCommands.contains("git init"))
+        #expect(shell.executedCommands.contains("git add ."))
+        #expect(shell.executedCommands.contains("git commit -m \"Initial commit from nngit\""))
         
         // Verify no file was removed or copied
         #expect(fileSystemManager.removedFiles.isEmpty)

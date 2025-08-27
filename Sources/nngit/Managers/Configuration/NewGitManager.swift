@@ -41,8 +41,6 @@ extension NewGitManager {
         
         try copySelectedFiles(selectedFiles)
         try initializeGit()
-        
-        print("✅ Git repository initialized with \(selectedFiles.count) template file(s)")
     }
 }
 
@@ -51,8 +49,9 @@ extension NewGitManager {
 private extension NewGitManager {
     /// Initializes a new Git repository in the current directory.
     func initializeGit() throws {
-        _ = try shell.runWithOutput("git init")
-        print("📁 Initialized empty Git repository")
+        try shell.runGitCommandWithOutput(.gitInit, path: nil)
+        try shell.runGitCommandWithOutput(.addAll, path: nil)
+        try shell.runGitCommandWithOutput(.commit(message: "Initial commit from nngit"), path: nil)
     }
 }
 

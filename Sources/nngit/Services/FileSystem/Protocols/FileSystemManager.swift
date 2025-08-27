@@ -31,4 +31,10 @@ protocol FileSystemManager {
     ///   - dstPath: The destination file path to copy to.
     /// - Throws: An error if the file cannot be copied.
     func copyItem(atPath srcPath: String, toPath dstPath: String) throws
+    
+    /// Removes a file at the specified path.
+    ///
+    /// - Parameter path: The file path to remove.
+    /// - Throws: An error if the file cannot be removed.
+    func removeItem(atPath path: String) throws
 }

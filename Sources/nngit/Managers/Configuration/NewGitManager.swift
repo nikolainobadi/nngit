@@ -39,10 +39,8 @@ extension NewGitManager {
         
         let selectedFiles = try selectGitFiles(from: config.gitFiles)
         
-        try initializeGit()
         try copySelectedFiles(selectedFiles)
-        
-        print("✅ Git repository initialized with \(selectedFiles.count) template file(s)")
+        try initializeGit()
     }
 }
 
@@ -51,8 +49,9 @@ extension NewGitManager {
 private extension NewGitManager {
     /// Initializes a new Git repository in the current directory.
     func initializeGit() throws {
-        _ = try shell.runWithOutput("git init")
-        print("📁 Initialized empty Git repository")
+        try shell.runGitCommandWithOutput(.gitInit, path: nil)
+        try shell.runGitCommandWithOutput(.addAll, path: nil)
+        try shell.runGitCommandWithOutput(.commit(message: "Initial commit from nngit"), path: nil)
     }
 }
 
@@ -100,6 +99,9 @@ private extension NewGitManager {
                 print("⏭️  Skipped \(destinationPath)")
                 return
             }
+            
+            // Remove existing file before copying
+            try fileSystemManager.removeItem(atPath: destinationPath)
         }
         
         try fileSystemManager.copyItem(atPath: sourcePath, toPath: destinationPath)

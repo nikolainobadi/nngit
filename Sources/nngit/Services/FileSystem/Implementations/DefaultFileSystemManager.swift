@@ -22,4 +22,8 @@ struct DefaultFileSystemManager: FileSystemManager {
     func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
         try fileManager.copyItem(atPath: srcPath, toPath: dstPath)
     }
+    
+    func removeItem(atPath path: String) throws {
+        try fileManager.removeItem(atPath: path)
+    }
 }

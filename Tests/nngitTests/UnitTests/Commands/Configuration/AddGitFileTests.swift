@@ -362,9 +362,10 @@ extension AddGitFileTests {
     func verifiesLocalGitExists() throws {
         let sourcePath = try createTempFile(named: "git-check.txt", content: "content")
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
+        let configLoader = MockGitConfigLoader()
         let shell = MockShell(results: ["true"]) // localGitCheck
         let picker = MockPicker()
-        let context = MockContext(picker: picker, shell: shell)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
 
         try Nngit.testRun(
             context: context, 

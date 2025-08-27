@@ -27,34 +27,28 @@ extension NewRemoteManager {
     func initializeGitHubRemote(visibility: RepoVisibility? = nil) throws {
         try verifyPrerequisites()
         
-        let currentBranch = try shell.runGitCommandWithOutput(.getCurrentBranchName, path: nil)
-        
-        if currentBranch != "main" {
-            try handleNonMainBranch(currentBranch)
-        }
-        
-        let selectedVisibility = visibility ?? selectVisibility()
-        let repoName = try getCurrentDirectoryName()
         let username = try getGitHubUsername()
+        let repoName = try getCurrentDirectoryName()
+        let description = picker.getInput("Please add a brief description for your new GitHub repository:")
+        let selectedVisibility = try visibility ?? picker.requiredSingleSelection("Select repository visibility:", items: RepoVisibility.allCases)
         
-        try confirmRepositoryCreation(
-            username: username,
-            projectName: repoName,
-            branch: currentBranch,
-            visibility: selectedVisibility
-        )
-        
-        try addGitHubRemote(username: username, projectName: repoName, visibility: selectedVisibility)
-        try pushCurrentBranch(currentBranch)
+        try confirmRepositoryCreation(username: username, projectName: repoName, description: description, visibility: selectedVisibility)
+
+        try shell.runWithOutput("gh repo create \(repoName) --\(selectedVisibility.rawValue) -d '\(description)'")
+        print("📦 Created remote repository: \(username)/\(repoName)")
+        try shell.runGitCommandWithOutput(.addGitHubRemote(username: username, projectName: repoName), path: nil)
+        print("🔗 Added remote origin")
+        try shell.runGitCommandWithOutput(.pushNewRemote(branchName: "main"), path: nil)
         
         let githubURL = try shell.getGitHubURL(at: nil)
+        
         print("✅ Remote repository created successfully!")
         print("🔗 GitHub URL: \(githubURL)")
     }
 }
 
 
-// MARK: - Prerequisites Verification
+// MARK: - Private Methods
 private extension NewRemoteManager {
     /// Verifies all prerequisites are met before creating remote repository.
     func verifyPrerequisites() throws {
@@ -66,7 +60,7 @@ private extension NewRemoteManager {
     /// Verifies that the GitHub CLI (gh) is installed and accessible.
     func verifyGitHubCLIInstalled() throws {
         do {
-            _ = try shell.runWithOutput("which gh")
+            try shell.runWithOutput("which gh")
         } catch {
             throw NewRemoteError.githubCLINotInstalled
         }
@@ -78,59 +72,16 @@ private extension NewRemoteManager {
             throw NewRemoteError.remoteAlreadyExists
         }
     }
-}
-
-
-// MARK: - Branch Handling
-private extension NewRemoteManager {
-    /// Handles the case when current branch is not 'main'.
-    func handleNonMainBranch(_ currentBranch: String) throws {
-        let options = ["Yes", "No"]
-        let choice = picker.singleSelection(
-            "Current branch is '\(currentBranch)', not 'main'. Create remote repository with this branch?",
-            items: options
-        )
-        
-        if choice == "No" {
-            throw NewRemoteError.userCancelledNonMainBranch
-        }
-        
-        print("📝 Creating remote repository with branch: \(currentBranch)")
-    }
-}
-
-
-// MARK: - Visibility Selection
-private extension NewRemoteManager {
-    /// Prompts user to select repository visibility.
-    func selectVisibility() -> RepoVisibility {
-        let options = ["Private", "Public"]
-        let choice = picker.singleSelection(
-            "Select repository visibility:",
-            items: options
-        )
-        
-        return choice == "Public" ? .publicRepo : .privateRepo
-    }
-}
-
-
-// MARK: - Confirmation
-private extension NewRemoteManager {
+    
     /// Confirms repository creation details with the user.
-    func confirmRepositoryCreation(
-        username: String,
-        projectName: String,
-        branch: String,
-        visibility: RepoVisibility
-    ) throws {
-        let visibilityText = visibility == .publicRepo ? "Public" : "Private"
+    func confirmRepositoryCreation(username: String, projectName: String, description: String, visibility: RepoVisibility) throws {
         let confirmationMessage = """
+        
         📋 Repository Details:
         • GitHub Username: \(username)
         • Repository Name: \(projectName)
-        • Current Branch: \(branch)
-        • Visibility: \(visibilityText)
+        • Description: \(description)
+        • Visibility: \(visibility.displayName)
         
         Create remote repository with these settings?
         """
@@ -141,11 +92,7 @@ private extension NewRemoteManager {
             throw NewRemoteError.userDeniedPermission
         }
     }
-}
 
-
-// MARK: - Repository Operations
-private extension NewRemoteManager {
     /// Gets the current directory name to use as repository name.
     func getCurrentDirectoryName() throws -> String {
         let currentPath = try shell.runWithOutput("pwd")
@@ -192,4 +139,12 @@ enum NewRemoteError: Error, Equatable {
     case cannotDetermineDirectoryName
     case cannotGetGitHubUsername
     case userDeniedPermission
+}
+
+
+// MARK: - Extension Dependencies
+extension RepoVisibility: @retroactive DisplayablePickerItem {
+    public var displayName: String {
+        return rawValue.capitalized
+    }
 }

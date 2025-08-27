@@ -12,6 +12,7 @@ final class MockFileSystemManager: FileSystemManager {
     private var existingFiles: Set<String> = []
     private var fileContents: [String: String] = [:]
     private(set) var copiedFiles: [(from: String, to: String)] = []
+    private(set) var removedFiles: [String] = []
     
     init(existingFiles: [String] = [], fileContents: [String: String] = [:]) {
         self.existingFiles = Set(existingFiles)
@@ -42,6 +43,19 @@ final class MockFileSystemManager: FileSystemManager {
         if let content = fileContents[srcPath] {
             fileContents[dstPath] = content
         }
+    }
+    
+    func removeItem(atPath path: String) throws {
+        guard existingFiles.contains(path) else {
+            throw MockFileSystemError.fileNotFound(path)
+        }
+        
+        // Record the removal operation
+        removedFiles.append(path)
+        
+        // Simulate removal by removing the file
+        existingFiles.remove(path)
+        fileContents.removeValue(forKey: path)
     }
     
     // Test helpers

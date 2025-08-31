@@ -20,7 +20,7 @@ struct Nngit: ParsableCommand {
 //            BranchDiff.self, CheckoutRemote.self,
             NewBranch.self, SwitchBranch.self, DeleteBranch.self, NewPush.self,
             StopTracking.self,
-            EditConfig.self, RegisterGitFile.self, NewGit.self, NewRemote.self
+            EditConfig.self, AddGitFile.self, RegisterGitFile.self, NewGit.self, NewRemote.self
         ]
     )
     

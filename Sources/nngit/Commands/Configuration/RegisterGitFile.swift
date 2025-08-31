@@ -38,7 +38,7 @@ extension Nngit {
             
             try shell.verifyLocalGitExists()
             
-            let manager = AddGitFileManager(
+            let manager = RegisterGitFileManager(
                 configLoader: configLoader,
                 fileCreator: fileCreator,
                 picker: picker

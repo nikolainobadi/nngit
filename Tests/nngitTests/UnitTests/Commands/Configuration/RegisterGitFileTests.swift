@@ -268,7 +268,7 @@ extension RegisterGitFileTests {
         let picker = MockPicker()
         let context = MockContext(picker: picker, shell: shell)
 
-        #expect(throws: AddGitFileError.sourceFileNotFound("nonexistent.txt")) {
+        #expect(throws: RegisterGitFileError.sourceFileNotFound("nonexistent.txt")) {
             try Nngit.testRun(
                 context: context, 
                 args: [
@@ -293,7 +293,7 @@ extension RegisterGitFileTests {
         )
         let context = MockContext(picker: picker, shell: shell)
 
-        #expect(throws: AddGitFileError.sourceFileNotFound("nonexistent-prompted.txt")) {
+        #expect(throws: RegisterGitFileError.sourceFileNotFound("nonexistent-prompted.txt")) {
             try Nngit.testRun(
                 context: context, 
                 args: [

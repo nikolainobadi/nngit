@@ -46,7 +46,7 @@ Sources/nngit/
 │   ├── FileOperations/       # File operation commands (Staging, Discard, StopTracking)
 │   ├── Reset/                # Reset commands (Undo)
 │   ├── Utility/              # Utility commands (GitActivity)
-│   └── Configuration/        # Config commands (EditConfig, AddGitFile, NewGit, NewRemote)
+│   └── Configuration/        # Config commands (EditConfig, RegisterGitFile, NewGit, NewRemote)
 ├── Errors/                   # Centralized error definitions
 └── Main/Nngit.swift         # Main entry point (v0.4.1)
 ```

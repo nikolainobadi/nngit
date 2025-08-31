@@ -1,5 +1,5 @@
 //
-//  AddGitFile.swift
+//  RegisterGitFile.swift
 //  nngit
 //
 //  Created by Nikolai Nobadi on 8/24/25.
@@ -10,11 +10,11 @@ import GitShellKit
 import ArgumentParser
 
 extension Nngit {
-    /// Command used to add a template file to the nngit configuration.
-    struct AddGitFile: ParsableCommand {
+    /// Command used to register a template file in the nngit configuration.
+    struct RegisterGitFile: ParsableCommand {
         static let configuration = CommandConfiguration(
-            commandName: "add-git-file",
-            abstract: "Adds a template file to nngit for use in new repositories."
+            commandName: "register-git-file",
+            abstract: "Registers a template file in nngit configuration for use in new repositories."
         )
 
         @Option(name: .customLong("source"), help: "Path to the source template file")

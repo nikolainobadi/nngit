@@ -1,5 +1,5 @@
 //
-//  AddGitFileTests.swift
+//  RegisterGitFileTests.swift
 //  nngitTests
 //
 //  Created by Nikolai Nobadi on 8/24/25.
@@ -12,14 +12,14 @@ import GitShellKit
 import NnShellKit
 @testable import nngit
 
-final class AddGitFileTests {
+final class RegisterGitFileTests {
     private let tempDirectory: URL
     private let fileManager = FileManager.default
     
     init() {
         // Create unique temp directory for this test instance
         tempDirectory = fileManager.temporaryDirectory
-            .appendingPathComponent("AddGitFileTests-\(UUID().uuidString)")
+            .appendingPathComponent("RegisterGitFileTests-\(UUID().uuidString)")
         try! fileManager.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
     }
     
@@ -32,7 +32,7 @@ final class AddGitFileTests {
 
 // MARK: - Tests
 @MainActor
-extension AddGitFileTests {
+extension RegisterGitFileTests {
     @Test("Successfully adds GitFile with all parameters and direct path.")
     func addGitFileWithAllParametersDirectPath() throws {
         let sourcePath = try createTempFile(named: "test.txt", content: "test content")
@@ -45,7 +45,7 @@ extension AddGitFileTests {
         let output = try Nngit.testRun(
             context: context, 
             args: [
-                "add-git-file",
+                "register-git-file",
                 "--source", sourcePath,
                 "--name", "test.txt",
                 "--nickname", "Test File",
@@ -75,7 +75,7 @@ extension AddGitFileTests {
         let output = try Nngit.testRun(
             context: context, 
             args: [
-                "add-git-file",
+                "register-git-file",
                 "--source", sourcePath,
                 "--name", "template.txt",
                 "--nickname", "Template File"
@@ -105,7 +105,7 @@ extension AddGitFileTests {
         let output = try Nngit.testRun(
             context: context, 
             args: [
-                "add-git-file",
+                "register-git-file",
                 "--name", "prompted.txt",
                 "--nickname", "Prompted File",
                 "--direct-path"
@@ -134,7 +134,7 @@ extension AddGitFileTests {
         let output = try Nngit.testRun(
             context: context, 
             args: [
-                "add-git-file",
+                "register-git-file",
                 "--source", sourcePath,
                 "--nickname", "Source File",
                 "--direct-path"
@@ -162,7 +162,7 @@ extension AddGitFileTests {
         let output = try Nngit.testRun(
             context: context, 
             args: [
-                "add-git-file",
+                "register-git-file",
                 "--source", sourcePath,
                 "--nickname", "Custom File",
                 "--direct-path"
@@ -190,7 +190,7 @@ extension AddGitFileTests {
         let output = try Nngit.testRun(
             context: context, 
             args: [
-                "add-git-file",
+                "register-git-file",
                 "--source", sourcePath,
                 "--name", "auto-nickname.txt",
                 "--direct-path"
@@ -218,7 +218,7 @@ extension AddGitFileTests {
         let output = try Nngit.testRun(
             context: context, 
             args: [
-                "add-git-file",
+                "register-git-file",
                 "--source", sourcePath,
                 "--name", "file.txt",
                 "--direct-path"
@@ -245,7 +245,7 @@ extension AddGitFileTests {
         let output = try Nngit.testRun(
             context: context, 
             args: [
-                "add-git-file",
+                "register-git-file",
                 "--source", sourcePath,
                 "--name", "copied-file.txt",
                 "--nickname", "Copied File"
@@ -272,7 +272,7 @@ extension AddGitFileTests {
             try Nngit.testRun(
                 context: context, 
                 args: [
-                    "add-git-file",
+                    "register-git-file",
                     "--source", "nonexistent.txt",
                     "--name", "test.txt",
                     "--nickname", "Test",
@@ -297,7 +297,7 @@ extension AddGitFileTests {
             try Nngit.testRun(
                 context: context, 
                 args: [
-                    "add-git-file",
+                    "register-git-file",
                     "--name", "test.txt",
                     "--nickname", "Test",
                     "--direct-path"
@@ -321,7 +321,7 @@ extension AddGitFileTests {
             try Nngit.testRun(
                 context: context, 
                 args: [
-                    "add-git-file",
+                    "register-git-file",
                     "--source", sourcePath,
                     "--name", "error-test.txt",
                     "--nickname", "Error Test",
@@ -347,7 +347,7 @@ extension AddGitFileTests {
             try Nngit.testRun(
                 context: context, 
                 args: [
-                    "add-git-file",
+                    "register-git-file",
                     "--source", sourcePath,
                     "--name", "creator-error.txt",
                     "--nickname", "Creator Error Test"
@@ -370,7 +370,7 @@ extension AddGitFileTests {
         try Nngit.testRun(
             context: context, 
             args: [
-                "add-git-file",
+                "register-git-file",
                 "--source", sourcePath,
                 "--name", "git-check.txt",
                 "--nickname", "Git Check",
@@ -398,7 +398,7 @@ extension AddGitFileTests {
 
         let output = try Nngit.testRun(
             context: context, 
-            args: ["add-git-file", "--direct-path"]
+            args: ["register-git-file", "--direct-path"]
         )
 
         #expect(shell.executedCommands.contains(localGitCheck))
@@ -412,7 +412,7 @@ extension AddGitFileTests {
 
 
 // MARK: - Helper Methods
-private extension AddGitFileTests {
+private extension RegisterGitFileTests {
     func createTempFile(named name: String, content: String = "test content") throws -> String {
         let path = tempDirectory.appendingPathComponent(name).path
         try content.write(toFile: path, atomically: true, encoding: .utf8)

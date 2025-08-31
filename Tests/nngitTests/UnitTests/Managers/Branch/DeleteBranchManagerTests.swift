@@ -72,7 +72,7 @@ struct DeleteBranchManagerTests {
         let config = makeConfig(defaultBranch: "main")
         let manager = makeSUT(shell: shell, branchLoader: branchLoader, config: config)
         
-        #expect(throws: DeleteBranchError.noEligibleBranches) {
+        #expect(throws: BranchOperationError.noBranchesAvailable(operation: .deletion)) {
             try manager.deleteBranches(search: nil as String?, allMerged: false)
         }
         
@@ -254,7 +254,7 @@ struct DeleteBranchManagerTests {
         let config = makeConfig(defaultBranch: "main")
         let manager = makeSUT(shell: shell, branchLoader: branchLoader, config: config)
         
-        #expect(throws: DeleteBranchError.noEligibleBranches) {
+        #expect(throws: BranchOperationError.noBranchesAvailable(operation: .deletion)) {
             try manager.deleteBranches(search: nil as String?, allMerged: false)
         }
         
@@ -268,7 +268,7 @@ struct DeleteBranchManagerTests {
         let config = makeConfig(defaultBranch: "main")
         let manager = makeSUT(shell: shell, branchLoader: branchLoader, config: config)
         
-        #expect(throws: DeleteBranchError.noEligibleBranches) {
+        #expect(throws: BranchOperationError.noBranchesAvailable(operation: .deletion)) {
             try manager.deleteBranches(search: nil as String?, allMerged: false)
         }
         
@@ -285,7 +285,7 @@ struct DeleteBranchManagerTests {
         let config = makeConfig(defaultBranch: "main")
         let manager = makeSUT(shell: shell, branchLoader: branchLoader, config: config)
         
-        #expect(throws: DeleteBranchError.noEligibleBranches) {
+        #expect(throws: BranchOperationError.noBranchesAvailable(operation: .deletion)) {
             try manager.deleteBranches(search: nil as String?, allMerged: false)
         }
         

@@ -138,7 +138,7 @@ struct SwitchBranchManagerTests {
         let shell = MockShell()
         let manager = makeSUT(shell: shell, branchLoader: branchLoader)
         
-        #expect(throws: SwitchBranchError.noAvailableBranches) {
+        #expect(throws: BranchOperationError.noBranchesAvailable(operation: .switching)) {
             try manager.switchBranch(search: nil as String?)
         }
         
@@ -157,7 +157,7 @@ struct SwitchBranchManagerTests {
         let shell = MockShell()
         let manager = makeSUT(shell: shell, branchLoader: branchLoader)
         
-        #expect(throws: SwitchBranchError.noAvailableBranches) {
+        #expect(throws: BranchOperationError.noBranchesAvailable(operation: .switching)) {
             try manager.switchBranch(search: nil as String?)
         }
         

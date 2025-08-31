@@ -128,6 +128,42 @@ struct SwitchBranchManagerTests {
         // Should switch to develop (second non-current branch)
         #expect(shell.executedCommands.contains("git checkout develop"))
     }
+    
+    @Test("Throws error when no available branches to switch to.")
+    func switchBranchNoAvailableBranches() throws {
+        let branches = [
+            GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        ]
+        let branchLoader = StubBranchLoader(localBranches: branches)
+        let shell = MockShell()
+        let manager = makeSUT(shell: shell, branchLoader: branchLoader)
+        
+        #expect(throws: BranchOperationError.noBranchesAvailable(operation: .switching)) {
+            try manager.switchBranch(search: nil as String?)
+        }
+        
+        // Should not execute any git checkout command
+        #expect(!shell.executedCommands.contains { $0.contains("git checkout") })
+    }
+    
+    @Test("Throws error when all branches are current.")
+    func switchBranchAllBranchesCurrent() throws {
+        // This is a theoretical edge case where somehow all branches are marked as current
+        let branches = [
+            GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined),
+            GitBranch(name: "feature", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        ]
+        let branchLoader = StubBranchLoader(localBranches: branches)
+        let shell = MockShell()
+        let manager = makeSUT(shell: shell, branchLoader: branchLoader)
+        
+        #expect(throws: BranchOperationError.noBranchesAvailable(operation: .switching)) {
+            try manager.switchBranch(search: nil as String?)
+        }
+        
+        // Should not execute any git checkout command
+        #expect(!shell.executedCommands.contains { $0.contains("git checkout") })
+    }
 }
 
 

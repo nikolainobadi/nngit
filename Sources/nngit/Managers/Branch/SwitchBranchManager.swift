@@ -84,6 +84,8 @@ private extension SwitchBranchManager {
     }
     
     func selectAndSwitchBranch(availableBranches: [GitBranch], currentBranch: GitBranch?) throws {
+        try BranchValidationHelper.validateBranchesForSwitching(availableBranches)
+        
         var details = ""
         
         if let currentBranch {

@@ -29,11 +29,15 @@ extension DeleteBranchManager {
     func deleteBranches(search: String?, allMerged: Bool) throws {
         let branchNames = try loadEligibleBranchNames()
         
+        try BranchValidationHelper.validateBranchNamesForDeletion(branchNames)
+        
         guard let filteredNames = try handleSearchAndFiltering(branchNames: branchNames, search: search) else {
             return
         }
         
         let eligibleBranches = try loadBranchData(branchNames: filteredNames)
+        
+        try BranchValidationHelper.validateBranchesForDeletion(eligibleBranches)
         
         guard let branchesToDelete = selectBranchesToDelete(eligibleBranches: eligibleBranches, allMerged: allMerged) else {
             return

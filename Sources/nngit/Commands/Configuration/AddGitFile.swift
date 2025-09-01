@@ -2,7 +2,7 @@
 //  AddGitFile.swift
 //  nngit
 //
-//  Created by Nikolai Nobadi on 8/24/25.
+//  Created by Nikolai Nobadi on 8/31/25.
 //
 
 import SwiftPicker
@@ -10,46 +10,32 @@ import GitShellKit
 import ArgumentParser
 
 extension Nngit {
-    /// Command used to add a template file to the nngit configuration.
+    /// Command used to add a registered template file to the current repository.
     struct AddGitFile: ParsableCommand {
         static let configuration = CommandConfiguration(
             commandName: "add-git-file",
-            abstract: "Adds a template file to nngit for use in new repositories."
+            abstract: "Adds a registered template file to the current repository."
         )
 
-        @Option(name: .customLong("source"), help: "Path to the source template file")
-        var sourcePath: String?
-        
-        @Option(name: .customLong("name"), help: "Output filename (defaults to source filename)")
-        var fileName: String?
-        
-        @Option(name: .customLong("nickname"), help: "Display name for the template")
-        var nickname: String?
-        
-        @Flag(name: .customLong("direct-path"), help: "Use file at current location instead of copying")
-        var useDirectPath = false
+        @Argument(help: "Name or nickname of the registered template file to add")
+        var templateName: String?
 
         /// Executes the command using the shared context components.
         func run() throws {
             let shell = Nngit.makeShell()
             let picker = Nngit.makePicker()
             let configLoader = Nngit.makeConfigLoader()
-            let fileCreator = Nngit.makeFileCreator()
+            let fileSystemManager = Nngit.makeFileSystemManager()
             
             try shell.verifyLocalGitExists()
             
             let manager = AddGitFileManager(
                 configLoader: configLoader,
-                fileCreator: fileCreator,
+                fileSystemManager: fileSystemManager,
                 picker: picker
             )
             
-            try manager.addGitFile(
-                sourcePath: sourcePath,
-                fileName: fileName,
-                nickname: nickname,
-                useDirectPath: useDirectPath
-            )
+            try manager.addGitFileToRepository(templateName: templateName)
         }
     }
 }

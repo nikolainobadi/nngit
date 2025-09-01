@@ -2,21 +2,21 @@
 //  AddGitFileManager.swift
 //  nngit
 //
-//  Created by Nikolai Nobadi on 8/24/25.
+//  Created by Nikolai Nobadi on 8/31/25.
 //
 
 import Foundation
 import SwiftPicker
 
-/// Manager for handling GitFile addition with interactive prompts and file management.
+/// Manager for adding registered template files to the current repository.
 struct AddGitFileManager {
     private let configLoader: GitConfigLoader
-    private let fileCreator: GitFileCreator
+    private let fileSystemManager: FileSystemManager
     private let picker: CommandLinePicker
     
-    init(configLoader: GitConfigLoader, fileCreator: GitFileCreator, picker: CommandLinePicker) {
+    init(configLoader: GitConfigLoader, fileSystemManager: FileSystemManager, picker: CommandLinePicker) {
         self.configLoader = configLoader
-        self.fileCreator = fileCreator
+        self.fileSystemManager = fileSystemManager
         self.picker = picker
     }
 }
@@ -24,102 +24,118 @@ struct AddGitFileManager {
 
 // MARK: - Main Workflow
 extension AddGitFileManager {
-    /// Adds a GitFile to the configuration with interactive prompts for missing information.
-    func addGitFile(
-        sourcePath: String?,
-        fileName: String?,
-        nickname: String?,
-        useDirectPath: Bool
-    ) throws {
-        let resolvedSourcePath = try getSourcePath(sourcePath: sourcePath)
-        let resolvedFileName = try getFileName(fileName: fileName, sourcePath: resolvedSourcePath)
-        let resolvedNickname = try getNickname(nickname: nickname, fileName: resolvedFileName)
+    /// Adds a registered template file to the current repository.
+    /// If templateName is provided, uses that specific file. Otherwise, prompts user to select from available files.
+    func addGitFileToRepository(templateName: String?) throws {
+        let config = try configLoader.loadConfig()
         
-        let finalPath: String
-        
-        if useDirectPath {
-            finalPath = resolvedSourcePath
-            print("Using direct path: \(finalPath)")
-        } else {
-            finalPath = try copyToTemplatesDirectory(
-                sourcePath: resolvedSourcePath,
-                fileName: resolvedFileName
-            )
-            print("Copied template to: \(finalPath)")
+        guard !config.gitFiles.isEmpty else {
+            throw AddGitFileError.noRegisteredFiles
         }
         
-        let gitFile = GitFile(
-            fileName: resolvedFileName,
-            nickname: resolvedNickname,
-            localPath: finalPath
-        )
+        let selectedGitFile: GitFile
         
-        try configLoader.addGitFile(gitFile)
+        if let templateName = templateName {
+            selectedGitFile = try selectByName(templateName: templateName, from: config.gitFiles)
+        } else {
+            selectedGitFile = try selectInteractively(from: config.gitFiles)
+        }
         
-        print("✅ Added GitFile '\(resolvedNickname)' (\(resolvedFileName))")
+        try addFileToRepository(gitFile: selectedGitFile)
     }
 }
 
 
-// MARK: - Interactive Input Resolution
+// MARK: - Selection Methods
 private extension AddGitFileManager {
-    /// Gets the source path, prompting if not provided.
-    func getSourcePath(sourcePath: String?) throws -> String {
-        if let sourcePath = sourcePath {
-            guard FileManager.default.fileExists(atPath: sourcePath) else {
-                throw AddGitFileError.sourceFileNotFound(sourcePath)
-            }
-            return sourcePath
+    /// Finds a GitFile by name or nickname.
+    func selectByName(templateName: String, from gitFiles: [GitFile]) throws -> GitFile {
+        // First try exact match by nickname
+        if let found = gitFiles.first(where: { $0.nickname.lowercased() == templateName.lowercased() }) {
+            return found
         }
         
-        let inputPath = try picker.getRequiredInput("Enter path to template file:")
-        guard FileManager.default.fileExists(atPath: inputPath) else {
-            throw AddGitFileError.sourceFileNotFound(inputPath)
+        // Then try exact match by filename
+        if let found = gitFiles.first(where: { $0.fileName.lowercased() == templateName.lowercased() }) {
+            return found
         }
         
-        return inputPath
+        // Finally try partial match by nickname
+        let partialMatches = gitFiles.filter { 
+            $0.nickname.lowercased().contains(templateName.lowercased()) ||
+            $0.fileName.lowercased().contains(templateName.lowercased())
+        }
+        
+        if partialMatches.isEmpty {
+            throw AddGitFileError.templateNotFound(templateName)
+        } else if partialMatches.count == 1 {
+            return partialMatches[0]
+        } else {
+            // Multiple matches, let user select
+            return try picker.requiredSingleSelection(
+                "Multiple templates match '\(templateName)'. Select one:",
+                items: partialMatches
+            )
+        }
     }
     
-    /// Gets the output filename, prompting with default if not provided.
-    func getFileName(fileName: String?, sourcePath: String) throws -> String {
-        if let fileName = fileName {
-            return fileName
-        }
-        
-        let sourceFileName = URL(fileURLWithPath: sourcePath).lastPathComponent
-        let input = picker.getInput("Output filename (leave blank for '\(sourceFileName)'):")
-        
-        return input.isEmpty ? sourceFileName : input
-    }
-    
-    /// Gets the nickname, prompting with default if not provided.
-    func getNickname(nickname: String?, fileName: String) throws -> String {
-        if let nickname = nickname {
-            return nickname
-        }
-        
-        let input = picker.getInput("Display name (leave blank for '\(fileName)'):")
-        
-        return input.isEmpty ? fileName : input
-    }
-    
-    /// Copies the source file to the templates directory and returns the final path.
-    func copyToTemplatesDirectory(
-        sourcePath: String,
-        fileName: String
-    ) throws -> String {
-        return try fileCreator.copyToTemplatesDirectory(
-            sourcePath: sourcePath,
-            fileName: fileName,
-            picker: picker
+    /// Prompts user to select from available GitFiles.
+    func selectInteractively(from gitFiles: [GitFile]) throws -> GitFile {
+        return try picker.requiredSingleSelection(
+            "Select a template file to add:",
+            items: gitFiles
         )
+    }
+}
+
+
+// MARK: - File Operations
+private extension AddGitFileManager {
+    /// Adds the selected GitFile to the current repository.
+    func addFileToRepository(gitFile: GitFile) throws {
+        let destinationPath = gitFile.fileName
+        
+        // Check if file already exists
+        if fileSystemManager.fileExists(atPath: destinationPath) {
+            let shouldOverwrite = picker.getPermission(
+                "File '\(gitFile.fileName)' already exists. Overwrite it?"
+            )
+            
+            guard shouldOverwrite else {
+                print("Operation cancelled. File was not overwritten.")
+                return
+            }
+        }
+        
+        // Copy the file from template location to current directory
+        guard fileSystemManager.fileExists(atPath: gitFile.localPath) else {
+            throw AddGitFileError.templateFileNotFound(gitFile.localPath)
+        }
+        
+        try fileSystemManager.copyItem(
+            atPath: gitFile.localPath,
+            toPath: destinationPath
+        )
+        
+        print("✅ Added '\(gitFile.fileName)' to current directory")
     }
 }
 
 
 // MARK: - Errors
-enum AddGitFileError: Error, Equatable {
-    case sourceFileNotFound(String)
-    case templateDirectoryCreationFailed
-    case fileCopyFailed(String)
+enum AddGitFileError: Error, LocalizedError, Equatable {
+    case noRegisteredFiles
+    case templateNotFound(String)
+    case templateFileNotFound(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .noRegisteredFiles:
+            return "No template files have been registered. Use 'register-git-file' to register template files first."
+        case .templateNotFound(let name):
+            return "No template found matching '\(name)'. Use 'register-git-file' to see available templates or register new ones."
+        case .templateFileNotFound(let path):
+            return "Template file not found at '\(path)'. The registered template may have been moved or deleted."
+        }
+    }
 }

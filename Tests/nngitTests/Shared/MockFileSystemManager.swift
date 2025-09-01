@@ -13,8 +13,12 @@ final class MockFileSystemManager: FileSystemManager {
     private var fileContents: [String: String] = [:]
     private(set) var copiedFiles: [(from: String, to: String)] = []
     private(set) var removedFiles: [String] = []
+    var existingFilesPublic: [URL] = [] // For test setup
     
-    init(existingFiles: [String] = [], fileContents: [String: String] = [:]) {
+    let currentDirectory: URL
+    
+    init(currentDirectory: URL = URL(fileURLWithPath: "/tmp"), existingFiles: [String] = [], fileContents: [String: String] = [:]) {
+        self.currentDirectory = currentDirectory
         self.existingFiles = Set(existingFiles)
         self.fileContents = fileContents
     }

@@ -5,8 +5,10 @@
 //  Created by Nikolai Nobadi on 8/24/25.
 //
 
+import SwiftPicker
+
 /// Represents a template file that can be added to a Git repository.
-struct GitFile: Codable {
+struct GitFile: Codable, DisplayablePickerItem {
     let fileName: String
     let nickname: String
     let localPath: String
@@ -15,5 +17,10 @@ struct GitFile: Codable {
         self.fileName = fileName
         self.nickname = nickname
         self.localPath = localPath
+    }
+    
+    // MARK: - DisplayablePickerItem
+    var displayName: String {
+        return "\(nickname) (\(fileName))"
     }
 }

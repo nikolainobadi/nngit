@@ -18,6 +18,7 @@ A command-line utility for managing Git branches and history. `nngit` offers hel
 - Discard staged/unstaged changes with file selection options
 - **Enhanced undo commits** with soft/hard reset strategies, safety checks, and interactive selection
 - **Stop tracking files** that match gitignore patterns with interactive selection
+- **Register and unregister template files** for reuse across projects
 - Edit overall nngit configuration
 
 ## Installation
@@ -41,6 +42,9 @@ $ nngit delete-branch --all-merged # Delete all merged branches (long flag)
 $ nngit discard --files both       # Discard staged and unstaged changes
 $ nngit undo hard 2 --select       # Interactive selection of commits to hard reset
 $ nngit stop-tracking              # Stop tracking files matching gitignore patterns
+$ nngit register-git-file --source ~/template.md --name README.md
+$ nngit unregister-git-file README.md  # Remove registered template
+$ nngit add-git-file                   # Add template to current repo
 $ nngit edit-config --default-branch develop
 ```
 
@@ -123,6 +127,31 @@ $ nngit stop-tracking               # Interactive workflow to stop tracking giti
 - Handles complex gitignore patterns including wildcards, negation, and directory patterns
 - Executes `git rm --cached` with proper file path escaping
 
+### Template File Management
+Register template files for reuse across multiple repositories:
+
+```bash
+$ nngit register-git-file --source ~/templates/README.md --name README.md --nickname "Project Readme"
+$ nngit register-git-file          # Interactive mode prompts for all options
+$ nngit add-git-file               # Add registered template to current repository
+$ nngit unregister-git-file "Project Readme"  # Remove by nickname
+$ nngit unregister-git-file --all  # Remove all registered templates
+```
+
+**Register Features:**
+- Register template files with custom names and nicknames
+- Use `--direct-path` to reference files at their current location
+- Interactive prompts for missing parameters
+- Templates stored in `~/.config/nngit/templates/` by default
+- Handles file conflicts with confirmation prompts
+
+**Unregister Features:**
+- Remove templates by filename or nickname
+- Case-insensitive matching for convenience
+- Interactive selection when no name provided
+- `--all` flag to remove all registered templates
+- Option to delete template files from disk
+
 ## Configuration
 `nngit` stores its settings in a JSON file located at `~/.config/nngit/config.json`. This file is created automatically the first time you run the tool. You can modify values using the `config` command or by opening the file in your editor of choice.
 
@@ -131,6 +160,7 @@ The configuration includes settings for:
 - Branch loading behavior
 - Rebase and prune preferences  
 - Branch prefix configurations (for structured branch naming)
+- Registered template files (for reuse across projects)
 
 Non-Homebrew users can build the executable manually:
 
@@ -157,13 +187,14 @@ Sources/nngit/
 │   ├── Branch/               # Branch-related workflows (including NewPushManager)
 │   ├── FileOperations/       # File staging/unstaging/discarding/stop-tracking
 │   ├── Reset/                # Commit reset operations
+│   ├── Configuration/        # Template file and config management
 │   └── Utility/              # Utility functions (including GitActivityManager)
 ├── Commands/                 # CLI command definitions
 │   ├── Branch/               # Branch commands (NewBranch, SwitchBranch, DeleteBranch, NewPush)
 │   ├── FileOperations/       # File operation commands (Staging, Discard, StopTracking)
 │   ├── Reset/                # Reset commands (Undo with soft/hard variants)
 │   ├── Utility/              # Utility commands (GitActivity)
-│   └── Configuration/        # Config commands (EditConfig, RegisterGitFile, NewGit, NewRemote)
+│   └── Configuration/        # Config commands (EditConfig, RegisterGitFile, UnregisterGitFile, AddGitFile, NewGit, NewRemote)
 ├── Errors/                   # Error definitions
 └── Main/Nngit.swift         # Main entry point (v0.4.1)
 ```
@@ -173,7 +204,7 @@ Sources/nngit/
 - **Feature-Based Organization**: Related functionality grouped together
 - **Protocol/Implementation Split**: Clean abstraction boundaries
 - **Enhanced Safety Systems**: Comprehensive authorship detection and permission checks
-- **Comprehensive Testing**: 250+ passing tests with behavior-driven approach and stable execution
+- **Comprehensive Testing**: 350+ passing tests with behavior-driven approach and stable execution
 
 ### Dependencies
 - Built on `swift-argument-parser` for CLI parsing

@@ -33,20 +33,21 @@ Sources/nngit/
 │   │   ├── Protocols/        # Git service contracts (GitBranchLoader, GitCommitManager, GitResetHelper, GitFileTracker)
 │   │   └── Implementations/  # Concrete implementations (DefaultGitBranchLoader, DefaultGitCommitManager, etc.)
 │   └── Configuration/
-│       ├── Protocols/        # Config contracts (GitConfigLoader)
-│       ├── Implementations/  # Config implementations (DefaultGitConfigLoader)
-│       └── Models/           # Config models (GitConfig, BranchPrefix)
+│       ├── Protocols/        # Config contracts (GitConfigLoader, GitFileCreator)
+│       ├── Implementations/  # Config implementations (DefaultGitConfigLoader, DefaultGitFileCreator)
+│       └── Models/           # Config models (GitConfig, GitFile, BranchPrefix)
 ├── Managers/                 # Business logic layer
 │   ├── Branch/               # Branch operations (SwitchBranchManager, DeleteBranchManager, NewPushManager, etc.)
 │   ├── FileOperations/       # File handling (StageManager, UnstageManager, DiscardManager, StopTrackingManager)
 │   ├── Reset/                # Reset operations (SoftResetManager, HardResetManager)
+│   ├── Configuration/        # Config operations (RegisterGitFileManager, UnregisterGitFileManager, AddGitFileManager, NewGitManager)
 │   └── Utility/              # Utility functions (BranchDiffManager, GitActivityManager)
 ├── Commands/                 # CLI command definitions
 │   ├── Branch/               # Branch commands (NewBranch, SwitchBranch, DeleteBranch, NewPush)
 │   ├── FileOperations/       # File operation commands (Staging, Discard, StopTracking)
 │   ├── Reset/                # Reset commands (Undo)
 │   ├── Utility/              # Utility commands (GitActivity)
-│   └── Configuration/        # Config commands (EditConfig, RegisterGitFile, NewGit, NewRemote)
+│   └── Configuration/        # Config commands (EditConfig, RegisterGitFile, UnregisterGitFile, NewGit, NewRemote)
 ├── Errors/                   # Centralized error definitions
 └── Main/Nngit.swift         # Main entry point (v0.4.1)
 ```
@@ -68,6 +69,7 @@ Business logic components that coordinate complex workflows:
 - **Branch Managers**: Handle branch switching, deletion, creation, and new push operations with safety checks
 - **File Operation Managers**: Manage staging, unstaging, and discarding of changes
 - **Reset Managers**: Coordinate commit reset operations with safety checks
+- **Configuration Managers**: Handle template file registration/unregistration and Git configuration operations
 - **Utility Managers**: Provide specialized functions like branch diff generation and Git activity reporting
 
 #### Commands Layer
@@ -80,8 +82,9 @@ CLI command definitions organized by feature area:
 
 ### Configuration System
 - Configuration stored at `~/.config/nngit/config.json`
+- Template files stored at `~/.config/nngit/templates/` (or referenced by direct path)
 - Uses `NnConfigKit` for configuration management
-- Key settings: default branch, branch prefixes, rebase/prune behavior, branch loading options
+- Key settings: default branch, branch prefixes, rebase/prune behavior, branch loading options, registered git files
 
 ### Testing Structure
 
@@ -89,7 +92,7 @@ CLI command definitions organized by feature area:
 Tests/nngitTests/
 ├── Shared/                   # Test utilities and mocks
 │   ├── MockContext.swift     # Dependency injection for tests
-│   ├── Mock implementations  # MockShell, MockPicker, MockGitResetHelper
+│   ├── Mock implementations  # MockShell, MockPicker, MockGitResetHelper, MockGitConfigLoader, MockGitFileCreator
 │   └── Stub implementations  # StubBranchLoader, StubConfigLoader
 └── UnitTests/                # Test cases organized by source structure
     ├── Commands/
@@ -102,6 +105,7 @@ Tests/nngitTests/
     │   ├── Branch/           # Branch manager tests
     │   ├── FileOperations/   # File operation manager tests
     │   ├── Reset/            # Reset manager tests
+    │   ├── Configuration/    # Configuration manager tests
     │   └── Utility/          # Utility manager tests
     └── Services/
         ├── Git/
@@ -112,7 +116,7 @@ Tests/nngitTests/
 
 **Testing Approach:**
 - **Behavior-driven**: Tests focus on public interfaces and expected behaviors
-- **Comprehensive Coverage**: 250+ tests covering all major functionality
+- **Comprehensive Coverage**: 350+ tests covering all major functionality
 - **Enhanced Safety Testing**: Authorship validation with git username and email
 - **Permission Verification**: Reset operations include extensive safety checks
 - **Mock-based**: Clean separation using dependency injection for testability
@@ -144,7 +148,7 @@ Tests/nngitTests/
 - Stub loaders provide controlled test data
 - Tests use `@MainActor` when needed to ensure proper serialization
 - **Test Stability**: Fixed flaky tests through serialization (`.serialized` trait) and robust mock implementations
-- **Comprehensive Coverage**: 250+ tests across all major functionality with stable execution
+- **Comprehensive Coverage**: 350+ tests across all major functionality with stable execution
 
 ### Key Workflows
 
@@ -200,6 +204,40 @@ The `GitActivity` command (in `Commands/Utility/`) provides Git activity reporti
 - Comprehensive git log parsing with proper error handling and validation
 - Includes comprehensive error definitions with `GitActivityError` enum
 - Enhanced with empty line padding for better visual presentation
+
+#### Git File Management Workflows
+
+##### RegisterGitFile Workflow
+The `RegisterGitFile` command (in `Commands/Configuration/`) allows registering template files for reuse:
+- Registers template files in nngit configuration for use in new repositories
+- Options: `--source` for file path, `--name` for output filename, `--nickname` for display name
+- `--direct-path` flag uses file at current location instead of copying to templates directory
+- Interactive prompts for missing parameters with sensible defaults
+- Uses `RegisterGitFileManager` (in `Managers/Configuration/`) for business logic
+- Handles file conflicts with user confirmation for replacement
+- Templates stored in `~/.config/nngit/templates/` or referenced by direct path
+- Comprehensive error handling with `RegisterGitFileError` enum
+
+##### UnregisterGitFile Workflow
+The `UnregisterGitFile` command (in `Commands/Configuration/`) removes registered template files:
+- Unregisters template files from nngit configuration
+- Accepts template name or nickname as argument for targeted removal
+- Interactive selection when no argument provided
+- `--all` flag removes all registered git files with confirmation
+- Uses `UnregisterGitFileManager` (in `Managers/Configuration/`) for business logic
+- Case-insensitive matching for both filenames and nicknames
+- Option to delete template files from disk during unregistration
+- Confirmation prompts for all destructive operations
+- Comprehensive error handling with `UnregisterGitFileError` enum
+
+##### AddGitFile Workflow
+The `AddGitFile` command (in `Commands/Configuration/`) adds registered templates to repositories:
+- Adds a registered template file to the current repository
+- Interactive selection from registered templates when no argument provided
+- Accepts template name or nickname as argument
+- Uses `AddGitFileManager` (in `Managers/Configuration/`) for workflow coordination
+- Copies template content to current repository with proper file naming
+- Verifies git repository exists before operations
 
 ## Development Notes
 

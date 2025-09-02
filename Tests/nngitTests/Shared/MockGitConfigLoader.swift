@@ -10,19 +10,27 @@ import SwiftPicker
 
 final class MockGitConfigLoader: GitConfigLoader {
     private(set) var addedGitFile: GitFile?
+    private(set) var removedFileName: String?
+    private(set) var savedConfig: GitConfig?
     private let shouldThrowOnAdd: Bool
     private let customConfig: GitConfig?
+    private let mockGitFiles: [GitFile]
+    var removeResult: Bool = true
     
-    init(shouldThrowOnAdd: Bool = false, customConfig: GitConfig? = nil) {
+    init(shouldThrowOnAdd: Bool = false, customConfig: GitConfig? = nil, mockGitFiles: [GitFile] = []) {
         self.shouldThrowOnAdd = shouldThrowOnAdd
         self.customConfig = customConfig
+        self.mockGitFiles = mockGitFiles
     }
     
     func save(_ config: GitConfig) throws {
-        // Not needed for these tests
+        self.savedConfig = config
     }
     
     func loadConfig() throws -> GitConfig {
+        if !mockGitFiles.isEmpty {
+            return GitConfig(defaultBranch: "main", gitFiles: mockGitFiles)
+        }
         return customConfig ?? GitConfig.defaultConfig
     }
     
@@ -34,8 +42,8 @@ final class MockGitConfigLoader: GitConfigLoader {
     }
     
     func removeGitFile(named fileName: String) throws -> Bool {
-        // Not needed for these tests
-        return true
+        self.removedFileName = fileName
+        return removeResult
     }
 }
 

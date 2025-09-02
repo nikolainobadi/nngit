@@ -13,16 +13,29 @@ final class MockPicker {
     
     private(set) var permissionResponses: [String: Bool]
     private(set) var requiredInputResponses: [String: String]
-    private(set) var selectionResponses: [String: Int]
+    private(set) var selectionResponses: [String: Int?]
     
     init(
         permissionResponses: [String: Bool] = [:],
         requiredInputResponses: [String: String] = [:],
-        selectionResponses: [String: Int] = [:]
+        selectionResponses: [String: Int?] = [:]
     ) {
         self.permissionResponses = permissionResponses
         self.requiredInputResponses = requiredInputResponses
         self.selectionResponses = selectionResponses
+    }
+    
+    // Helper methods for tests
+    func addPermissionResponse(_ prompt: String, response: Bool) {
+        permissionResponses[prompt] = response
+    }
+    
+    func addBooleanResponse(_ prompt: String, response: Bool) {
+        permissionResponses[prompt] = response
+    }
+    
+    func addSelectionResponse(_ prompt: String, response: Int?) {
+        selectionResponses[prompt] = response
     }
 }
 
@@ -53,22 +66,29 @@ extension MockPicker: CommandLinePicker {
     
     // selections
     func singleSelection<Item: DisplayablePickerItem>(title: PickerPrompt, items: [Item]) -> Item? {
-        if let index = selectionResponses[title.title], items.indices.contains(index) {
-            return items[index]
+        if let maybeIndex = selectionResponses[title.title] {
+            if let index = maybeIndex, items.indices.contains(index) {
+                return items[index]
+            }
+            return nil // User cancelled selection
         }
         
-        return items[0]
+        return items.first
     }
     
     func requiredSingleSelection<Item: DisplayablePickerItem>(title: PickerPrompt, items: [Item]) throws -> Item {
-        if let index = selectionResponses[title.title], items.indices.contains(index) {
+        if let maybeIndex = selectionResponses[title.title], 
+           let index = maybeIndex, 
+           items.indices.contains(index) {
             return items[index]
         }
         return items[0]
     }
     
     func multiSelection<Item: DisplayablePickerItem>(title: PickerPrompt, items: [Item]) -> [Item] {
-        if let index = selectionResponses[title.title], items.indices.contains(index) {
+        if let maybeIndex = selectionResponses[title.title],
+           let index = maybeIndex,
+           items.indices.contains(index) {
             return [items[index]]
         }
         return []

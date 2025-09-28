@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2025-09-28
+### Added
+- Remote branch switching with automatic local tracking branch creation
+- `--remote` flag for SwitchBranch command to filter only remote branches
+- Automatic detection and handling of remote branches in branch switching workflow
+- Creation of comprehensive changelog documenting all releases from v0.3.0 to v0.6.0
+
+### Changed
+- Enhanced SwitchBranch command to seamlessly handle both local and remote branches
+- Improved test coverage for remote branch switching scenarios
+- Consolidated FileManager usage in test cleanup for better maintainability
+
 ## [0.6.0] - 2025-09-02
 ### Added
 - `register-git-file` command for registering template files for reuse in new repositories

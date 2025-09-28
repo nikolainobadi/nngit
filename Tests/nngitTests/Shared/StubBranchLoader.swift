@@ -13,24 +13,36 @@ final class StubBranchLoader: GitBranchLoader {
     private let localBranches: [GitBranch]
     private let branchNames: [String]?
     private let filteredResults: [String]?
-    
-    init(remoteBranches: [String] = [], localBranches: [GitBranch] = [], branchNames: [String]? = nil, filteredResults: [String]? = nil) {
+    private let localBranchNames: [String]?
+
+    init(remoteBranches: [String] = [], localBranches: [GitBranch] = [], branchNames: [String]? = nil, filteredResults: [String]? = nil, localBranchNames: [String]? = nil) {
         self.remoteBranches = remoteBranches
         self.localBranches = localBranches
         self.branchNames = branchNames
         self.filteredResults = filteredResults
+        self.localBranchNames = localBranchNames
     }
     
     func loadBranchNames(from location: BranchLocation) throws -> [String] {
         if let branchNames = branchNames {
             return branchNames
         }
-        
+
         switch location {
         case .local:
+            if let localBranchNames = localBranchNames {
+                return localBranchNames.map { $0.hasPrefix("*") ? $0 : $0 }
+            }
             return localBranches.map { $0.isCurrentBranch ? "* \($0.name)" : $0.name }
         case .remote:
-            return remoteBranches
+            // New behavior: filter out remote branches that have local counterparts
+            let localNames = localBranchNames ?? localBranches.map { $0.name }
+            let localNameSet = Set(localNames.map { $0.replacingOccurrences(of: "* ", with: "") })
+
+            return remoteBranches.filter { remoteBranch in
+                let cleanName = cleanRemoteBranchName(remoteBranch)
+                return !localNameSet.contains(cleanName)
+            }
         case .both:
             return remoteBranches + localBranches.map { $0.name }
         }
@@ -69,5 +81,20 @@ final class StubBranchLoader: GitBranchLoader {
     func filterBranchesByAuthor(_ branches: [GitBranch], shell: GitShell, includeAuthor: [String]) -> [GitBranch] {
         // For testing, return all branches (simulate that user owns all branches)
         return branches
+    }
+
+    /// Helper method to clean remote branch names for filtering
+    private func cleanRemoteBranchName(_ remoteBranch: String) -> String {
+        let trimmed = remoteBranch.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if trimmed.hasPrefix("origin/") {
+            return String(trimmed.dropFirst(7))
+        }
+
+        if let slashIndex = trimmed.firstIndex(of: "/") {
+            return String(trimmed[trimmed.index(after: slashIndex)...])
+        }
+
+        return trimmed
     }
 }

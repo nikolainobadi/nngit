@@ -124,4 +124,83 @@ struct SwitchBranchTests {
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(shell.executedCommands.contains(switchCmd))
     }
+
+    @Test("Creates tracking branch when using --remote flag.")
+    func remoteFlagCreatesTrackingBranch() throws {
+        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
+        let mainBranch = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        let remoteBranch = GitBranch(name: "origin/feature", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let loader = StubBranchLoader(
+            remoteBranches: ["origin/feature", "origin/main"],
+            localBranches: [mainBranch, remoteBranch],
+            localBranchNames: ["main"]
+        )
+        let shell = MockShell(results: [
+            "true",  // localGitCheck
+            ""       // git checkout -b feature origin/feature
+        ])
+        let picker = MockPicker(
+            selectionResponses: ["Select a branch (switching from main)": 0]
+        )
+        let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
+
+        try Nngit.testRun(context: context, args: ["switch-branch", "--remote"])
+
+        #expect(shell.executedCommands.contains(localGitCheck))
+        #expect(shell.executedCommands.contains("git checkout -b feature origin/feature"))
+    }
+
+    @Test("Uses --branch-location remote equivalent behavior with --remote flag.")
+    func remoteFlagEquivalentToBranchLocationRemote() throws {
+        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
+        let mainBranch = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        let remoteBranch = GitBranch(name: "origin/develop", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let loader = StubBranchLoader(
+            remoteBranches: ["origin/develop", "origin/main"],
+            localBranches: [mainBranch, remoteBranch],
+            localBranchNames: ["main"]
+        )
+        let shell = MockShell(results: [
+            "true",  // localGitCheck
+            ""       // git checkout -b develop origin/develop
+        ])
+        let picker = MockPicker(
+            selectionResponses: ["Select a branch (switching from main)": 0]
+        )
+        let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
+
+        try Nngit.testRun(context: context, args: ["switch-branch", "--branch-location", "remote"])
+
+        #expect(shell.executedCommands.contains(localGitCheck))
+        #expect(shell.executedCommands.contains("git checkout -b develop origin/develop"))
+    }
+
+    @Test("Remote flag overrides branch-location option.")
+    func remoteFlagOverridesBranchLocation() throws {
+        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
+        let mainBranch = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        let remoteBranch = GitBranch(name: "origin/hotfix", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        let loader = StubBranchLoader(
+            remoteBranches: ["origin/hotfix", "origin/main"],
+            localBranches: [mainBranch, remoteBranch],
+            localBranchNames: ["main"]
+        )
+        let shell = MockShell(results: [
+            "true",  // localGitCheck
+            ""       // git checkout -b hotfix origin/hotfix
+        ])
+        let picker = MockPicker(
+            selectionResponses: ["Select a branch (switching from main)": 0]
+        )
+        let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
+
+        // --remote should override --branch-location local
+        try Nngit.testRun(context: context, args: ["switch-branch", "--branch-location", "local", "--remote"])
+
+        #expect(shell.executedCommands.contains(localGitCheck))
+        #expect(shell.executedCommands.contains("git checkout -b hotfix origin/hotfix"))
+    }
 }

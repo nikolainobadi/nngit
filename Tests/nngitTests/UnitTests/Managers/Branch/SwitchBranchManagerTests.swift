@@ -156,13 +156,113 @@ struct SwitchBranchManagerTests {
         let branchLoader = StubBranchLoader(localBranches: branches)
         let shell = MockShell()
         let manager = makeSUT(shell: shell, branchLoader: branchLoader)
-        
+
         #expect(throws: BranchOperationError.noBranchesAvailable(operation: .switching)) {
             try manager.switchBranch(search: nil as String?)
         }
-        
+
         // Should not execute any git checkout command
         #expect(!shell.executedCommands.contains { $0.contains("git checkout") })
+    }
+
+    @Test("Creates local tracking branch when switching to remote branch without local counterpart.")
+    func switchToRemoteBranchWithoutLocalCounterpart() throws {
+        let featureName = "my-cool-feature"
+        let remoteBranches = [
+            GitBranch(name: "origin/\(featureName)", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined),
+            GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        ]
+        // Use branchNames to explicitly provide what the loader should return
+        let branchLoader = StubBranchLoader(localBranches: remoteBranches, branchNames: ["* main", "origin/\(featureName)"])
+        let picker = MockPicker(selectionResponses: ["Select a branch (switching from main)": 0])
+        let shell = MockShell()
+        let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
+
+        try manager.switchBranch(search: nil as String?)
+
+        // Should create a local tracking branch, not directly checkout the remote branch
+        #expect(shell.executedCommands.contains("git checkout -b \(featureName) origin/\(featureName)"))
+        #expect(!shell.executedCommands.contains("git checkout origin/\(featureName)"))
+    }
+
+    @Test("Creates tracking branch when user selects remote branch with local counterpart.")
+    func switchToRemoteBranchWithLocalCounterpart() throws {
+        let remoteBranches = [
+            GitBranch(name: "origin/feature", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined),
+            GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        ]
+        // Simulate the scenario where user is using --branch-location both and selects a remote branch
+        let branchLoader = StubBranchLoader(localBranches: remoteBranches, branchNames: ["* main", "origin/feature"])
+        let picker = MockPicker(selectionResponses: ["Select a branch (switching from main)": 0])
+        let shell = MockShell()
+        // Use .both location to include remote branches even if they have local counterparts
+        let manager = makeSUT(branchLocation: .both, shell: shell, picker: picker, branchLoader: branchLoader)
+
+        try manager.switchBranch(search: nil as String?)
+
+        // When a user explicitly selects a remote branch, it creates a tracking branch to ensure sync with remote
+        #expect(shell.executedCommands.contains("git checkout -b feature origin/feature"))
+        #expect(!shell.executedCommands.contains("git checkout feature"))
+    }
+
+    @Test("Handles upstream remote branches correctly.")
+    func switchToUpstreamRemoteBranch() throws {
+        let remoteBranches = [
+            GitBranch(name: "upstream/feature", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined),
+            GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        ]
+        // Use branchNames to explicitly provide what should be available
+        let branchLoader = StubBranchLoader(localBranches: remoteBranches, branchNames: ["* main", "upstream/feature"])
+        let picker = MockPicker(selectionResponses: ["Select a branch (switching from main)": 0])
+        let shell = MockShell()
+        let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
+
+        try manager.switchBranch(search: nil as String?)
+
+        // Should create local tracking branch from upstream remote
+        #expect(shell.executedCommands.contains("git checkout -b feature upstream/feature"))
+    }
+
+
+    @Test("Handles local branches normally when not remote.")
+    func switchToLocalBranchNormally() throws {
+        let branches = [
+            GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined),
+            GitBranch(name: "feature", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
+        ]
+        let branchLoader = StubBranchLoader(localBranches: branches)
+        let picker = MockPicker(selectionResponses: ["Select a branch (switching from main)": 0])
+        let shell = MockShell()
+        let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
+
+        try manager.switchBranch(search: nil as String?)
+
+        // Should use normal git checkout for local branches
+        #expect(shell.executedCommands.contains("git checkout feature"))
+        #expect(!shell.executedCommands.contains { $0.contains("git checkout -b") })
+    }
+
+    @Test("Filters remote branches to show only those without local counterparts.")
+    func switchBranchRemoteLocationFiltersCorrectly() throws {
+        let remoteBranches = ["origin/feature", "origin/develop", "origin/main"]
+        // Remote branches without local counterparts should be: ["origin/feature"]
+        let filteredRemoteBranches = [
+            GitBranch(name: "origin/feature", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined),
+            GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
+        ]
+        let branchLoader = StubBranchLoader(
+            remoteBranches: remoteBranches,
+            localBranches: filteredRemoteBranches,
+            localBranchNames: ["main", "develop"]
+        )
+        let picker = MockPicker(selectionResponses: ["Select a branch (switching from main)": 0])
+        let shell = MockShell()
+        let manager = makeSUT(branchLocation: .remote, shell: shell, picker: picker, branchLoader: branchLoader)
+
+        try manager.switchBranch(search: nil as String?)
+
+        // Should create a tracking branch for the filtered remote branch
+        #expect(shell.executedCommands.contains("git checkout -b feature origin/feature"))
     }
 }
 

@@ -46,7 +46,7 @@ extension DefaultGitBranchLoader: GitBranchLoader {
         case .local:
             output = try self.shell.runGitCommandWithOutput(.listLocalBranches, path: nil)
         case .remote:
-            output = try self.shell.runGitCommandWithOutput(.listRemoteBranches, path: nil)
+            return try loadRemoteOnlyBranches()
         case .both:
             output = try self.shell.runWithOutput("git branch -a")
         }
@@ -201,5 +201,56 @@ extension DefaultGitBranchLoader: GitBranchLoader {
         } else {
             return .diverged     // Both have unique commits (merge conflict scenario)
         }
+    }
+}
+
+
+// MARK: - Private Helpers
+private extension DefaultGitBranchLoader {
+    /// Loads only remote branches that don't have corresponding local branches.
+    ///
+    /// This method performs filtering to exclude remote branches that already
+    /// have local counterparts. This is the default behavior for `.remote`
+    /// since users typically want to see only remote branches they can
+    /// check out locally.
+    ///
+    /// - Returns: Array of remote branch names that don't exist locally
+    /// - Throws: ``GitShellError`` if git commands fail
+    func loadRemoteOnlyBranches() throws -> [String] {
+        // Get all remote branches directly (avoid circular call)
+        let remoteOutput = try self.shell.runGitCommandWithOutput(.listRemoteBranches, path: nil)
+        let remoteBranches = remoteOutput
+            .split(separator: "\n")
+            .map({ $0.trimmingCharacters(in: .whitespaces) })
+            .filter({ !$0.contains("->") })
+
+        let localBranches = try loadBranchNames(from: .local)
+        let localBranchSet = Set(localBranches.map { $0.replacingOccurrences(of: "* ", with: "") })
+
+        return remoteBranches.filter { remoteBranch in
+            let cleanName = cleanRemoteBranchName(remoteBranch)
+            return !localBranchSet.contains(cleanName)
+        }
+    }
+
+    /// Cleans remote branch names by removing the remote prefix.
+    ///
+    /// This method extracts the local branch name from a remote branch reference
+    /// (e.g., "origin/feature" -> "feature").
+    ///
+    /// - Parameter remoteBranch: The remote branch name to clean
+    /// - Returns: The local branch name without remote prefix
+    func cleanRemoteBranchName(_ remoteBranch: String) -> String {
+        let trimmed = remoteBranch.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if trimmed.hasPrefix("origin/") {
+            return String(trimmed.dropFirst(7))
+        }
+
+        if let slashIndex = trimmed.firstIndex(of: "/") {
+            return String(trimmed[trimmed.index(after: slashIndex)...])
+        }
+
+        return trimmed
     }
 }

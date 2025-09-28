@@ -12,14 +12,8 @@ import GitShellKit
 import NnShellKit
 @testable import nngit
 
-final class UnregisterGitFileTests {
-    
-}
-
-
-// MARK: - Tests
 @MainActor
-extension UnregisterGitFileTests {
+final class UnregisterGitFileTests {
     @Test("Successfully unregisters git file by exact filename.")
     func unregisterByExactFilename() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)

@@ -12,26 +12,25 @@ import GitShellKit
 import NnShellKit
 @testable import nngit
 
+@MainActor
 final class RegisterGitFileTests {
     private let tempDirectory: URL
-    private let fileManager = FileManager.default
     
     init() {
         // Create unique temp directory for this test instance
-        tempDirectory = fileManager.temporaryDirectory
+        tempDirectory = FileManager.default.temporaryDirectory
             .appendingPathComponent("RegisterGitFileTests-\(UUID().uuidString)")
-        try! fileManager.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
+        try! FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
     }
     
     deinit {
         // Clean up entire temp directory
-        try? fileManager.removeItem(at: tempDirectory)
+        try? FileManager.default.removeItem(at: tempDirectory)
     }
 }
 
 
 // MARK: - Tests
-@MainActor
 extension RegisterGitFileTests {
     @Test("Successfully adds GitFile with all parameters and direct path.")
     func addGitFileWithAllParametersDirectPath() throws {

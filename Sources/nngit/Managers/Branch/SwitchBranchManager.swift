@@ -85,15 +85,50 @@ private extension SwitchBranchManager {
     
     func selectAndSwitchBranch(availableBranches: [GitBranch], currentBranch: GitBranch?) throws {
         try BranchValidationHelper.validateBranchesForSwitching(availableBranches)
-        
+
         var details = ""
-        
+
         if let currentBranch {
             details = "(switching from \(currentBranch.name))"
         }
 
         let selectedBranch = try self.picker.requiredSingleSelection("Select a branch \(details)", items: availableBranches)
 
-        try self.shell.runGitCommandWithOutput(.switchBranch(branchName: selectedBranch.name), path: nil)
+        // Handle remote branches by creating local tracking branches
+        if isRemoteBranch(selectedBranch.name) {
+            try switchToRemoteBranch(selectedBranch.name)
+        } else {
+            try self.shell.runGitCommandWithOutput(.switchBranch(branchName: selectedBranch.name), path: nil)
+        }
     }
+
+    func isRemoteBranch(_ branchName: String) -> Bool {
+        return branchName.contains("/") && (branchName.hasPrefix("origin/") || branchName.hasPrefix("upstream/"))
+    }
+
+    func switchToRemoteBranch(_ remoteBranchName: String) throws {
+        // Extract local branch name from remote branch name
+        let trimmed = remoteBranchName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let localBranchName: String
+        if trimmed.hasPrefix("origin/") {
+            localBranchName = String(trimmed.dropFirst(7))
+        } else if let slashIndex = trimmed.firstIndex(of: "/") {
+            localBranchName = String(trimmed[trimmed.index(after: slashIndex)...])
+        } else {
+            localBranchName = trimmed
+        }
+
+        let localBranches = try branchLoader.loadBranchNames(from: .local)
+        let cleanedLocalBranches = localBranches.map { $0.replacingOccurrences(of: "* ", with: "") }
+
+        if cleanedLocalBranches.contains(localBranchName) {
+            // Local branch exists, just switch to it
+            try self.shell.runGitCommandWithOutput(.switchBranch(branchName: localBranchName), path: nil)
+        } else {
+            // Create new local tracking branch
+            try self.shell.runWithOutput("git checkout -b \(localBranchName) \(remoteBranchName)")
+            print("✅ Created and switched to local branch '\(localBranchName)' tracking '\(remoteBranchName)'")
+        }
+    }
+
 }

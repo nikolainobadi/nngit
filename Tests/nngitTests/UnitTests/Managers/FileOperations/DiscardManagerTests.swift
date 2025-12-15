@@ -9,7 +9,6 @@ import Testing
 import GitShellKit
 import NnShellKit
 import SwiftPickerTesting
-import SwiftPickerKit
 @testable import nngit
 
 struct DiscardManagerTests {

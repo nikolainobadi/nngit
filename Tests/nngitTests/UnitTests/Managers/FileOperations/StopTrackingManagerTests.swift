@@ -10,7 +10,6 @@ import Foundation
 import NnShellKit
 import GitShellKit
 import SwiftPickerTesting
-import SwiftPickerKit
 @testable import nngit
 
 @Suite("StopTrackingManager Tests", .serialized)

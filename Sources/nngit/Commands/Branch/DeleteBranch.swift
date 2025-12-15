@@ -5,7 +5,6 @@
 //  Created by Nikolai Nobadi on 6/8/25.
 //
 
-import SwiftPicker
 import GitShellKit
 import ArgumentParser
 

@@ -6,19 +6,12 @@
 //
 
 import Foundation
-import SwiftPicker
 
 /// Represents the status of a file in the git working directory.
-struct FileStatus: DisplayablePickerItem {
+struct FileStatus {
     let path: String
     let stagedStatus: FileChangeType?
     let unstagedStatus: FileChangeType?
-    
-    /// The display name shown in the picker interface.
-    var displayName: String {
-        let statusIndicator = buildStatusIndicator()
-        return "\(statusIndicator) \(path)"
-    }
     
     /// Whether this file has staged changes.
     var hasStaged: Bool {
@@ -28,13 +21,6 @@ struct FileStatus: DisplayablePickerItem {
     /// Whether this file has unstaged changes.
     var hasUnstaged: Bool {
         return unstagedStatus != nil
-    }
-    
-    /// Builds the status indicator string for display.
-    private func buildStatusIndicator() -> String {
-        let staged = stagedStatus?.rawValue ?? " "
-        let unstaged = unstagedStatus?.rawValue ?? " "
-        return "\(staged)\(unstaged)"
     }
 }
 

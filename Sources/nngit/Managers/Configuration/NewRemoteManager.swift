@@ -6,15 +6,13 @@
 //
 
 import Foundation
-import SwiftPicker
 import GitShellKit
 
-/// Manager for handling GitHub remote repository initialization.
 struct NewRemoteManager {
-    private let shell: GitShell
-    private let picker: CommandLinePicker
+    private let shell: any GitShell
+    private let picker: any GitPicker
     
-    init(shell: GitShell, picker: CommandLinePicker) {
+    init(shell: any GitShell, picker: any GitPicker) {
         self.shell = shell
         self.picker = picker
     }
@@ -139,12 +137,4 @@ enum NewRemoteError: Error, Equatable {
     case cannotDetermineDirectoryName
     case cannotGetGitHubUsername
     case userDeniedPermission
-}
-
-
-// MARK: - Extension Dependencies
-extension RepoVisibility: @retroactive DisplayablePickerItem {
-    public var displayName: String {
-        return rawValue.capitalized
-    }
 }

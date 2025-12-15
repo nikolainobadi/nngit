@@ -6,14 +6,12 @@
 //
 
 import NnConfigKit
-import SwiftPicker
 
-/// Default implementation of ``GitConfigLoader`` backed by ``NnConfigManager``.
 struct DefaultGitConfigLoader: GitConfigLoader {
+    private let picker: any GitPicker
     private let manager = NnConfigManager<GitConfig>(projectName: "nngit")
-    private let picker: CommandLinePicker
     
-    init(picker: CommandLinePicker) {
+    init(picker: any GitPicker) {
         self.picker = picker
     }
 }

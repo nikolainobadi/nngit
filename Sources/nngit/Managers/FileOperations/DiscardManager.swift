@@ -7,14 +7,12 @@
 
 import Foundation
 import GitShellKit
-import SwiftPicker
 
-/// Manager utility for handling discard workflows and operations.
 struct DiscardManager {
-    private let shell: GitShell
-    private let picker: CommandLinePicker
+    private let shell: any GitShell
+    private let picker: any GitPicker
     
-    init(shell: GitShell, picker: CommandLinePicker) {
+    init(shell: any GitShell, picker: any GitPicker) {
         self.shell = shell
         self.picker = picker
     }

@@ -6,15 +6,13 @@
 //
 
 import Foundation
-import SwiftPicker
 
-/// Manager for adding registered template files to the current repository.
 struct AddGitFileManager {
-    private let configLoader: GitConfigLoader
-    private let fileSystemManager: FileSystemManager
-    private let picker: CommandLinePicker
+    private let picker: any GitPicker
+    private let configLoader: any GitConfigLoader
+    private let fileSystemManager: any FileSystemManager
     
-    init(configLoader: GitConfigLoader, fileSystemManager: FileSystemManager, picker: CommandLinePicker) {
+    init(configLoader: any GitConfigLoader, fileSystemManager: any FileSystemManager, picker: any GitPicker) {
         self.configLoader = configLoader
         self.fileSystemManager = fileSystemManager
         self.picker = picker

@@ -6,7 +6,6 @@
 //
 
 import GitShellKit
-import SwiftPicker
 import ArgumentParser
 
 /// Represents which scope of changes to discard when running the ``Discard`` command.

@@ -6,17 +6,15 @@
 //
 
 import GitShellKit
-import SwiftPicker
 
-/// Manager utility for handling branch switching workflows and operations.
 struct SwitchBranchManager {
-    private let branchLocation: BranchLocation
-    private let shell: GitShell
-    private let picker: CommandLinePicker
-    private let branchLoader: GitBranchLoader
     private let config: GitConfig
+    private let shell: any GitShell
+    private let picker: any GitPicker
+    private let branchLocation: BranchLocation
+    private let branchLoader: any GitBranchLoader
     
-    init(branchLocation: BranchLocation, shell: GitShell, picker: CommandLinePicker, branchLoader: GitBranchLoader, config: GitConfig) {
+    init(branchLocation: BranchLocation, shell: any GitShell, picker: any GitPicker, branchLoader: any GitBranchLoader, config: GitConfig) {
         self.branchLocation = branchLocation
         self.shell = shell
         self.picker = picker

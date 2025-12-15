@@ -5,7 +5,6 @@
 //  Created by Nikolai Nobadi on 6/8/25.
 //
 
-import SwiftPicker
 import GitShellKit
 import ArgumentParser
 
@@ -30,48 +29,39 @@ struct Nngit: ParsableCommand {
 
 // MARK: - Factory Methods
 extension Nngit {
-    /// Returns the picker used for user interaction. Defaults to ``InteractivePicker``.
-    static func makePicker() -> CommandLinePicker {
+    static func makePicker() -> any GitPicker {
         return context.makePicker()
     }
 
-    /// Returns the shell used for executing git commands.
-    static func makeShell() -> GitShell {
+    static func makeShell() -> any GitShell {
         return context.makeShell()
     }
 
-    /// Factory for obtaining the configured ``GitCommitManager`` instance.
-    static func makeCommitManager() -> GitCommitManager {
+    static func makeCommitManager() -> any GitCommitManager {
         return context.makeCommitManager()
     }
 
-    /// Returns the loader responsible for reading and saving git configuration.
-    static func makeConfigLoader() -> GitConfigLoader {
+    static func makeConfigLoader() -> any GitConfigLoader {
         return context.makeConfigLoader()
     }
 
-    /// Abstraction for branch loading so it can be mocked in tests.
-    static func makeBranchLoader() -> GitBranchLoader {
+    static func makeBranchLoader() -> any GitBranchLoader {
         return context.makeBranchLoader()
     }
 
-    /// Factory for obtaining the configured ``GitResetHelper`` instance.
-    static func makeResetHelper() -> GitResetHelper {
+    static func makeResetHelper() -> any GitResetHelper {
         return context.makeResetHelper()
     }
     
-    /// Factory for obtaining the configured ``GitFileTracker`` instance.
     static func makeFileTracker() -> GitFileTracker {
         return context.makeFileTracker()
     }
     
-    /// Factory for obtaining the configured ``GitFileCreator`` instance.
-    static func makeFileCreator() -> GitFileCreator {
+    static func makeFileCreator() -> any GitFileCreator {
         return context.makeFileCreator()
     }
     
-    /// Factory for obtaining the configured ``FileSystemManager`` instance.
-    static func makeFileSystemManager() -> FileSystemManager {
+    static func makeFileSystemManager() -> any FileSystemManager {
         return context.makeFileSystemManager()
     }
 }

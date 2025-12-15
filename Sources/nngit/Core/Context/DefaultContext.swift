@@ -6,54 +6,46 @@
 //
 
 import GitShellKit
-import SwiftPicker
+import SwiftPickerKit
 
 struct DefaultContext: NnGitContext {
-    /// Default implementation returning ``InteractivePicker``.
-    func makePicker() -> CommandLinePicker {
-        return InteractivePicker()
-    }
-    
-    /// Default implementation returning ``GitShellAdapter``.
-    func makeShell() -> GitShell {
+    func makeShell() -> any GitShell {
         return GitShellAdapter()
     }
+    
+    func makePicker() -> any GitPicker {
+        return SwiftPicker()
+    }
 
-    /// Default ``GitCommitManager`` based on the shell from ``makeShell()``.
-    func makeCommitManager() -> GitCommitManager {
+    func makeCommitManager() -> any GitCommitManager {
         return DefaultGitCommitManager(shell: makeShell())
     }
 
-    /// Returns a loader for the application's git configuration.
-    func makeConfigLoader() -> GitConfigLoader {
+    func makeConfigLoader() -> any GitConfigLoader {
         return DefaultGitConfigLoader(picker: makePicker())
     }
 
-    /// Provides the default branch loader for the repository.
-    func makeBranchLoader() -> GitBranchLoader {
+    func makeBranchLoader() -> any GitBranchLoader {
         return DefaultGitBranchLoader(shell: makeShell())
     }
 
-    /// Default ``GitResetHelper`` based on the manager and picker.
-    func makeResetHelper() -> GitResetHelper {
-        return DefaultGitResetHelper(
-            manager: makeCommitManager(),
-            picker: makePicker()
-        )
+    func makeResetHelper() -> any GitResetHelper {
+        return DefaultGitResetHelper(manager: makeCommitManager(), picker: makePicker())
     }
     
-    /// Default ``GitFileTracker`` based on the shell from ``makeShell()``.
     func makeFileTracker() -> GitFileTracker {
         return GitFileTracker(shell: makeShell())
     }
     
-    /// Default ``GitFileCreator`` for managing template files.
-    func makeFileCreator() -> GitFileCreator {
+    func makeFileCreator() -> any GitFileCreator {
         return DefaultGitFileCreator()
     }
     
-    /// Default ``FileSystemManager`` for file operations.
-    func makeFileSystemManager() -> FileSystemManager {
+    func makeFileSystemManager() -> any FileSystemManager {
         return DefaultFileSystemManager()
     }
 }
+
+
+// MARK: - Extension Dependencies
+extension SwiftPicker: GitPicker { }

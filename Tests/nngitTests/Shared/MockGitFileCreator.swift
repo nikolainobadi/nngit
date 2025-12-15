@@ -5,7 +5,6 @@
 //  Created by Nikolai Nobadi on 8/24/25.
 //
 
-import SwiftPicker
 @testable import nngit
 
 final class MockGitFileCreator: GitFileCreator {
@@ -27,7 +26,7 @@ final class MockGitFileCreator: GitFileCreator {
         // Not needed for these tests
     }
     
-    func copyToTemplatesDirectory(sourcePath: String, fileName: String, picker: CommandLinePicker) throws -> String {
+    func copyToTemplatesDirectory(sourcePath: String, fileName: String, picker: any GitPicker) throws -> String {
         if shouldThrowOnCopy {
             throw MockGitConfigLoader.TestError.fileCreatorError
         }

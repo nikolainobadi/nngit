@@ -78,22 +78,6 @@ extension UnregisterGitFileManagerTests {
         #expect(configLoader.removedFileName == "test.txt")
     }
     
-//    @Test("Prompts for selection when no template name provided.")
-//    func promptsForSelection() throws {
-//        let gitFiles = [
-//            GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt"),
-//            GitFile(fileName: "readme.md", nickname: "Readme", localPath: "/templates/readme.md")
-//        ]
-//        let (sut, configLoader, _, picker) = makeSUT(gitFiles: gitFiles)
-//        picker.addSelectionResponse("Select a git file to unregister:", response: 1) // Select second file
-//        picker.addPermissionResponse("Remove git file 'Readme (readme.md)'?", response: true)
-//        picker.addBooleanResponse("Delete template file from disk as well?", response: false)
-//        
-//        try sut.unregisterGitFile(templateName: nil, removeAll: false)
-//        
-//        #expect(configLoader.removedFileName == "readme.md")
-//    }
-    
     @Test("Deletes template file from disk when requested.")
     func deletesTemplateFileWhenRequested() throws {
         let templatePath = tempDirectory.appendingPathComponent("test.txt")
@@ -199,19 +183,6 @@ extension UnregisterGitFileManagerTests {
         }
     }
     
-//    @Test("Throws error when user cancels selection.")
-//    func throwsErrorOnSelectionCancellation() {
-//        let gitFiles = [
-//            GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt")
-//        ]
-//        let (sut, _, _, picker) = makeSUT(gitFiles: gitFiles)
-//        picker.addSelectionResponse("Select a git file to unregister:", response: nil) // Cancel selection
-//        
-//        #expect(throws: UnregisterGitFileError.deletionCancelled) {
-//            try sut.unregisterGitFile(templateName: nil, removeAll: false)
-//        }
-//    }
-    
     @Test("Throws error when user cancels all files deletion.")
     func throwsErrorOnAllFilesCancellation() {
         let gitFiles = [
@@ -245,11 +216,8 @@ private extension UnregisterGitFileManagerTests {
         let configLoader = MockGitConfigLoader(mockGitFiles: gitFiles)
         let fileCreator = MockGitFileCreator()
         let picker = MockSwiftPicker(permissionResult: .init(type: .ordered(permissionResults)))
-        let sut = UnregisterGitFileManager(
-            configLoader: configLoader,
-            fileCreator: fileCreator,
-            picker: picker
-        )
+        let sut = UnregisterGitFileManager(configLoader: configLoader, fileCreator: fileCreator, picker: picker)
+        
         return (sut, configLoader, fileCreator)
     }
 }

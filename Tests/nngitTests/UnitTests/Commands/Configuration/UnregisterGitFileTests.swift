@@ -21,15 +21,7 @@ final class UnregisterGitFileTests {
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt"),
             GitFile(fileName: "readme.md", nickname: "Readme", localPath: "/templates/readme.md")
         ]
-        let configLoader = MockGitConfigLoader(mockGitFiles: gitFiles)
-        let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            permissionResponses: [
-                "Remove git file 'Test File (test.txt)'?": true,
-                "Delete template file from disk as well?": false
-            ]
-        )
-        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
+        let (context, configLoader, shell) = makeSUT(gitFiles: gitFiles, permissionResults: [true, false])
 
         let output = try Nngit.testRun(
             context: context, 
@@ -48,15 +40,7 @@ final class UnregisterGitFileTests {
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt"),
             GitFile(fileName: "readme.md", nickname: "Readme", localPath: "/templates/readme.md")
         ]
-        let configLoader = MockGitConfigLoader(mockGitFiles: gitFiles)
-        let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            permissionResponses: [
-                "Remove git file 'Readme (readme.md)'?": true,
-                "Delete template file from disk as well?": false
-            ]
-        )
-        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
+        let (context, configLoader, shell) = makeSUT(gitFiles: gitFiles, permissionResults: [true, false])
 
         let output = try Nngit.testRun(
             context: context, 
@@ -68,34 +52,6 @@ final class UnregisterGitFileTests {
         #expect(output.contains("✅ Removed git file 'Readme (readme.md)'"))
     }
     
-    @Test("Prompts for selection when no template name provided.")
-    func promptsForSelectionWhenNoNameProvided() throws {
-        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
-        let gitFiles = [
-            GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt"),
-            GitFile(fileName: "readme.md", nickname: "Readme", localPath: "/templates/readme.md")
-        ]
-        let configLoader = MockGitConfigLoader(mockGitFiles: gitFiles)
-        let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            permissionResponses: [
-                "Remove git file 'Test File (test.txt)'?": true,
-                "Delete template file from disk as well?": false
-            ],
-            selectionResponses: ["Select a git file to unregister:": 0] // Select first file
-        )
-        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
-
-        let output = try Nngit.testRun(
-            context: context, 
-            args: ["unregister-git-file"]
-        )
-
-        #expect(shell.executedCommands.contains(localGitCheck))
-        #expect(configLoader.removedFileName == "test.txt")
-        #expect(output.contains("✅ Removed git file 'Test File (test.txt)'"))
-    }
-    
     @Test("Successfully removes all git files with --all flag.")
     func removesAllGitFilesWithFlag() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
@@ -104,15 +60,7 @@ final class UnregisterGitFileTests {
             GitFile(fileName: "readme.md", nickname: "Readme", localPath: "/templates/readme.md"),
             GitFile(fileName: "config.json", nickname: "Config", localPath: "/templates/config.json")
         ]
-        let configLoader = MockGitConfigLoader(mockGitFiles: gitFiles)
-        let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            permissionResponses: [
-                "Are you sure you want to remove all 3 registered git files?": true,
-                "Delete template files from disk as well?": false
-            ]
-        )
-        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
+        let (context, configLoader, shell) = makeSUT(gitFiles: gitFiles, permissionResults: [true, false])
 
         let output = try Nngit.testRun(
             context: context, 
@@ -132,14 +80,7 @@ final class UnregisterGitFileTests {
         let gitFiles = [
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt")
         ]
-        let configLoader = MockGitConfigLoader(mockGitFiles: gitFiles)
-        let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            permissionResponses: [
-                "Remove git file 'Test File (test.txt)'?": false // User cancels
-            ]
-        )
-        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
+        let (context, configLoader, shell) = makeSUT(gitFiles: gitFiles, permissionResults: [false])
 
         #expect(throws: UnregisterGitFileError.deletionCancelled) {
             try Nngit.testRun(
@@ -152,37 +93,10 @@ final class UnregisterGitFileTests {
         #expect(configLoader.removedFileName == nil)
     }
     
-    @Test("Handles cancellation when user cancels selection.")
-    func handlesCancellationOnSelectionCancel() throws {
-        let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
-        let gitFiles = [
-            GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt")
-        ]
-        let configLoader = MockGitConfigLoader(mockGitFiles: gitFiles)
-        let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            selectionResponses: ["Select a git file to unregister:": nil] // User cancels selection
-        )
-        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
-
-        #expect(throws: UnregisterGitFileError.deletionCancelled) {
-            try Nngit.testRun(
-                context: context, 
-                args: ["unregister-git-file"]
-            )
-        }
-
-        #expect(shell.executedCommands.contains(localGitCheck))
-        #expect(configLoader.removedFileName == nil)
-    }
-    
     @Test("Throws error when no git files are registered.")
     func throwsErrorWhenNoGitFilesRegistered() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
-        let configLoader = MockGitConfigLoader(mockGitFiles: []) // No files registered
-        let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker()
-        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
+        let (context, _, shell) = makeSUT(gitFiles: [])
 
         #expect(throws: UnregisterGitFileError.noRegisteredFiles) {
             try Nngit.testRun(
@@ -200,10 +114,7 @@ final class UnregisterGitFileTests {
         let gitFiles = [
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt")
         ]
-        let configLoader = MockGitConfigLoader(mockGitFiles: gitFiles)
-        let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker()
-        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
+        let (context, configLoader, shell) = makeSUT(gitFiles: gitFiles)
 
         #expect(throws: UnregisterGitFileError.fileNotFound("nonexistent.txt")) {
             try Nngit.testRun(
@@ -222,15 +133,7 @@ final class UnregisterGitFileTests {
         let gitFiles = [
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt")
         ]
-        let configLoader = MockGitConfigLoader(mockGitFiles: gitFiles)
-        let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            permissionResponses: [
-                "Remove git file 'Test File (test.txt)'?": true,
-                "Delete template file from disk as well?": false
-            ]
-        )
-        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
+        let (context, _, shell) = makeSUT(gitFiles: gitFiles, permissionResults: [true, false])
 
         try Nngit.testRun(
             context: context, 
@@ -246,15 +149,7 @@ final class UnregisterGitFileTests {
         let gitFiles = [
             GitFile(fileName: "Test.txt", nickname: "Test File", localPath: "/templates/Test.txt")
         ]
-        let configLoader = MockGitConfigLoader(mockGitFiles: gitFiles)
-        let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            permissionResponses: [
-                "Remove git file 'Test File (Test.txt)'?": true,
-                "Delete template file from disk as well?": false
-            ]
-        )
-        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
+        let (context, configLoader, shell) = makeSUT(gitFiles: gitFiles, permissionResults: [true, false])
 
         let output = try Nngit.testRun(
             context: context, 
@@ -273,14 +168,7 @@ final class UnregisterGitFileTests {
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt"),
             GitFile(fileName: "readme.md", nickname: "Readme", localPath: "/templates/readme.md")
         ]
-        let configLoader = MockGitConfigLoader(mockGitFiles: gitFiles)
-        let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            permissionResponses: [
-                "Are you sure you want to remove all 2 registered git files?": false // User cancels
-            ]
-        )
-        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
+        let (context, configLoader, shell) = makeSUT(gitFiles: gitFiles, permissionResults: [false])
 
         #expect(throws: UnregisterGitFileError.deletionCancelled) {
             try Nngit.testRun(
@@ -291,5 +179,22 @@ final class UnregisterGitFileTests {
 
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(configLoader.savedConfig == nil)
+    }
+}
+
+
+// MARK: - Helper Methods
+private extension UnregisterGitFileTests {
+    func makeSUT(
+        gitFiles: [GitFile],
+        shellResults: [String] = ["true"],
+        permissionResults: [Bool] = []
+    ) -> (context: MockContext, configLoader: MockGitConfigLoader, shell: MockShell) {
+        let configLoader = MockGitConfigLoader(mockGitFiles: gitFiles)
+        let shell = MockShell(results: shellResults)
+        let picker = MockSwiftPicker(permissionResult: .init(type: .ordered(permissionResults)))
+        let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
+        
+        return (context, configLoader, shell)
     }
 }

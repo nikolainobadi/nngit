@@ -7,9 +7,9 @@
 
 import Testing
 import Foundation
-import SwiftPickerTesting
 import GitShellKit
-import NnShellKit
+import NnShellTesting
+import SwiftPickerTesting
 @testable import nngit
 
 @MainActor
@@ -64,7 +64,7 @@ struct NewRemoteTests {
     
     @Test("Handles error when GitHub CLI is not installed.")
     func handlesGitHubCLINotInstalledError() throws {
-        let shell = MockShell(results: ["true"], shouldThrowError: true) // First call succeeds, then all throw
+        let shell = MockShell(results: ["true"], shouldThrowErrorOnFinal: true) // First call succeeds, then all throw
         let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell)
 

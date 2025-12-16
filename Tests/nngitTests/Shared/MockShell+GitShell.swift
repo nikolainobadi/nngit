@@ -5,8 +5,8 @@
 //  Created by Nikolai Nobadi on 8/22/25.
 //
 
-import NnShellKit
 import GitShellKit
+import NnShellTesting
 
 extension MockShell: @retroactive GitShell {
     public func runWithOutput(_ command: String) throws -> String {

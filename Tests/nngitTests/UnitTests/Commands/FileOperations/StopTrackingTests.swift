@@ -7,8 +7,8 @@
 
 import Testing
 import Foundation
-import NnShellKit
 import GitShellKit
+import NnShellTesting
 import SwiftPickerTesting
 @testable import nngit
 
@@ -16,7 +16,7 @@ import SwiftPickerTesting
 struct StopTrackingTests {
     @Test("Throws error when not in git repository.")
     func throwsErrorWhenNotInGitRepository() {
-        let shell = MockShell(results: [], shouldThrowError: true)
+        let shell = MockShell(results: [], shouldThrowErrorOnFinal: true)
         let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell)
         

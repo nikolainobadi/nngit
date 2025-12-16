@@ -7,10 +7,9 @@
 
 import Testing
 import Foundation
-import SwiftPickerTesting
-import SwiftPickerKit
 import GitShellKit
-import NnShellKit
+import NnShellTesting
+import SwiftPickerTesting
 @testable import nngit
 
 struct NewRemoteManagerTests {
@@ -312,7 +311,7 @@ private extension NewRemoteManagerTests {
         selectionResponses: [String: Int] = [:],
         shouldThrowShellError: Bool = false
     ) -> (sut: NewRemoteManager, shell: MockShell, picker: MockSwiftPicker) {
-        let shell = MockShell(results: shellResults, shouldThrowError: shouldThrowShellError)
+        let shell = MockShell(results: shellResults, shouldThrowErrorOnFinal: shouldThrowShellError)
         let picker = makePicker(
             permissionResponses: permissionResponses,
             inputResponses: inputResponses,

@@ -6,10 +6,9 @@
 //
 
 import Testing
-import NnShellKit
-import SwiftPickerTesting
-import SwiftPickerKit
 import GitShellKit
+import NnShellTesting
+import SwiftPickerTesting
 @testable import nngit
 
 struct SwitchBranchManagerTests {

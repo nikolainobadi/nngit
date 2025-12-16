@@ -7,7 +7,7 @@
 
 import Testing
 import GitShellKit
-import NnShellKit
+import NnShellTesting
 @testable import nngit
 
 struct GitActivityManagerTests {

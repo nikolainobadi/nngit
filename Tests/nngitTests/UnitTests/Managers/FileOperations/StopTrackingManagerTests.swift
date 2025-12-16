@@ -7,8 +7,8 @@
 
 import Testing
 import Foundation
-import NnShellKit
 import GitShellKit
+import NnShellTesting
 import SwiftPickerTesting
 @testable import nngit
 
@@ -222,7 +222,7 @@ private extension StopTrackingManagerTests {
     }
     
     func makeSUTWithThrowingShell(fileSystemManager: FileSystemManager? = nil) -> (sut: StopTrackingManager, shell: MockShell, fileSystemManager: FileSystemManager) {
-        let shell = MockShell(results: [], shouldThrowError: true)
+        let shell = MockShell(results: [], shouldThrowErrorOnFinal: true)
         let picker = makePicker()
         let tracker = GitFileTracker(shell: shell)
         let fsManager = fileSystemManager ?? MockFileSystemManager()

@@ -6,9 +6,9 @@
 //
 
 import Testing
-import NnShellKit
 import GitShellKit
 import GitCommandGen
+import NnShellTesting
 @testable import nngit
 
 @Suite("GitFileTracker Tests")
@@ -321,7 +321,7 @@ struct GitFileTrackerTests {
 // MARK: - SUT
 private extension GitFileTrackerTests {
     func makeSUT(results: [String] = [], shouldThrowError: Bool = false) -> (sut: GitFileTracker, shell: MockShell) {
-        let shell = MockShell(results: results, shouldThrowError: shouldThrowError)
+        let shell = MockShell(results: results, shouldThrowErrorOnFinal: shouldThrowError)
         let sut = GitFileTracker(shell: shell)
         
         return (sut, shell)

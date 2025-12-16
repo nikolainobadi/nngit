@@ -1,5 +1,5 @@
 import Testing
-import NnShellKit
+import NnShellTesting
 @testable import nngit
 
 struct GitShellAdapterTests {

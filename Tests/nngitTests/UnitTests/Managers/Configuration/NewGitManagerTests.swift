@@ -7,10 +7,9 @@
 
 import Testing
 import Foundation
-import SwiftPickerTesting
-import SwiftPickerKit
 import GitShellKit
-import NnShellKit
+import NnShellTesting
+import SwiftPickerTesting
 @testable import nngit
 
 final class NewGitManagerTests {

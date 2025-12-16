@@ -7,9 +7,9 @@
 
 import Testing
 import Foundation
-import SwiftPickerTesting
 import GitShellKit
-import NnShellKit
+import NnShellTesting
+import SwiftPickerTesting
 @testable import nngit
 
 @MainActor

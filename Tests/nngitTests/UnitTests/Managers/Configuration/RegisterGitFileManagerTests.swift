@@ -8,7 +8,6 @@
 import Testing
 import Foundation
 import SwiftPickerTesting
-import SwiftPickerKit
 @testable import nngit
 
 final class RegisterGitFileManagerTests {

@@ -5,8 +5,8 @@
 //  Created by Nikolai Nobadi on 6/22/25.
 //
 
-import NnShellKit
 import GitShellKit
+import NnShellTesting
 import SwiftPickerTesting
 @testable import nngit
 

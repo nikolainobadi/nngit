@@ -6,10 +6,10 @@
 //
 
 import Testing
-import NnShellKit
-import SwiftPickerTesting
 import GitShellKit
+import NnShellTesting
 import ArgumentParser
+import SwiftPickerTesting
 @testable import nngit
 
 @MainActor

@@ -6,8 +6,8 @@
 //
 
 import Testing
-import NnShellKit
 import GitShellKit
+import NnShellTesting
 @testable import nngit
 
 struct DefaultGitCommitManagerTests {

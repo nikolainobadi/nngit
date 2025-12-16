@@ -5,8 +5,8 @@
 //  Created by Nikolai Nobadi on 8/22/25.
 //
 
-@testable import nngit
 import GitShellKit
+@testable import nngit
 
 final class MockGitResetHelper: GitResetHelper {
     private(set) var selectCommitForResetResult: (count: Int, commits: [CommitInfo])?

@@ -1,9 +1,15 @@
+//
+//  Nngit+Extensions.swift
+//  nngit
+//
+//  Created by Nikolai Nobadi on 6/22/25.
+//
+
 import Foundation
 import ArgumentParser
 @testable import nngit
 
 extension Nngit {
-    /// Runs the command with the provided arguments and returns any printed output.
     @discardableResult
     static func testRun(context: NnGitContext? = nil, args: [String]? = []) throws -> String {
         self.context = context ?? MockContext()
@@ -12,7 +18,6 @@ extension Nngit {
 }
 
 private extension Nngit {
-    /// Captures stdout from invoking the command so it can be asserted in tests.
     static func captureOutput(args: [String]?) throws -> String {
         let pipe = Pipe()
         let readHandle = pipe.fileHandleForReading

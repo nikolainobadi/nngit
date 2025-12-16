@@ -7,7 +7,7 @@
 
 import Testing
 import NnShellKit
-import SwiftPicker
+import SwiftPickerTesting
 import GitShellKit
 import ArgumentParser
 @testable import nngit

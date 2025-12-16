@@ -5,14 +5,13 @@
 //  Created by Nikolai Nobadi on 8/22/25.
 //
 
-import SwiftPicker
 import GitShellKit
 
 struct DefaultGitResetHelper {
+    private let picker: any GitPicker
     private let manager: GitCommitManager
-    private let picker: CommandLinePicker
     
-    init(manager: GitCommitManager, picker: CommandLinePicker) {
+    init(manager: GitCommitManager, picker: any GitPicker) {
         self.manager = manager
         self.picker = picker
     }

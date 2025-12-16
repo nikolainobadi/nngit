@@ -7,7 +7,8 @@
 
 import Testing
 import Foundation
-import SwiftPicker
+import SwiftPickerTesting
+import SwiftPickerKit
 @testable import nngit
 
 final class RegisterGitFileManagerTests {
@@ -230,7 +231,7 @@ private extension RegisterGitFileManagerTests {
     func makeSUT(copyPath: String? = nil, requiredInputResponses: [String: String] = [:], shouldThrowOnAdd: Bool = false, shouldThrowOnCopy: Bool = false) -> (sut: RegisterGitFileManager, configLoader: MockGitConfigLoader, fileCreator: MockGitFileCreator) {
         let configLoader = MockGitConfigLoader(shouldThrowOnAdd: shouldThrowOnAdd)
         let fileCreator = MockGitFileCreator(copyResult: copyPath, shouldThrowOnCopy: shouldThrowOnCopy)
-        let picker = MockPicker(requiredInputResponses: requiredInputResponses)
+        let picker = makePicker(inputResponses: requiredInputResponses)
         let sut = RegisterGitFileManager(configLoader: configLoader, fileCreator: fileCreator, picker: picker)
         
         return (sut, configLoader, fileCreator)
@@ -245,5 +246,21 @@ private extension RegisterGitFileManagerTests {
         try content.write(toFile: path, atomically: true, encoding: .utf8)
         return path
     }
+    
+    func makePicker(inputResponses: [String: String]) -> MockSwiftPicker {
+        let inputResult = MockInputResult(defaultValue: "", type: .dictionary(inputResponses))
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(0),
+            defaultMulti: .none,
+            singleType: .ordered([]),
+            multiType: .ordered([])
+        )
+        
+        return MockSwiftPicker(
+            inputResult: inputResult,
+            permissionResult: .init(),
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
+    }
 }
-

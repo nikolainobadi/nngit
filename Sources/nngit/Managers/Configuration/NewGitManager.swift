@@ -6,17 +6,15 @@
 //
 
 import Foundation
-import SwiftPicker
 import GitShellKit
 
-/// Manager for handling Git repository initialization with template file selection.
 struct NewGitManager {
-    private let shell: GitShell
-    private let picker: CommandLinePicker
-    private let configLoader: GitConfigLoader
-    private let fileSystemManager: FileSystemManager
+    private let shell: any GitShell
+    private let picker: any GitPicker
+    private let configLoader: any GitConfigLoader
+    private let fileSystemManager: any FileSystemManager
     
-    init(shell: GitShell, picker: CommandLinePicker, configLoader: GitConfigLoader, fileSystemManager: FileSystemManager) {
+    init(shell: any GitShell, picker: any GitPicker, configLoader: any GitConfigLoader, fileSystemManager: any FileSystemManager) {
         self.shell = shell
         self.picker = picker
         self.configLoader = configLoader
@@ -27,7 +25,6 @@ struct NewGitManager {
 
 // MARK: - Main Workflow
 extension NewGitManager {
-    /// Initializes a new Git repository and sets up selected template files.
     func initializeGitRepository() throws {
         let config = try configLoader.loadConfig()
         
@@ -89,18 +86,11 @@ private extension NewGitManager {
         }
         
         if fileSystemManager.fileExists(atPath: destinationPath) {
-            let options = ["Yes", "No"]
-            let choice = picker.singleSelection(
-                "File '\(destinationPath)' already exists. Overwrite?",
-                items: options
-            )
-            
-            if choice == "No" {
+            guard picker.getPermission("File '\(destinationPath)' already exists. Overwrite?") else {
                 print("⏭️  Skipped \(destinationPath)")
                 return
             }
-            
-            // Remove existing file before copying
+        
             try fileSystemManager.removeItem(atPath: destinationPath)
         }
         

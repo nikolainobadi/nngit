@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftPicker
 import GitShellKit
 import ArgumentParser
 
@@ -43,17 +42,4 @@ extension Nngit {
 
 // MARK: - Extension Dependencies
 extension BranchLocation: ExpressibleByArgument { }
-extension GitBranch: DisplayablePickerItem {
-    var displayName: String {
-        let sync = syncStatus.rawValue
-        
-        // For the main branch, show only sync status since "merged" doesn't apply conceptually
-        if !isMerged {
-            // This includes both unmerged branches and the main branch (which is never marked as merged now)
-            return "\(name) (\(sync))"
-        } else {
-            // Non-main branches that are actually merged
-            return "\(name) (merged, \(sync))"
-        }
-    }
-}
+

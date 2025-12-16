@@ -7,7 +7,6 @@
 
 import Foundation
 import GitShellKit
-import SwiftPicker
 import ArgumentParser
 
 extension Nngit {

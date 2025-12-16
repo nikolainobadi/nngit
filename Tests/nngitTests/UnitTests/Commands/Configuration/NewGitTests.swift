@@ -7,18 +7,18 @@
 
 import Testing
 import Foundation
-import SwiftPicker
+import SwiftPickerTesting
 import GitShellKit
 import NnShellKit
 @testable import nngit
 
 @MainActor
 struct NewGitTests {
-    @Test("Successfully initializes git repository when no git files are configured.")
+@Test("Successfully initializes git repository when no git files are configured.")
     func initializeGitWithoutTemplateFiles() throws {
         let configLoader = MockGitConfigLoader()
         let shell = MockShell(results: ["", "Initialized empty Git repository"])
-        let picker = MockPicker(permissionResponses: [
+        let picker = makePicker(permissionResponses: [
             "Would you like to create a GitHub remote repository for this project?": false
         ])
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
@@ -62,7 +62,7 @@ struct NewGitTests {
         
         Create remote repository with these settings?
         """
-        let picker = MockPicker(
+        let picker = makePicker(
             permissionResponses: [
                 "Would you like to create a GitHub remote repository for this project?": true,
                 confirmationMessage: true
@@ -81,5 +81,27 @@ struct NewGitTests {
         #expect(shell.executedCommands.contains("git add ."))
         #expect(shell.executedCommands.contains("git commit -m \"Initial commit from nngit\""))
         #expect(shell.executedCommands.contains("which gh"))
+    }
+    
+    func makePicker(
+        permissionResponses: [String: Bool] = [:],
+        selectionResponses: [String: Int] = [:]
+    ) -> MockSwiftPicker {
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary(permissionResponses))
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(0),
+            defaultMulti: .none,
+            singleType: .dictionary(
+                Dictionary(uniqueKeysWithValues: selectionResponses.map { ($0.key, .index($0.value)) })
+            ),
+            multiType: .ordered([])
+        )
+        
+        return MockSwiftPicker(
+            inputResult: .init(),
+            permissionResult: permissionResult,
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
     }
 }

@@ -7,7 +7,8 @@
 
 import Testing
 import Foundation
-import SwiftPicker
+import SwiftPickerTesting
+import SwiftPickerKit
 import GitShellKit
 import NnShellKit
 @testable import nngit
@@ -42,8 +43,8 @@ struct NewRemoteManagerTests {
         #expect(shell.executedCommands.contains("gh repo create project --private -d 'Test description'"))
         #expect(shell.executedCommands.contains("git remote add origin https://github.com/testuser/project.git"))
         #expect(shell.executedCommands.contains("git push -u origin main"))
-        #expect(picker.requiredPermissions.count == 1)
-        #expect(picker.requiredPermissions[0].contains("Test description"))
+        #expect(picker.capturedPermissionPrompts.count == 1)
+        #expect(picker.capturedPermissionPrompts[0].contains("Test description"))
     }
     
     @Test("Successfully creates public repository when visibility is selected.")
@@ -236,8 +237,8 @@ struct NewRemoteManagerTests {
         
         try sut.initializeGitHubRemote(visibility: .publicRepo)
         
-        #expect(picker.requiredPermissions.count == 1)
-        let prompt = picker.requiredPermissions[0]
+        #expect(picker.capturedPermissionPrompts.count == 1)
+        let prompt = picker.capturedPermissionPrompts[0]
         #expect(prompt.contains("myusername"))
         #expect(prompt.contains("awesome-project"))
         #expect(prompt.contains("An awesome project!"))
@@ -294,8 +295,8 @@ struct NewRemoteManagerTests {
         try sut.initializeGitHubRemote(visibility: .privateRepo)
         
         // Check that the confirmation prompt has the trimmed username
-        #expect(picker.requiredPermissions.count == 1)
-        let prompt = picker.requiredPermissions[0]
+        #expect(picker.capturedPermissionPrompts.count == 1)
+        let prompt = picker.capturedPermissionPrompts[0]
         #expect(prompt.contains("• GitHub Username: testuser"))
         #expect(!prompt.contains("  testuser  "))
     }
@@ -310,15 +311,39 @@ private extension NewRemoteManagerTests {
         permissionResponses: [String: Bool] = [:],
         selectionResponses: [String: Int] = [:],
         shouldThrowShellError: Bool = false
-    ) -> (sut: NewRemoteManager, shell: MockShell, picker: MockPicker) {
+    ) -> (sut: NewRemoteManager, shell: MockShell, picker: MockSwiftPicker) {
         let shell = MockShell(results: shellResults, shouldThrowError: shouldThrowShellError)
-        let picker = MockPicker(
+        let picker = makePicker(
             permissionResponses: permissionResponses,
-            requiredInputResponses: inputResponses,
-            selectionResponses: selectionResponses
+            inputResponses: inputResponses,
+            singleSelectionResponses: selectionResponses
         )
         let sut = NewRemoteManager(shell: shell, picker: picker)
         
         return (sut, shell, picker)
+    }
+    
+    func makePicker(
+        permissionResponses: [String: Bool] = [:],
+        inputResponses: [String: String] = [:],
+        singleSelectionResponses: [String: Int] = [:]
+    ) -> MockSwiftPicker {
+        let inputResult = MockInputResult(defaultValue: "", type: .dictionary(inputResponses))
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary(permissionResponses))
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(0),
+            defaultMulti: .none,
+            singleType: .dictionary(
+                Dictionary(uniqueKeysWithValues: singleSelectionResponses.map { ($0.key, .index($0.value)) })
+            ),
+            multiType: .ordered([])
+        )
+        
+        return MockSwiftPicker(
+            inputResult: inputResult,
+            permissionResult: permissionResult,
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
     }
 }

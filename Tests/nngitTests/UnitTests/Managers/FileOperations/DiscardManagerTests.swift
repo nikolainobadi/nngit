@@ -8,7 +8,7 @@
 import Testing
 import GitShellKit
 import NnShellKit
-import SwiftPicker
+import SwiftPickerTesting
 @testable import nngit
 
 struct DiscardManagerTests {
@@ -20,7 +20,7 @@ struct DiscardManagerTests {
             ""                             // clearUnstagedFiles
         ])
         let permissionMessage = "Are you sure you want to discard the changes you made in this branch? You cannot undo this action."
-        let picker = MockPicker(permissionResponses: [permissionMessage: true])
+        let picker = makePicker(permissionResponses: [permissionMessage: true])
         let manager = makeSUT(shell: shell, picker: picker)
         
         try manager.performDiscard(scope: .both, files: false)
@@ -28,7 +28,7 @@ struct DiscardManagerTests {
         #expect(shell.executedCommands.contains("git status --porcelain"))
         #expect(shell.executedCommands.contains("git reset --hard HEAD"))
         #expect(shell.executedCommands.contains("git clean -fd"))
-        #expect(picker.requiredPermissions.contains(permissionMessage))
+        #expect(picker.capturedPermissionPrompts.contains(permissionMessage))
     }
     
     @Test("Successfully performs full discard for staged scope")
@@ -38,14 +38,14 @@ struct DiscardManagerTests {
             ""                             // clearStagedFiles
         ])
         let permissionMessage = "Are you sure you want to discard the changes you made in this branch? You cannot undo this action."
-        let picker = MockPicker(permissionResponses: [permissionMessage: true])
+        let picker = makePicker(permissionResponses: [permissionMessage: true])
         let manager = makeSUT(shell: shell, picker: picker)
         
         try manager.performDiscard(scope: .staged, files: false)
         
         #expect(shell.executedCommands.contains("git reset --hard HEAD"))
         #expect(!shell.executedCommands.contains("git clean -fd"))
-        #expect(picker.requiredPermissions.contains(permissionMessage))
+        #expect(picker.capturedPermissionPrompts.contains(permissionMessage))
     }
     
     @Test("Successfully performs full discard for unstaged scope")
@@ -55,14 +55,14 @@ struct DiscardManagerTests {
             ""                             // clearUnstagedFiles
         ])
         let permissionMessage = "Are you sure you want to discard the changes you made in this branch? You cannot undo this action."
-        let picker = MockPicker(permissionResponses: [permissionMessage: true])
+        let picker = makePicker(permissionResponses: [permissionMessage: true])
         let manager = makeSUT(shell: shell, picker: picker)
         
         try manager.performDiscard(scope: .unstaged, files: false)
         
         #expect(!shell.executedCommands.contains("git reset --hard HEAD"))
         #expect(shell.executedCommands.contains("git clean -fd"))
-        #expect(picker.requiredPermissions.contains(permissionMessage))
+        #expect(picker.capturedPermissionPrompts.contains(permissionMessage))
     }
     
     @Test("Handles no changes detected")
@@ -70,13 +70,13 @@ struct DiscardManagerTests {
         let shell = MockShell(results: [
             ""  // containsChanges (empty)
         ])
-        let picker = MockPicker()
+        let picker = makePicker()
         let manager = makeSUT(shell: shell, picker: picker)
         
         try manager.performDiscard(scope: .both, files: false)
         
         #expect(shell.executedCommands.contains("git status --porcelain"))
-        #expect(picker.requiredPermissions.isEmpty)
+        #expect(picker.capturedPermissionPrompts.isEmpty)
     }
     
     @Test("Handles user cancellation in full discard")
@@ -85,14 +85,14 @@ struct DiscardManagerTests {
             "M  file1.txt"  // containsChanges
         ])
         let permissionMessage = "Are you sure you want to discard the changes you made in this branch? You cannot undo this action."
-        let picker = MockPicker(permissionResponses: [permissionMessage: false])
+        let picker = makePicker(permissionResponses: [permissionMessage: false])
         let manager = makeSUT(shell: shell, picker: picker)
         
         #expect(throws: Error.self) {
             try manager.performDiscard(scope: .both, files: false)
         }
         
-        #expect(picker.requiredPermissions.contains(permissionMessage))
+        #expect(picker.capturedPermissionPrompts.contains(permissionMessage))
         #expect(!shell.executedCommands.contains("git reset --hard HEAD"))
         #expect(!shell.executedCommands.contains("git clean -fd"))
     }
@@ -107,9 +107,10 @@ struct DiscardManagerTests {
         ])
         let selectionTitle = "Select files to discard changes from:"
         let permissionMessage = "Are you sure you want to discard changes in 1 selected file(s)? You cannot undo this action."
-        let picker = MockPicker(
+        let picker = makePicker(
             permissionResponses: [permissionMessage: true],
-            selectionResponses: [selectionTitle: 0]  // Select first file
+            multiSelectionPrompt: selectionTitle,
+            multiSelectionIndices: [0]
         )
         let manager = makeSUT(shell: shell, picker: picker)
         
@@ -117,7 +118,7 @@ struct DiscardManagerTests {
         
         #expect(shell.executedCommands.contains("git reset HEAD \"file1.txt\""))
         #expect(shell.executedCommands.contains("git checkout -- \"file1.txt\""))
-        #expect(picker.requiredPermissions.contains(permissionMessage))
+        #expect(picker.capturedPermissionPrompts.contains(permissionMessage))
     }
     
     @Test("Handles no files match scope in file selection")
@@ -126,12 +127,12 @@ struct DiscardManagerTests {
             "M  file1.txt",  // containsChanges
             " M file2.txt"   // handleFileSelection - only unstaged files
         ])
-        let picker = MockPicker()
+        let picker = makePicker()
         let manager = makeSUT(shell: shell, picker: picker)
         
         try manager.performDiscard(scope: .staged, files: true)  // Looking for staged, but only unstaged available
         
-        #expect(picker.requiredPermissions.isEmpty)
+        #expect(picker.capturedPermissionPrompts.isEmpty)
     }
     
     @Test("Handles user cancellation in file selection")
@@ -141,12 +142,14 @@ struct DiscardManagerTests {
             "M  file1.txt"     // handleFileSelection
         ])
         let selectionTitle = "Select files to discard changes from:"
-        let picker = MockPicker(selectionResponses: [selectionTitle: -1])  // No valid selection
+        let picker = makePicker(
+            multiSelectionPrompt: selectionTitle
+        )
         let manager = makeSUT(shell: shell, picker: picker)
         
         try manager.performDiscard(scope: .both, files: true)
         
-        #expect(picker.requiredPermissions.isEmpty)  // Should not reach permission step
+        #expect(picker.capturedPermissionPrompts.isEmpty)  // Should not reach permission step
     }
     
     @Test("Handles untracked files correctly in file selection")
@@ -158,9 +161,10 @@ struct DiscardManagerTests {
         ])
         let selectionTitle = "Select files to discard changes from:"
         let permissionMessage = "Are you sure you want to discard changes in 1 selected file(s)? You cannot undo this action."
-        let picker = MockPicker(
+        let picker = makePicker(
             permissionResponses: [permissionMessage: true],
-            selectionResponses: [selectionTitle: 0]
+            multiSelectionPrompt: selectionTitle,
+            multiSelectionIndices: [0]
         )
         let manager = makeSUT(shell: shell, picker: picker)
         
@@ -176,8 +180,34 @@ struct DiscardManagerTests {
 private extension DiscardManagerTests {
     func makeSUT(
         shell: GitShell = MockShell(),
-        picker: MockPicker = MockPicker()
+        picker: MockSwiftPicker
     ) -> DiscardManager {
         return DiscardManager(shell: shell, picker: picker)
+    }
+    
+    func makePicker(
+        permissionResponses: [String: Bool] = [:],
+        multiSelectionPrompt: String? = nil,
+        multiSelectionIndices: [Int]? = nil
+    ) -> MockSwiftPicker {
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary(permissionResponses))
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(0),
+            defaultMulti: .none,
+            singleType: .ordered([]),
+            multiType: multiSelectionPrompt.map { prompt in
+                if let indices = multiSelectionIndices {
+                    return .dictionary([prompt: .indices(indices)])
+                }
+                return .dictionary([prompt: .none])
+            } ?? .ordered([])
+        )
+        
+        return MockSwiftPicker(
+            inputResult: .init(),
+            permissionResult: permissionResult,
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
     }
 }

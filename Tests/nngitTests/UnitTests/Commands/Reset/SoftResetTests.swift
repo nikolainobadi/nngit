@@ -8,6 +8,7 @@
 import Testing
 import GitShellKit
 import NnShellKit
+import SwiftPickerTesting
 @testable import nngit
 
 @MainActor
@@ -52,7 +53,7 @@ struct SoftResetTests {
             ""                              // git reset --soft HEAD~3
         ]
         
-        let picker = MockPicker(permissionResponses: [
+        let picker = makePicker(permissionResponses: [
             "Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area.": true
         ])
         let shell = MockShell(results: shellResults)
@@ -72,7 +73,7 @@ struct SoftResetTests {
             ""                              // Should not reach git reset because verifyAuthorPermissions should block it
         ]
         
-        let picker = MockPicker()
+        let picker = makePicker()
         let shell = MockShell(results: shellResults)
         let commitManager = DefaultGitCommitManager(shell: shell)
         let resetHelper = DefaultGitResetHelper(manager: commitManager, picker: picker)
@@ -82,7 +83,7 @@ struct SoftResetTests {
         
         // Should not execute soft reset without force flag when commits by other authors are present
         #expect(!shell.executedCommands.contains("git reset --soft HEAD~2"))
-        #expect(!picker.requiredPermissions.contains("Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area."))
+        #expect(!picker.capturedPermissionPrompts.contains("Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area."))
     }
     
     @Test("Allows soft reset with force flag for other authors")
@@ -94,7 +95,7 @@ struct SoftResetTests {
             ""                              // git reset --soft HEAD~2
         ]
         
-        let picker = MockPicker(permissionResponses: [
+        let picker = makePicker(permissionResponses: [
             "Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area.": true
         ])
         let shell = MockShell(results: shellResults)
@@ -105,12 +106,12 @@ struct SoftResetTests {
         try runCommand(context, number: 2, force: true)
         
         #expect(shell.executedCommands.contains("git reset --soft HEAD~2"))
-        #expect(picker.requiredPermissions.contains("Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area."))
+        #expect(picker.capturedPermissionPrompts.contains("Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area."))
     }
     
     @Test("Validates number is greater than zero")
     func validatesNumberGreaterThanZero() throws {
-        let picker = MockPicker()
+        let picker = makePicker()
         let shell = MockShell(results: [])
         let context = MockContext(picker: picker, shell: shell)
         
@@ -129,7 +130,7 @@ struct SoftResetTests {
             "abc123 - Test commit (Test User <test@example.com>, 2 hours ago)"  // git log
         ]
         
-        let picker = MockPicker(permissionResponses: [
+        let picker = makePicker(permissionResponses: [
             "Are you sure you want to soft reset 1 commit(s)? The changes will be moved to staging area.": false
         ])
         let shell = MockShell(results: shellResults)
@@ -158,7 +159,7 @@ struct SoftResetTests {
             verifyAuthorPermissionsResult: true
         )
         
-        let picker = MockPicker(permissionResponses: [
+        let picker = makePicker(permissionResponses: [
             "Are you sure you want to soft reset 1 commit(s)? The changes will be moved to staging area.": true
         ])
         let shell = MockShell(results: [""])
@@ -186,7 +187,7 @@ struct SoftResetTests {
             verifyAuthorPermissionsResult: true
         )
         
-        let picker = MockPicker(permissionResponses: [
+        let picker = makePicker(permissionResponses: [
             "Are you sure you want to soft reset 4 commit(s)? The changes will be moved to staging area.": true
         ])
         let shell = MockShell(results: [""])
@@ -207,7 +208,7 @@ struct SoftResetTests {
             verifyAuthorPermissionsResult: true
         )
         
-        let picker = MockPicker(permissionResponses: [
+        let picker = makePicker(permissionResponses: [
             "Are you sure you want to soft reset 7 commit(s)? The changes will be moved to staging area.": true
         ])
         let shell = MockShell(results: [""])
@@ -231,7 +232,7 @@ struct SoftResetTests {
             verifyAuthorPermissionsResult: true
         )
         
-        let picker = MockPicker(permissionResponses: [
+        let picker = makePicker(permissionResponses: [
             "Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area.": true
         ])
         let shell = MockShell(results: [""])
@@ -254,7 +255,7 @@ struct SoftResetTests {
             verifyAuthorPermissionsResult: false  // Permission denied due to other author
         )
         
-        let picker = MockPicker()
+        let picker = makePicker()
         let shell = MockShell(results: [""])
         let context = MockContext(picker: picker, shell: shell, resetHelper: mockResetHelper)
         
@@ -274,7 +275,7 @@ struct SoftResetTests {
             "ghi789 - Test commit 3 (Test User <test@example.com>, 3 hours ago)\ndef456 - Test commit 2 (Test User <test@example.com>, 2 hours ago)\nabc123 - Test commit 1 (Test User <test@example.com>, 1 hour ago)"  // git log
         ]
         
-        let picker = MockPicker(
+        let picker = makePicker(
             permissionResponses: [
                 "Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area.": false
             ],
@@ -304,7 +305,7 @@ struct SoftResetTests {
             selectCommitForResetResult: nil  // No commits selected
         )
         
-        let picker = MockPicker()
+        let picker = makePicker()
         let shell = MockShell(results: [""])
         let context = MockContext(picker: picker, shell: shell, resetHelper: mockResetHelper)
         
@@ -313,7 +314,7 @@ struct SoftResetTests {
         // Should not execute any reset commands with empty commit history
         #expect(mockResetHelper.confirmResetCount == nil)
         #expect(!shell.executedCommands.contains { $0.contains("git reset --soft") })
-        #expect(picker.requiredPermissions.isEmpty)
+        #expect(picker.capturedPermissionPrompts.isEmpty)
     }
     
     @Test("Selection mode with insufficient commits")
@@ -327,7 +328,7 @@ struct SoftResetTests {
             verifyAuthorPermissionsResult: true
         )
         
-        let picker = MockPicker(permissionResponses: [
+        let picker = makePicker(permissionResponses: [
             "Are you sure you want to soft reset 2 commit(s)? The changes will be moved to staging area.": true
         ])
         let shell = MockShell(results: [""])
@@ -353,7 +354,7 @@ struct SoftResetTests {
             verifyAuthorPermissionsResult: true
         )
         
-        let picker = MockPicker(permissionResponses: [
+        let picker = makePicker(permissionResponses: [
             "Are you sure you want to soft reset 3 commit(s)? The changes will be moved to staging area.": true
         ])
         let shell = MockShell(results: [""])
@@ -383,5 +384,27 @@ private extension SoftResetTests {
         }
         
         try Nngit.testRun(context: testFactory, args: args)
+    }
+    
+    func makePicker(
+        permissionResponses: [String: Bool] = [:],
+        selectionResponses: [String: Int] = [:]
+    ) -> MockSwiftPicker {
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary(permissionResponses))
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(0),
+            defaultMulti: .none,
+            singleType: .dictionary(
+                Dictionary(uniqueKeysWithValues: selectionResponses.map { ($0.key, .index($0.value)) })
+            ),
+            multiType: .ordered([])
+        )
+        
+        return MockSwiftPicker(
+            inputResult: .init(),
+            permissionResult: permissionResult,
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
     }
 }

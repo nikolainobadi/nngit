@@ -5,7 +5,6 @@
 //  Created by Nikolai Nobadi on 8/21/25.
 //
 
-import SwiftPicker
 @testable import nngit
 
 final class StubConfigLoader: GitConfigLoader {

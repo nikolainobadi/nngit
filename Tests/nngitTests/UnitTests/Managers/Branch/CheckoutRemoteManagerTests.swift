@@ -7,7 +7,8 @@
 
 import Testing
 import NnShellKit
-import SwiftPicker
+import SwiftPickerTesting
+import SwiftPickerKit
 import GitShellKit
 @testable import nngit
 
@@ -16,7 +17,7 @@ struct CheckoutRemoteManagerTests {
     @Test("Successfully checks out available remote branch")
     func executeCheckoutWorkflowSuccess() throws {
         let shell = MockShell()
-        let picker = MockPicker(selectionResponses: ["Select a remote branch to checkout": 0])
+        let picker = makePicker()
         let remoteBranches = ["origin/feature-1", "origin/main"]
         let localBranch = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
         let branchLoader = StubBranchLoader(remoteBranches: remoteBranches, localBranches: [localBranch])
@@ -29,7 +30,7 @@ struct CheckoutRemoteManagerTests {
     @Test("Handles no remote branches available")
     func executeCheckoutWorkflowNoRemoteBranches() throws {
         let shell = MockShell()
-        let picker = MockPicker()
+        let picker = makePicker()
         let branchLoader = StubBranchLoader(remoteBranches: [], localBranches: [])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
         try manager.checkoutRemote()
@@ -40,7 +41,7 @@ struct CheckoutRemoteManagerTests {
     @Test("Handles all remote branches already exist locally")
     func executeCheckoutWorkflowAllBranchesExistLocally() throws {
         let shell = MockShell()
-        let picker = MockPicker()
+        let picker = makePicker()
         let remoteBranches = ["origin/feature-1", "origin/main"]
         let localBranch1 = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
         let localBranch2 = GitBranch(name: "feature-1", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
@@ -54,7 +55,7 @@ struct CheckoutRemoteManagerTests {
     @Test("Correctly filters and checks out non-existing local branches")
     func executeCheckoutWorkflowFiltersExistingBranches() throws {
         let shell = MockShell()
-        let picker = MockPicker(selectionResponses: ["Select a remote branch to checkout": 0])
+        let picker = makePicker()
         let remoteBranches = ["origin/feature-1", "origin/feature-2", "origin/main"]
         let localBranch = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .undetermined)
         let branchLoader = StubBranchLoader(remoteBranches: remoteBranches, localBranches: [localBranch])
@@ -68,7 +69,7 @@ struct CheckoutRemoteManagerTests {
     @Test("Handles different user selections correctly")
     func executeCheckoutWorkflowDifferentSelections() throws {
         let shell = MockShell()
-        let picker = MockPicker(selectionResponses: ["Select a remote branch to checkout": 1]) // Select second option
+        let picker = makePicker(selectionIndex: 1) // Select second option
         let remoteBranches = ["origin/feature-1", "origin/feature-2", "origin/main"]
         let branchLoader = StubBranchLoader(remoteBranches: remoteBranches, localBranches: [])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
@@ -81,7 +82,7 @@ struct CheckoutRemoteManagerTests {
     @Test("Handles remote branches with different prefixes")
     func executeCheckoutWorkflowMixedRemotePrefixes() throws {
         let shell = MockShell()
-        let picker = MockPicker(selectionResponses: ["Select a remote branch to checkout": 0])
+        let picker = makePicker()
         let remoteBranches = ["upstream/feature-1", "origin/feature-2"]
         let branchLoader = StubBranchLoader(remoteBranches: remoteBranches, localBranches: [])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
@@ -94,7 +95,7 @@ struct CheckoutRemoteManagerTests {
     @Test("Sorts available branches alphabetically for selection")
     func executeCheckoutWorkflowSortsBranches() throws {
         let shell = MockShell()
-        let picker = MockPicker(selectionResponses: ["Select a remote branch to checkout": 0]) // Select first after sorting
+        let picker = makePicker() // Select first after sorting
         let remoteBranches = ["origin/zebra", "origin/alpha", "origin/beta"]
         let branchLoader = StubBranchLoader(remoteBranches: remoteBranches, localBranches: [])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
@@ -107,7 +108,7 @@ struct CheckoutRemoteManagerTests {
     @Test("Handles branches with whitespace in names")
     func executeCheckoutWorkflowWithWhitespace() throws {
         let shell = MockShell()
-        let picker = MockPicker(selectionResponses: ["Select a remote branch to checkout": 0])
+        let picker = makePicker()
         let remoteBranches = ["  origin/feature-branch  "] // Extra whitespace
         let branchLoader = StubBranchLoader(remoteBranches: remoteBranches, localBranches: [])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
@@ -119,7 +120,7 @@ struct CheckoutRemoteManagerTests {
     @Test("Handles branch names without remote prefix")
     func executeCheckoutWorkflowNoPrefixBranches() throws {
         let shell = MockShell()
-        let picker = MockPicker(selectionResponses: ["Select a remote branch to checkout": 0])
+        let picker = makePicker()
         let remoteBranches = ["feature-branch"] // No prefix
         let branchLoader = StubBranchLoader(remoteBranches: remoteBranches, localBranches: [])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
@@ -132,8 +133,27 @@ struct CheckoutRemoteManagerTests {
 
 // MARK: - SUT
 private extension CheckoutRemoteManagerTests {
-    func makeSUT(shell: MockShell = MockShell(), picker: MockPicker = MockPicker(), branchLoader: StubBranchLoader = StubBranchLoader()) -> CheckoutRemoteManager {
-        
+    func makeSUT(shell: MockShell = MockShell(), picker: MockSwiftPicker, branchLoader: StubBranchLoader = StubBranchLoader()) -> CheckoutRemoteManager {
         return .init(shell: shell, picker: picker, branchLoader: branchLoader)
+    }
+    
+    func makePicker(selectionIndex: Int = 0) -> MockSwiftPicker {
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(selectionIndex),
+            defaultMulti: .none,
+            singleType: .dictionary([remoteSelectionPrompt: .index(selectionIndex)]),
+            multiType: .ordered([])
+        )
+        
+        return MockSwiftPicker(
+            inputResult: .init(),
+            permissionResult: .init(),
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
+    }
+    
+    var remoteSelectionPrompt: String {
+        return "Select a remote branch to checkout"
     }
 }

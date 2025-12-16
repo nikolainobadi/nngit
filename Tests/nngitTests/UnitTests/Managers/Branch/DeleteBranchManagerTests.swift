@@ -7,7 +7,8 @@
 
 import Testing
 import NnShellKit
-import SwiftPicker
+import SwiftPickerTesting
+import SwiftPickerKit
 import GitShellKit
 @testable import nngit
 
@@ -19,7 +20,7 @@ struct DeleteBranchManagerTests {
             GitBranch(name: "develop", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         ]
         let branchLoader = StubBranchLoader(localBranches: branches, branchNames: ["main", "feature", "develop"])
-        let picker = MockPicker(selectionResponses: ["Select which branches to delete": 0])
+        let picker = makePicker(multiSelectionResponses: [branchSelectionPrompt: [0]])
         let shell = MockShell()
         let config = makeConfig(defaultBranch: "main")
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
@@ -35,7 +36,7 @@ struct DeleteBranchManagerTests {
             GitBranch(name: "feature", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         ]
         let branchLoader = StubBranchLoader(localBranches: branches, branchNames: ["main", "feature"], filteredResults: ["feature"])
-        let picker = MockPicker(selectionResponses: ["Select which branches to delete": 0])
+        let picker = makePicker(multiSelectionResponses: [branchSelectionPrompt: [0]])
         let shell = MockShell()
         let config = makeConfig(defaultBranch: "main")
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
@@ -53,7 +54,7 @@ struct DeleteBranchManagerTests {
             GitBranch(name: "unmerged", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         ]
         let branchLoader = StubBranchLoader(localBranches: branches, branchNames: ["main", "feature", "develop", "unmerged"])
-        let picker = MockPicker(permissionResponses: ["Do you want to proceed with deleting these 2 merged branches?": true])  // User confirms deletion
+        let picker = makePicker(permissionResponses: [mergedDeletionPrompt(for: 2): true])  // User confirms deletion
         let shell = MockShell()
         let config = makeConfig(defaultBranch: "main")
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
@@ -87,12 +88,12 @@ struct DeleteBranchManagerTests {
             localBranches: [developBranch],
             branchNames: ["main", "* feature", "develop"]
         )
-        let picker = MockPicker(
-            permissionResponses: ["This branch has NOT been merged into main. Are you sure you want to delete it?": true],
-            selectionResponses: ["Select which branches to delete": 0]  // Select develop
-        )
         let shell = MockShell()
         let config = makeConfig(defaultBranch: "main")
+        let picker = makePicker(
+            multiSelectionResponses: [branchSelectionPrompt: [0]],  // Select develop
+            permissionResponses: [unmergedDeletionPrompt(defaultBranch: config.defaultBranch): true]
+        )
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
         
         try manager.deleteBranches(search: nil as String?, allMerged: false)
@@ -121,12 +122,12 @@ struct DeleteBranchManagerTests {
             GitBranch(name: "feature", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         ]
         let branchLoader = StubBranchLoader(localBranches: branches, branchNames: ["main", "feature"])
-        let picker = MockPicker(
-            permissionResponses: ["This branch has NOT been merged into main. Are you sure you want to delete it?": true],
-            selectionResponses: ["Select which branches to delete": 0]
-        )
         let shell = MockShell()
         let config = makeConfig(defaultBranch: "main")
+        let picker = makePicker(
+            multiSelectionResponses: [branchSelectionPrompt: [0]],
+            permissionResponses: [unmergedDeletionPrompt(defaultBranch: config.defaultBranch): true]
+        )
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
         
         try manager.deleteBranches(search: nil as String?, allMerged: false)
@@ -140,9 +141,9 @@ struct DeleteBranchManagerTests {
             GitBranch(name: "feature", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         ]
         let branchLoader = StubBranchLoader(localBranches: branches, branchNames: ["main", "feature"])
-        let picker = MockPicker(selectionResponses: ["Select which branches to delete": 0])
         let shell = MockShell()
         let config = makeConfig(defaultBranch: "main")
+        let picker = makePicker(multiSelectionResponses: [branchSelectionPrompt: [0]])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
         
         try manager.deleteBranches(search: nil as String?, allMerged: false)
@@ -157,9 +158,9 @@ struct DeleteBranchManagerTests {
             GitBranch(name: "unmerged", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         ]
         let branchLoader = StubBranchLoader(localBranches: branches, branchNames: ["main", "merged", "unmerged"])
-        let picker = MockPicker(selectionResponses: ["Select which branches to delete": 0]) // Selects first (merged)
         let shell = MockShell()
         let config = makeConfig(defaultBranch: "main")
+        let picker = makePicker(multiSelectionResponses: [branchSelectionPrompt: [0]]) // Selects first (merged)
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
         
         try manager.deleteBranches(search: nil as String?, allMerged: false)
@@ -191,9 +192,9 @@ struct DeleteBranchManagerTests {
             GitBranch(name: "develop", isMerged: true, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         ]
         let branchLoader = StubBranchLoader(localBranches: branches, branchNames: ["main", "feature", "develop"])
-        let picker = MockPicker(permissionResponses: ["Do you want to proceed with deleting these 2 merged branches?": false])  // User denies deletion
         let shell = MockShell()
         let config = makeConfig(defaultBranch: "main")
+        let picker = makePicker(permissionResponses: [mergedDeletionPrompt(for: 2): false])  // User denies deletion
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
         
         try manager.deleteBranches(search: nil as String?, allMerged: true)
@@ -210,9 +211,9 @@ struct DeleteBranchManagerTests {
         let branches = [developBranch, featureBranch]
         
         let branchLoader = StubBranchLoader(localBranches: branches, branchNames: ["main", "* develop", "feature"])
-        let picker = MockPicker(permissionResponses: ["Do you want to proceed with deleting these 1 merged branches?": true])
         let shell = MockShell()
         let config = makeConfig(defaultBranch: "main")
+        let picker = makePicker(permissionResponses: [mergedDeletionPrompt(for: 1): true])
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
         
         try manager.deleteBranches(search: nil as String?, allMerged: true)
@@ -234,9 +235,9 @@ struct DeleteBranchManagerTests {
         }
         
         let branchLoader = StubBranchLoader(localBranches: branches, branchNames: branchNames)
-        let picker = MockPicker(permissionResponses: ["Do you want to proceed with deleting these 15 merged branches?": true])  // User confirms deletion
         let shell = MockShell()
         let config = makeConfig(defaultBranch: "main")
+        let picker = makePicker(permissionResponses: [mergedDeletionPrompt(for: 15): true])  // User confirms deletion
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
         
         try manager.deleteBranches(search: nil as String?, allMerged: true)
@@ -296,17 +297,47 @@ struct DeleteBranchManagerTests {
 
 // MARK: - SUT
 private extension DeleteBranchManagerTests {
-    func makeSUT(
-        shell: MockShell = MockShell(),
-        picker: MockPicker = MockPicker(),
-        branchLoader: StubBranchLoader = StubBranchLoader(),
-        config: GitConfig = GitConfig.defaultConfig
-    ) -> DeleteBranchManager {
+    func makeSUT(shell: MockShell = MockShell(), picker: MockSwiftPicker = MockSwiftPicker(), branchLoader: StubBranchLoader = StubBranchLoader(), config: GitConfig = GitConfig.defaultConfig) -> DeleteBranchManager {
         
         return .init(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
     }
     
     func makeConfig(defaultBranch: String) -> GitConfig {
         return GitConfig(defaultBranch: defaultBranch)
+    }
+}
+
+
+// MARK: - Test Helpers
+private extension DeleteBranchManagerTests {
+    func makePicker(multiSelectionResponses: [String: [Int]] = [:], permissionResponses: [String: Bool] = [:]) -> MockSwiftPicker {
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary(permissionResponses))
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(0),
+            defaultMulti: .none,
+            singleType: .ordered([]),
+            multiType: .dictionary(
+                Dictionary(uniqueKeysWithValues: multiSelectionResponses.map { ($0.key, .indices($0.value)) })
+            )
+        )
+        
+        return MockSwiftPicker(
+            inputResult: .init(),
+            permissionResult: permissionResult,
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
+    }
+    
+    func mergedDeletionPrompt(for count: Int) -> String {
+        return "Do you want to proceed with deleting these \(count) merged branches?"
+    }
+    
+    func unmergedDeletionPrompt(defaultBranch: String) -> String {
+        return "This branch has NOT been merged into \(defaultBranch.yellow). Are you sure you want to delete it?"
+    }
+    
+    var branchSelectionPrompt: String {
+        return "Select which branches to delete"
     }
 }

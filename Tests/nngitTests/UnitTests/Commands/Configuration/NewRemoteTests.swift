@@ -7,7 +7,7 @@
 
 import Testing
 import Foundation
-import SwiftPicker
+import SwiftPickerTesting
 import GitShellKit
 import NnShellKit
 @testable import nngit
@@ -27,8 +27,8 @@ struct NewRemoteTests {
             "",                                   // git push
             "https://github.com/testuser/project" // getGitHubURL
         ])
-        let picker = MockPicker(
-            requiredInputResponses: [
+        let picker = makePicker(
+            inputResponses: [
                 "Please add a brief description for your new GitHub repository:": "Test project"
             ],
             selectionResponses: [
@@ -54,7 +54,7 @@ struct NewRemoteTests {
     @Test("Handles error when local git repository doesn't exist.")
     func handlesNoLocalGitError() throws {
         let shell = MockShell(results: ["false"]) // verifyLocalGitExists returns false
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell)
 
         #expect(throws: Error.self) {
@@ -65,7 +65,7 @@ struct NewRemoteTests {
     @Test("Handles error when GitHub CLI is not installed.")
     func handlesGitHubCLINotInstalledError() throws {
         let shell = MockShell(results: ["true"], shouldThrowError: true) // First call succeeds, then all throw
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell)
 
         #expect(throws: Error.self) {
@@ -80,7 +80,7 @@ struct NewRemoteTests {
             "/usr/bin/gh", // which gh
             "origin"       // remoteExists returns origin
         ])
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell)
 
         #expect(throws: NewRemoteError.remoteAlreadyExists) {
@@ -103,8 +103,8 @@ struct NewRemoteTests {
             "",                                   // git push
             "https://github.com/testuser/project" // getGitHubURL
         ])
-        let picker = MockPicker(
-            requiredInputResponses: [
+        let picker = makePicker(
+            inputResponses: [
                 "Please add a brief description for your new GitHub repository:": "Feature branch project"
             ],
             selectionResponses: [
@@ -140,12 +140,12 @@ struct NewRemoteTests {
             "testuser",                // gh api user
             "/Users/test/project"      // pwd
         ])
-        let picker = MockPicker(
+        let picker = makePicker(
+            inputResponses: [
+                "Please add a brief description for your new GitHub repository:": "Test project"
+            ],
             permissionResponses: [
                 confirmationMessage: false
-            ],
-            requiredInputResponses: [
-                "Please add a brief description for your new GitHub repository:": "Test project"
             ]
         )
         let context = MockContext(picker: picker, shell: shell)
@@ -168,8 +168,8 @@ struct NewRemoteTests {
             "",                                   // git push
             "https://github.com/testuser/project" // getGitHubURL
         ])
-        let picker = MockPicker(
-            requiredInputResponses: [
+        let picker = makePicker(
+            inputResponses: [
                 "Please add a brief description for your new GitHub repository:": "Public test project"
             ]
         )
@@ -194,8 +194,8 @@ struct NewRemoteTests {
             "",                                   // git push
             "https://github.com/testuser/project" // getGitHubURL
         ])
-        let picker = MockPicker(
-            requiredInputResponses: [
+        let picker = makePicker(
+            inputResponses: [
                 "Please add a brief description for your new GitHub repository:": "Private test project"
             ]
         )
@@ -220,8 +220,8 @@ struct NewRemoteTests {
             "",                                   // git push
             "https://github.com/testuser/project" // getGitHubURL
         ])
-        let picker = MockPicker(
-            requiredInputResponses: [
+        let picker = makePicker(
+            inputResponses: [
                 "Please add a brief description for your new GitHub repository:": "Test project"
             ],
             selectionResponses: [
@@ -255,12 +255,12 @@ struct NewRemoteTests {
             "testuser",                // gh api user
             "/Users/test/project"      // pwd
         ])
-        let picker = MockPicker(
+        let picker = makePicker(
+            inputResponses: [
+                "Please add a brief description for your new GitHub repository:": "Test project"
+            ],
             permissionResponses: [
                 confirmationMessage: false
-            ],
-            requiredInputResponses: [
-                "Please add a brief description for your new GitHub repository:": "Test project"
             ]
         )
         let context = MockContext(picker: picker, shell: shell)
@@ -277,5 +277,29 @@ private extension NewRemoteTests {
     @discardableResult
     func runCommand(context: MockContext, additionalArgs: [String] = []) throws -> String {
         return try Nngit.testRun(context: context, args: ["new-remote"] + additionalArgs)
+    }
+    
+    func makePicker(
+        inputResponses: [String: String] = [:],
+        permissionResponses: [String: Bool] = [:],
+        selectionResponses: [String: Int] = [:]
+    ) -> MockSwiftPicker {
+        let inputResult = MockInputResult(defaultValue: "", type: .dictionary(inputResponses))
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary(permissionResponses))
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(0),
+            defaultMulti: .none,
+            singleType: .dictionary(
+                Dictionary(uniqueKeysWithValues: selectionResponses.map { ($0.key, .index($0.value)) })
+            ),
+            multiType: .ordered([])
+        )
+        
+        return MockSwiftPicker(
+            inputResult: inputResult,
+            permissionResult: permissionResult,
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
     }
 }

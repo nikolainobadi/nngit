@@ -7,7 +7,7 @@
 
 import Testing
 import NnShellKit
-import SwiftPicker
+import SwiftPickerTesting
 import GitShellKit
 @testable import nngit
 
@@ -34,7 +34,7 @@ struct NewPushTests {
             ""                // pushNewRemote
         ])
         
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell, configLoader: StubConfigLoader(initialConfig: .defaultConfig))
 
         let output = try Nngit.testRun(context: context, args: ["new-push"])
@@ -47,7 +47,7 @@ struct NewPushTests {
         #expect(shell.executedCommands.contains(compareBranches))
         #expect(shell.executedCommands.contains(pushNewRemote))
         #expect(output.contains("🚀 Successfully pushed 'feature-branch' to remote and set upstream tracking."))
-        #expect(picker.requiredPermissions.isEmpty)
+        #expect(picker.capturedPermissionPrompts.isEmpty)
     }
     
     @Test("Pushes branch successfully when on default branch.")
@@ -67,7 +67,7 @@ struct NewPushTests {
             ""         // pushNewRemote
         ])
         
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell, configLoader: StubConfigLoader(initialConfig: .defaultConfig))
 
         let output = try Nngit.testRun(context: context, args: ["new-push"])
@@ -78,7 +78,7 @@ struct NewPushTests {
         #expect(shell.executedCommands.contains(listRemoteBranches))
         #expect(shell.executedCommands.contains(pushNewRemote))
         #expect(output.contains("🚀 Successfully pushed 'main' to remote and set upstream tracking."))
-        #expect(picker.requiredPermissions.isEmpty)
+        #expect(picker.capturedPermissionPrompts.isEmpty)
         // Should not check for conflicts when on default branch
         #expect(!shell.executedCommands.contains(makeGitCommand(.getLocalChanges, path: nil)))
     }
@@ -104,7 +104,7 @@ struct NewPushTests {
             ""                // pushNewRemote
         ])
         
-        let picker = MockPicker(
+        let picker = makePicker(
             permissionResponses: ["⚠️  Warning: Your branch is 2 commit(s) behind 'main'. Consider rebasing before pushing to avoid potential conflicts. Continue with push anyway?": true]
         )
         let context = MockContext(picker: picker, shell: shell, configLoader: StubConfigLoader(initialConfig: .defaultConfig))
@@ -119,7 +119,7 @@ struct NewPushTests {
         #expect(shell.executedCommands.contains(compareBranches))
         #expect(shell.executedCommands.contains(pushNewRemote))
         #expect(output.contains("🚀 Successfully pushed 'feature-branch' to remote and set upstream tracking."))
-        #expect(picker.requiredPermissions.contains("⚠️  Warning: Your branch is 2 commit(s) behind 'main'. Consider rebasing before pushing to avoid potential conflicts. Continue with push anyway?"))
+        #expect(picker.capturedPermissionPrompts.contains("⚠️  Warning: Your branch is 2 commit(s) behind 'main'. Consider rebasing before pushing to avoid potential conflicts. Continue with push anyway?"))
     }
     
     @Test("Throws error when user denies push while behind default branch.")
@@ -144,7 +144,7 @@ struct NewPushTests {
             // No pushNewRemote - should not reach this step
         ])
         
-        let picker = MockPicker(
+        let picker = makePicker(
             permissionResponses: ["⚠️  Warning: Your branch is 3 commit(s) behind 'main'. Consider rebasing before pushing to avoid potential conflicts. Continue with push anyway?": false]
         )
         let context = MockContext(picker: picker, shell: shell, configLoader: StubConfigLoader(initialConfig: .defaultConfig))
@@ -161,7 +161,7 @@ struct NewPushTests {
         #expect(shell.executedCommands.contains(getLocalChanges))
         #expect(shell.executedCommands.contains(compareBranches))
         #expect(!shell.executedCommands.contains(pushNewRemote))
-        #expect(picker.requiredPermissions.contains("⚠️  Warning: Your branch is 3 commit(s) behind 'main'. Consider rebasing before pushing to avoid potential conflicts. Continue with push anyway?"))
+        #expect(picker.capturedPermissionPrompts.contains("⚠️  Warning: Your branch is 3 commit(s) behind 'main'. Consider rebasing before pushing to avoid potential conflicts. Continue with push anyway?"))
     }
     
     @Test("Works with custom default branch name.")
@@ -185,7 +185,7 @@ struct NewPushTests {
             ""                // pushNewRemote
         ])
         
-        let picker = MockPicker()
+        let picker = makePicker()
         let customConfig = GitConfig(defaultBranch: "develop")
         let context = MockContext(picker: picker, shell: shell, configLoader: StubConfigLoader(initialConfig: customConfig))
 
@@ -199,6 +199,21 @@ struct NewPushTests {
         #expect(shell.executedCommands.contains(compareBranches))
         #expect(shell.executedCommands.contains(pushNewRemote))
         #expect(output.contains("🚀 Successfully pushed 'feature-branch' to remote and set upstream tracking."))
-        #expect(picker.requiredPermissions.isEmpty)
+        #expect(picker.capturedPermissionPrompts.isEmpty)
+    }
+}
+
+
+// MARK: - Test Helpers
+private extension NewPushTests {
+    func makePicker(permissionResponses: [String: Bool] = [:]) -> MockSwiftPicker {
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary(permissionResponses))
+        
+        return MockSwiftPicker(
+            inputResult: .init(),
+            permissionResult: permissionResult,
+            selectionResult: .init(),
+            treeNavigationResult: .init()
+        )
     }
 }

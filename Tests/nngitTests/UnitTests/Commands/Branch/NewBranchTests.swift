@@ -7,7 +7,7 @@
 
 import Testing
 import NnShellKit
-import SwiftPicker
+import SwiftPickerTesting
 import GitShellKit
 @testable import nngit
 
@@ -21,7 +21,7 @@ struct NewBranchTests {
             "true",  // localGitCheck
             ""       // newBranchCmd
         ])
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell, configLoader: StubConfigLoader(initialConfig: .defaultConfig))
 
         let output = try Nngit.testRun(context: context, args: ["new-branch", "foo"])
@@ -39,11 +39,7 @@ struct NewBranchTests {
             "true",  // localGitCheck
             ""       // newBranchCmd
         ])
-        let picker = MockPicker(
-            permissionResponses: [:],
-            requiredInputResponses: ["Enter the name of your new branch.": "prompted-branch"],
-            selectionResponses: [:]
-        )
+        let picker = makePicker(inputResponses: ["Enter the name of your new branch.": "prompted-branch"])
         let context = MockContext(picker: picker, shell: shell, configLoader: StubConfigLoader(initialConfig: .defaultConfig))
 
         let output = try Nngit.testRun(context: context, args: ["new-branch"])
@@ -62,7 +58,7 @@ struct NewBranchTests {
             "origin", // checkForRemote (remote exists)
             ""        // newBranchCmd
         ])
-        let picker = MockPicker()
+        let picker = makePicker()
         let currentBranch = GitBranch(name: "main", isMerged: false, isCurrentBranch: true, creationDate: nil, syncStatus: .nsync)
         let branchLoader = StubBranchLoader(localBranches: [currentBranch])
         let context = MockContext(picker: picker, shell: shell, configLoader: StubConfigLoader(initialConfig: .defaultConfig), branchLoader: branchLoader)
@@ -82,7 +78,7 @@ struct NewBranchTests {
             "true",  // localGitCheck
             ""       // newBranchCmd
         ])
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell, configLoader: StubConfigLoader(initialConfig: .defaultConfig))
 
         let output = try Nngit.testRun(context: context, args: ["new-branch", "my new feature"])
@@ -99,7 +95,7 @@ struct NewBranchTests {
             "true",  // localGitCheck
             ""       // newBranchCmd
         ])
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell, configLoader: StubConfigLoader(initialConfig: .defaultConfig))
 
         let output = try Nngit.testRun(context: context, args: ["new-branch", "My_Feature Branch"])
@@ -108,4 +104,19 @@ struct NewBranchTests {
         #expect(output.contains("✅ Created and switched to branch: my-feature-branch"))
     }
 
+}
+
+
+// MARK: - Test Helpers
+private extension NewBranchTests {
+    func makePicker(inputResponses: [String: String] = [:]) -> MockSwiftPicker {
+        let inputResult = MockInputResult(defaultValue: "", type: .dictionary(inputResponses))
+        
+        return MockSwiftPicker(
+            inputResult: inputResult,
+            permissionResult: .init(),
+            selectionResult: .init(),
+            treeNavigationResult: .init()
+        )
+    }
 }

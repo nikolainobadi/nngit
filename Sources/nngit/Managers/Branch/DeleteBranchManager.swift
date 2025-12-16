@@ -6,16 +6,15 @@
 //
 
 import GitShellKit
-import SwiftPicker
 
 /// Manager utility for handling branch deletion workflows and operations.
 struct DeleteBranchManager {
-    private let shell: GitShell
-    private let picker: CommandLinePicker
-    private let branchLoader: GitBranchLoader
     private let config: GitConfig
+    private let shell: any GitShell
+    private let picker: any GitPicker
+    private let branchLoader: any GitBranchLoader
     
-    init(shell: GitShell, picker: CommandLinePicker, branchLoader: GitBranchLoader, config: GitConfig) {
+    init(shell: any GitShell, picker: any GitPicker, branchLoader: any GitBranchLoader, config: GitConfig) {
         self.shell = shell
         self.picker = picker
         self.branchLoader = branchLoader

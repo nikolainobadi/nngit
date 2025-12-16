@@ -7,16 +7,13 @@
 
 import Foundation
 import GitShellKit
-import SwiftPicker
-
-/// Manager for handling stop tracking workflows and operations.
 struct StopTrackingManager {
-    private let shell: GitShell
-    private let picker: CommandLinePicker
+    private let shell: any GitShell
+    private let picker: any GitPicker
     private let tracker: GitFileTracker
-    private let fileSystemManager: FileSystemManager
+    private let fileSystemManager: any FileSystemManager
     
-    init(shell: GitShell, picker: CommandLinePicker, tracker: GitFileTracker, fileSystemManager: FileSystemManager) {
+    init(shell: any GitShell, picker: any GitPicker, tracker: GitFileTracker, fileSystemManager: any FileSystemManager) {
         self.shell = shell
         self.picker = picker
         self.tracker = tracker
@@ -28,10 +25,8 @@ struct StopTrackingManager {
 // MARK: - Stop Tracking Operations
 extension StopTrackingManager {
     func stopTrackingIgnoredFiles() throws {
-        // Verify git repository exists
         try shell.verifyLocalGitExists()
         
-        // Check for gitignore file
         let gitignorePath = ".gitignore"
         guard fileSystemManager.fileExists(atPath: gitignorePath) else {
             print("No .gitignore file found in the current directory.")

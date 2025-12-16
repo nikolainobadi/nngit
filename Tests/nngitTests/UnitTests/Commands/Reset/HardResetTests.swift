@@ -1,6 +1,7 @@
 import Testing
 import GitShellKit
 import NnShellKit
+import SwiftPickerTesting
 @testable import nngit
 
 @MainActor
@@ -14,7 +15,7 @@ struct HardResetTests {
             ""                              // git reset --hard HEAD~2
         ]
         
-        let picker = MockPicker(permissionResponses: [
+        let picker = makePicker(permissionResponses: [
             "Are you sure you want to hard reset 2 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action.": true
         ])
         let shell = MockShell(results: shellResults)
@@ -38,7 +39,7 @@ struct HardResetTests {
             "abc123 - Fix bug (Jane Smith <jane@example.com>, 2 days ago)"  // git log
         ]
         
-        let picker = MockPicker()
+        let picker = makePicker()
         let shell = MockShell(results: shellResults)
         let commitManager = DefaultGitCommitManager(shell: shell)
         let resetHelper = DefaultGitResetHelper(manager: commitManager, picker: picker)
@@ -59,7 +60,7 @@ struct HardResetTests {
             ""                              // git reset --hard HEAD~1
         ]
         
-        let picker = MockPicker(permissionResponses: [
+        let picker = makePicker(permissionResponses: [
             "Are you sure you want to hard reset 1 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action.": true
         ])
         let shell = MockShell(results: shellResults)
@@ -75,7 +76,7 @@ struct HardResetTests {
 
     @Test("prints invalid count message when number is less than one")
     func printsInvalidCount() throws {
-        let picker = MockPicker()
+        let picker = makePicker()
         let shell = MockShell(results: [])
         let context = MockContext(picker: picker, shell: shell)
 
@@ -93,7 +94,7 @@ struct HardResetTests {
             "abc123 - Initial commit (John Doe <john@example.com>, 2 days ago)"  // git log
         ]
         
-        let picker = MockPicker(permissionResponses: [
+        let picker = makePicker(permissionResponses: [
             "Are you sure you want to hard reset 1 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action.": false
         ])
         let shell = MockShell(results: shellResults)
@@ -106,7 +107,7 @@ struct HardResetTests {
         }
 
         #expect(!shell.executedCommands.contains("git reset --hard HEAD~1"))
-        #expect(picker.requiredPermissions.contains("Are you sure you want to hard reset 1 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
+        #expect(picker.capturedPermissionPrompts.contains("Are you sure you want to hard reset 1 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
     }
     
     // MARK: - Selection Mode Tests
@@ -120,7 +121,7 @@ struct HardResetTests {
             ""                              // git reset --hard HEAD~1
         ]
         
-        let picker = MockPicker(
+        let picker = makePicker(
             permissionResponses: [
                 "Are you sure you want to hard reset 1 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action.": true
             ],
@@ -137,7 +138,7 @@ struct HardResetTests {
 
         #expect(shell.executedCommands.contains("git log -n 7 --pretty=format:'%h - %s (%an <%ae>, %ar)'"))
         #expect(shell.executedCommands.contains("git reset --hard HEAD~1"))
-        #expect(picker.requiredPermissions.contains("Are you sure you want to hard reset 1 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
+        #expect(picker.capturedPermissionPrompts.contains("Are you sure you want to hard reset 1 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
     }
     
     @Test("selects middle commit in selection mode")
@@ -149,7 +150,7 @@ struct HardResetTests {
             ""                              // git reset --hard HEAD~4
         ]
         
-        let picker = MockPicker(
+        let picker = makePicker(
             permissionResponses: [
                 "Are you sure you want to hard reset 4 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action.": true
             ],
@@ -165,7 +166,7 @@ struct HardResetTests {
         _ = try runCommand(context, select: true)
 
         #expect(shell.executedCommands.contains("git reset --hard HEAD~4"))
-        #expect(picker.requiredPermissions.contains("Are you sure you want to hard reset 4 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
+        #expect(picker.capturedPermissionPrompts.contains("Are you sure you want to hard reset 4 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
     }
     
     @Test("selects last available commit in selection mode")
@@ -177,7 +178,7 @@ struct HardResetTests {
             ""                              // git reset --hard HEAD~7
         ]
         
-        let picker = MockPicker(
+        let picker = makePicker(
             permissionResponses: [
                 "Are you sure you want to hard reset 7 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action.": true
             ],
@@ -193,7 +194,7 @@ struct HardResetTests {
         _ = try runCommand(context, select: true)
 
         #expect(shell.executedCommands.contains("git reset --hard HEAD~7"))
-        #expect(picker.requiredPermissions.contains("Are you sure you want to hard reset 7 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
+        #expect(picker.capturedPermissionPrompts.contains("Are you sure you want to hard reset 7 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
     }
     
     // MARK: - Selection Integration Tests
@@ -207,7 +208,7 @@ struct HardResetTests {
             ""                              // git reset --hard HEAD~2
         ]
         
-        let picker = MockPicker(
+        let picker = makePicker(
             permissionResponses: [
                 "Are you sure you want to hard reset 2 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action.": true
             ],
@@ -223,7 +224,7 @@ struct HardResetTests {
         _ = try runCommand(context, force: true, select: true)
 
         #expect(shell.executedCommands.contains("git reset --hard HEAD~2"))
-        #expect(picker.requiredPermissions.contains("Are you sure you want to hard reset 2 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
+        #expect(picker.capturedPermissionPrompts.contains("Are you sure you want to hard reset 2 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
     }
     
     @Test("selection mode respects author validation")
@@ -234,7 +235,7 @@ struct HardResetTests {
             "abc123 - Test commit 1 (Test User <test@example.com>, 1 hour ago)\ndef456 - Test commit 2 (Other User <other@example.com>, 2 hours ago)\nghi789 - Test commit 3 (Test User <test@example.com>, 3 hours ago)\njkl012 - Test commit 4 (Test User <test@example.com>, 4 hours ago)\nmno345 - Test commit 5 (Test User <test@example.com>, 5 hours ago)\npqr678 - Test commit 6 (Test User <test@example.com>, 6 hours ago)\nstu901 - Test commit 7 (Test User <test@example.com>, 7 hours ago)"  // git log
         ]
         
-        let picker = MockPicker(
+        let picker = makePicker(
             selectionResponses: [
                 "Select a commit to reset to:": 1  // Select 2nd commit (has other author)
             ]
@@ -248,7 +249,7 @@ struct HardResetTests {
 
         // Should not execute hard reset without force flag when other authors are present
         #expect(!shell.executedCommands.contains("git reset --hard HEAD~2"))
-        #expect(!picker.requiredPermissions.contains("Are you sure you want to hard reset 2 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
+        #expect(!picker.capturedPermissionPrompts.contains("Are you sure you want to hard reset 2 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
         #expect(output.contains("Some of the commits were created by other authors"))
     }
     
@@ -260,7 +261,7 @@ struct HardResetTests {
             "abc123 - Test commit 1 (Test User <test@example.com>, 1 hour ago)\ndef456 - Test commit 2 (Test User <test@example.com>, 2 hours ago)\nghi789 - Test commit 3 (Test User <test@example.com>, 3 hours ago)\njkl012 - Test commit 4 (Test User <test@example.com>, 4 hours ago)\nmno345 - Test commit 5 (Test User <test@example.com>, 5 hours ago)\npqr678 - Test commit 6 (Test User <test@example.com>, 6 hours ago)\nstu901 - Test commit 7 (Test User <test@example.com>, 7 hours ago)"  // git log
         ]
         
-        let picker = MockPicker(
+        let picker = makePicker(
             permissionResponses: [
                 "Are you sure you want to hard reset 3 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action.": false
             ],
@@ -290,7 +291,7 @@ struct HardResetTests {
             ""                              // empty git log
         ]
         
-        let picker = MockPicker()
+        let picker = makePicker()
         let shell = MockShell(results: shellResults)
         let commitManager = DefaultGitCommitManager(shell: shell)
         let resetHelper = DefaultGitResetHelper(manager: commitManager, picker: picker)
@@ -300,7 +301,7 @@ struct HardResetTests {
 
         // Should not execute any reset commands with empty commit history
         #expect(!shell.executedCommands.contains { $0.contains("git reset --hard") })
-        #expect(picker.requiredPermissions.isEmpty)
+        #expect(picker.capturedPermissionPrompts.isEmpty)
         #expect(output.contains("No commits found to select from"))
     }
     
@@ -313,7 +314,7 @@ struct HardResetTests {
             ""                              // git reset --hard HEAD~2
         ]
         
-        let picker = MockPicker(
+        let picker = makePicker(
             permissionResponses: [
                 "Are you sure you want to hard reset 2 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action.": true
             ],
@@ -330,7 +331,7 @@ struct HardResetTests {
 
         // Should work correctly even with fewer than 7 commits
         #expect(shell.executedCommands.contains("git reset --hard HEAD~2"))
-        #expect(picker.requiredPermissions.contains("Are you sure you want to hard reset 2 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
+        #expect(picker.capturedPermissionPrompts.contains("Are you sure you want to hard reset 2 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
     }
     
     // MARK: - Argument Validation Tests
@@ -344,7 +345,7 @@ struct HardResetTests {
             ""                              // git reset --hard HEAD~3
         ]
         
-        let picker = MockPicker(
+        let picker = makePicker(
             permissionResponses: [
                 "Are you sure you want to hard reset 3 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action.": true
             ],
@@ -363,7 +364,7 @@ struct HardResetTests {
         // Should use selection (3) not the number argument (5)
         #expect(shell.executedCommands.contains("git reset --hard HEAD~3"))
         #expect(!shell.executedCommands.contains("git reset --hard HEAD~5"))
-        #expect(picker.requiredPermissions.contains("Are you sure you want to hard reset 3 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
+        #expect(picker.capturedPermissionPrompts.contains("Are you sure you want to hard reset 3 commit(s)? This will permanently discard the commits and all their changes. You cannot undo this action."))
     }
 }
 
@@ -379,5 +380,27 @@ private extension HardResetTests {
             args.append("--select")
         }
         return try Nngit.testRun(context: context, args: args)
+    }
+    
+    func makePicker(
+        permissionResponses: [String: Bool] = [:],
+        selectionResponses: [String: Int] = [:]
+    ) -> MockSwiftPicker {
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary(permissionResponses))
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(0),
+            defaultMulti: .none,
+            singleType: .dictionary(
+                Dictionary(uniqueKeysWithValues: selectionResponses.map { ($0.key, .index($0.value)) })
+            ),
+            multiType: .ordered([])
+        )
+        
+        return MockSwiftPicker(
+            inputResult: .init(),
+            permissionResult: permissionResult,
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
     }
 }

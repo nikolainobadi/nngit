@@ -5,7 +5,6 @@
 //  Created by Codex on 6/27/25.
 //
 
-import SwiftPicker
 import GitShellKit
 import ArgumentParser
 

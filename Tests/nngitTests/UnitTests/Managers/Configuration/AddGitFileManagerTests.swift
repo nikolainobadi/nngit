@@ -7,7 +7,7 @@
 
 import Testing
 import Foundation
-import SwiftPicker
+import SwiftPickerTesting
 @testable import nngit
 
 struct AddGitFileManagerTests {
@@ -20,7 +20,7 @@ struct AddGitFileManagerTests {
             gitFiles: [gitFile]
         ))
         let fileSystemManager = MockFileSystemManager(existingFiles: [templateFile])
-        let picker = MockPicker()
+        let picker = makePicker()
         
         let manager = AddGitFileManager(
             configLoader: configLoader,
@@ -44,7 +44,7 @@ struct AddGitFileManagerTests {
             gitFiles: [gitFile]
         ))
         let fileSystemManager = MockFileSystemManager(existingFiles: [templateFile])
-        let picker = MockPicker()
+        let picker = makePicker()
         
         let manager = AddGitFileManager(
             configLoader: configLoader,
@@ -71,7 +71,7 @@ struct AddGitFileManagerTests {
             gitFiles: [gitFile1, gitFile2]
         ))
         let fileSystemManager = MockFileSystemManager(existingFiles: [templateFile1, templateFile2])
-        let picker = MockPicker(selectionResponses: ["Select a template file to add:": 1]) // Select second file
+        let picker = makePicker(singleSelectionResponses: ["Select a template file to add:": 1]) // Select second file
         
         let manager = AddGitFileManager(
             configLoader: configLoader,
@@ -95,7 +95,7 @@ struct AddGitFileManagerTests {
             gitFiles: [gitFile]
         ))
         let fileSystemManager = MockFileSystemManager(existingFiles: [templateFile, "test.txt"]) // File already exists
-        let picker = MockPicker(permissionResponses: ["File 'test.txt' already exists. Overwrite it?": true])
+        let picker = makePicker(permissionResponses: ["File 'test.txt' already exists. Overwrite it?": true])
         
         let manager = AddGitFileManager(
             configLoader: configLoader,
@@ -117,7 +117,7 @@ struct AddGitFileManagerTests {
             gitFiles: [gitFile]
         ))
         let fileSystemManager = MockFileSystemManager(existingFiles: [templateFile, "test.txt"]) // File already exists
-        let picker = MockPicker(permissionResponses: ["File 'test.txt' already exists. Overwrite it?": false])
+        let picker = makePicker(permissionResponses: ["File 'test.txt' already exists. Overwrite it?": false])
         
         let manager = AddGitFileManager(
             configLoader: configLoader,
@@ -137,7 +137,7 @@ struct AddGitFileManagerTests {
             gitFiles: []
         ))
         let fileSystemManager = MockFileSystemManager()
-        let picker = MockPicker()
+        let picker = makePicker()
         
         let manager = AddGitFileManager(
             configLoader: configLoader,
@@ -159,7 +159,7 @@ struct AddGitFileManagerTests {
             gitFiles: [gitFile]
         ))
         let fileSystemManager = MockFileSystemManager(existingFiles: [templateFile])
-        let picker = MockPicker()
+        let picker = makePicker()
         
         let manager = AddGitFileManager(
             configLoader: configLoader,
@@ -181,7 +181,7 @@ struct AddGitFileManagerTests {
             gitFiles: [gitFile]
         ))
         let fileSystemManager = MockFileSystemManager() // Template file doesn't exist
-        let picker = MockPicker()
+        let picker = makePicker()
         
         let manager = AddGitFileManager(
             configLoader: configLoader,
@@ -206,7 +206,7 @@ struct AddGitFileManagerTests {
             gitFiles: [gitFile1, gitFile2]
         ))
         let fileSystemManager = MockFileSystemManager(existingFiles: [templateFile1, templateFile2])
-        let picker = MockPicker(selectionResponses: ["Multiple templates match 'test'. Select one:": 0])
+        let picker = makePicker(singleSelectionResponses: ["Multiple templates match 'test'. Select one:": 0])
         
         let manager = AddGitFileManager(
             configLoader: configLoader,
@@ -219,5 +219,31 @@ struct AddGitFileManagerTests {
         #expect(fileSystemManager.copiedFiles.count == 1)
         #expect(fileSystemManager.copiedFiles[0].from == templateFile1)
         #expect(fileSystemManager.copiedFiles[0].to == "test1.txt")
+    }
+}
+
+
+// MARK: - Test Helpers
+private extension AddGitFileManagerTests {
+    func makePicker(
+        permissionResponses: [String: Bool] = [:],
+        singleSelectionResponses: [String: Int] = [:]
+    ) -> MockSwiftPicker {
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary(permissionResponses))
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(0),
+            defaultMulti: .none,
+            singleType: .dictionary(
+                Dictionary(uniqueKeysWithValues: singleSelectionResponses.map { ($0.key, .index($0.value)) })
+            ),
+            multiType: .ordered([])
+        )
+        
+        return MockSwiftPicker(
+            inputResult: .init(),
+            permissionResult: permissionResult,
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
     }
 }

@@ -7,7 +7,8 @@
 
 import Testing
 import NnShellKit
-import SwiftPicker
+import SwiftPickerTesting
+import SwiftPickerKit
 import GitShellKit
 @testable import nngit
 
@@ -19,7 +20,7 @@ struct SwitchBranchManagerTests {
             GitBranch(name: "feature", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         ]
         let branchLoader = StubBranchLoader(localBranches: branches)
-        let picker = MockPicker(selectionResponses: ["Select a branch (switching from main)": 0])
+        let picker = makePicker(selectionResponses: [branchSelectionPrompt(currentBranchName: "main"): 0])
         let shell = MockShell()
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
         
@@ -35,7 +36,7 @@ struct SwitchBranchManagerTests {
             GitBranch(name: "feature", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         ]
         let branchLoader = StubBranchLoader(localBranches: branches, filteredResults: ["feature"])
-        let picker = MockPicker(selectionResponses: ["Select a branch (switching from main)": 0])
+        let picker = makePicker(selectionResponses: [branchSelectionPrompt(currentBranchName: "main"): 0])
         let shell = MockShell()
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
         
@@ -84,7 +85,7 @@ struct SwitchBranchManagerTests {
             GitBranch(name: "develop", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         ]
         let branchLoader = StubBranchLoader(localBranches: branches)
-        let picker = MockPicker(selectionResponses: ["Select a branch ": 0])
+        let picker = makePicker(selectionResponses: [branchSelectionPrompt(currentBranchName: nil): 0])
         let shell = MockShell()
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
         
@@ -100,7 +101,7 @@ struct SwitchBranchManagerTests {
             GitBranch(name: "feature", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         ]
         let branchLoader = StubBranchLoader(localBranches: branches)
-        let picker = MockPicker(selectionResponses: ["Select a branch (switching from main)": 0])
+        let picker = makePicker(selectionResponses: [branchSelectionPrompt(currentBranchName: "main"): 0])
         let shell = MockShell()
         let config = GitConfig.defaultConfig
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader, config: config)
@@ -119,7 +120,7 @@ struct SwitchBranchManagerTests {
             GitBranch(name: "develop", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         ]
         let branchLoader = StubBranchLoader(localBranches: branches)
-        let picker = MockPicker(selectionResponses: ["Select a branch (switching from main)": 1]) // Select develop
+        let picker = makePicker(selectionResponses: [branchSelectionPrompt(currentBranchName: "main"): 1]) // Select develop
         let shell = MockShell()
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
         
@@ -174,7 +175,7 @@ struct SwitchBranchManagerTests {
         ]
         // Use branchNames to explicitly provide what the loader should return
         let branchLoader = StubBranchLoader(localBranches: remoteBranches, branchNames: ["* main", "origin/\(featureName)"])
-        let picker = MockPicker(selectionResponses: ["Select a branch (switching from main)": 0])
+        let picker = makePicker(selectionResponses: [branchSelectionPrompt(currentBranchName: "main"): 0])
         let shell = MockShell()
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
 
@@ -193,7 +194,7 @@ struct SwitchBranchManagerTests {
         ]
         // Simulate the scenario where user is using --branch-location both and selects a remote branch
         let branchLoader = StubBranchLoader(localBranches: remoteBranches, branchNames: ["* main", "origin/feature"])
-        let picker = MockPicker(selectionResponses: ["Select a branch (switching from main)": 0])
+        let picker = makePicker(selectionResponses: [branchSelectionPrompt(currentBranchName: "main"): 0])
         let shell = MockShell()
         // Use .both location to include remote branches even if they have local counterparts
         let manager = makeSUT(branchLocation: .both, shell: shell, picker: picker, branchLoader: branchLoader)
@@ -213,7 +214,7 @@ struct SwitchBranchManagerTests {
         ]
         // Use branchNames to explicitly provide what should be available
         let branchLoader = StubBranchLoader(localBranches: remoteBranches, branchNames: ["* main", "upstream/feature"])
-        let picker = MockPicker(selectionResponses: ["Select a branch (switching from main)": 0])
+        let picker = makePicker(selectionResponses: [branchSelectionPrompt(currentBranchName: "main"): 0])
         let shell = MockShell()
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
 
@@ -231,7 +232,7 @@ struct SwitchBranchManagerTests {
             GitBranch(name: "feature", isMerged: false, isCurrentBranch: false, creationDate: nil, syncStatus: .undetermined)
         ]
         let branchLoader = StubBranchLoader(localBranches: branches)
-        let picker = MockPicker(selectionResponses: ["Select a branch (switching from main)": 0])
+        let picker = makePicker(selectionResponses: [branchSelectionPrompt(currentBranchName: "main"): 0])
         let shell = MockShell()
         let manager = makeSUT(shell: shell, picker: picker, branchLoader: branchLoader)
 
@@ -255,7 +256,7 @@ struct SwitchBranchManagerTests {
             localBranches: filteredRemoteBranches,
             localBranchNames: ["main", "develop"]
         )
-        let picker = MockPicker(selectionResponses: ["Select a branch (switching from main)": 0])
+        let picker = makePicker(selectionResponses: [branchSelectionPrompt(currentBranchName: "main"): 0])
         let shell = MockShell()
         let manager = makeSUT(branchLocation: .remote, shell: shell, picker: picker, branchLoader: branchLoader)
 
@@ -269,13 +270,7 @@ struct SwitchBranchManagerTests {
 
 // MARK: - SUT
 private extension SwitchBranchManagerTests {
-    func makeSUT(
-        branchLocation: BranchLocation = .local,
-        shell: MockShell = MockShell(),
-        picker: MockPicker = MockPicker(),
-        branchLoader: StubBranchLoader = StubBranchLoader(),
-        config: GitConfig = GitConfig.defaultConfig
-    ) -> SwitchBranchManager {
+    func makeSUT(branchLocation: BranchLocation = .local, shell: MockShell = MockShell(), picker: MockSwiftPicker = MockSwiftPicker(), branchLoader: StubBranchLoader = StubBranchLoader(), config: GitConfig = GitConfig.defaultConfig) -> SwitchBranchManager {
         
         return .init(
             branchLocation: branchLocation,
@@ -284,5 +279,36 @@ private extension SwitchBranchManagerTests {
             branchLoader: branchLoader,
             config: config
         )
+    }
+}
+
+
+// MARK: - Test Helpers
+private extension SwitchBranchManagerTests {
+    func makePicker(selectionResponses: [String: Int] = [:]) -> MockSwiftPicker {
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary([:]))
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(0),
+            defaultMulti: .none,
+            singleType: .dictionary(
+                Dictionary(uniqueKeysWithValues: selectionResponses.map { ($0.key, .index($0.value)) })
+            ),
+            multiType: .ordered([])
+        )
+        
+        return MockSwiftPicker(
+            inputResult: .init(),
+            permissionResult: permissionResult,
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
+    }
+    
+    func branchSelectionPrompt(currentBranchName: String?) -> String {
+        if let currentBranchName {
+            return "Select a branch (switching from \(currentBranchName))"
+        }
+        
+        return "Select a branch "
     }
 }

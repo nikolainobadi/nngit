@@ -6,9 +6,7 @@
 //
 
 import Foundation
-import SwiftPicker
 
-/// Default implementation of ``GitFileCreator`` using Foundation's FileManager.
 struct DefaultGitFileCreator: GitFileCreator {
     private let fileManager = FileManager.default
 }
@@ -44,7 +42,7 @@ extension DefaultGitFileCreator {
     }
     
     /// Copies a source file to the templates directory and returns the final path.
-    func copyToTemplatesDirectory(sourcePath: String, fileName: String, picker: CommandLinePicker) throws -> String {
+    func copyToTemplatesDirectory(sourcePath: String, fileName: String, picker: any GitPicker) throws -> String {
         let templatesDirectory = try getOrCreateTemplatesDirectory(picker: picker)
         let destinationURL = templatesDirectory.appendingPathComponent(fileName)
         let sourceURL = URL(fileURLWithPath: sourcePath)
@@ -79,7 +77,7 @@ private extension DefaultGitFileCreator {
     }
     
     /// Gets or creates the templates directory, asking for permission if needed.
-    func getOrCreateTemplatesDirectory(picker: CommandLinePicker) throws -> URL {
+    func getOrCreateTemplatesDirectory(picker: any GitPicker) throws -> URL {
         let homeDirectory = fileManager.homeDirectoryForCurrentUser
         let configDirectory = homeDirectory.appendingPathComponent(".config")
         let nngitDirectory = configDirectory.appendingPathComponent("nngit")

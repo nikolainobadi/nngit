@@ -9,6 +9,7 @@ import Testing
 import Foundation
 import NnShellKit
 import GitShellKit
+import SwiftPickerTesting
 @testable import nngit
 
 @Suite("StopTrackingManager Tests", .serialized)
@@ -58,7 +59,7 @@ struct StopTrackingManagerTests {
         mockFS.addFile(path: ".gitignore", content: "*.log\n.env")
         let (sut, shell, _) = makeSUTWithResultsAndSelection(
             results: ["true", "file1.log\nfile2.log\n.env", "", "", ""], // git exists, tracked files, git rm commands
-            selectionResponses: selectionResponses,
+            singleSelectionResponses: selectionResponses,
             fileSystemManager: mockFS
         )
         
@@ -76,15 +77,14 @@ struct StopTrackingManagerTests {
     @Test("Stops tracking selected files when user chooses specific selection.")
     func stopTrackingIgnoredFiles_selectSpecificFiles() throws {
         // Response index 1 = "Select specific files to stop tracking"
-        let selectionResponses = [
-            "What would you like to do?": 1,
-            "Select files to stop tracking:": 0 // Will select first file due to MockPicker implementation
-        ]
+        let singleSelectionResponses = ["What would you like to do?": 1]
+        let multiSelectionResponses = ["Select files to stop tracking:": [0]] // Select first file
         let mockFS = MockFileSystemManager()
         mockFS.addFile(path: ".gitignore", content: "*.log\n.env")
         let (sut, shell, _) = makeSUTWithResultsAndSelection(
             results: ["true", "file1.log\nfile2.log\n.env", ""], // git exists, tracked files, git rm command
-            selectionResponses: selectionResponses,
+            singleSelectionResponses: singleSelectionResponses,
+            multiSelectionResponses: multiSelectionResponses,
             fileSystemManager: mockFS
         )
         
@@ -105,7 +105,7 @@ struct StopTrackingManagerTests {
         mockFS.addFile(path: ".gitignore", content: "*.log")
         let (sut, shell, _) = makeSUTWithResultsAndSelection(
             results: ["true", "file1.log\nfile2.log"],
-            selectionResponses: selectionResponses,
+            singleSelectionResponses: selectionResponses,
             fileSystemManager: mockFS
         )
         
@@ -125,7 +125,7 @@ struct StopTrackingManagerTests {
         mockFS.addFile(path: ".gitignore", content: "*.log")
         let (sut, shell, _) = makeSUTWithResultsAndSelection(
             results: ["true", "file1.log\nfile2.log"],
-            selectionResponses: selectionResponses,
+            singleSelectionResponses: selectionResponses,
             fileSystemManager: mockFS
         )
         
@@ -147,7 +147,7 @@ struct StopTrackingManagerTests {
         mockFS.addFile(path: ".gitignore", content: "*.log")
         let (sut, shell, _) = makeSUTWithResultsAndSelection(
             results: ["true", "file1.log\nfile2.log\nfile3.log", "", "", ""], 
-            selectionResponses: selectionResponses,
+            singleSelectionResponses: selectionResponses,
             fileSystemManager: mockFS
         )
         
@@ -179,7 +179,7 @@ struct StopTrackingManagerTests {
         mockFS.addFile(path: ".gitignore", content: gitignoreContent)
         let (sut, shell, _) = makeSUTWithResultsAndSelection(
             results: ["true", ""], // git exists, no tracked files 
-            selectionResponses: selectionResponses,
+            singleSelectionResponses: selectionResponses,
             fileSystemManager: mockFS
         )
         
@@ -201,7 +201,7 @@ private extension StopTrackingManagerTests {
         // Provide enough mock results to handle any shell commands that might be called
         let safeResults = Array(repeating: "", count: 10)
         let shell = MockShell(results: safeResults)
-        let picker = MockPicker()
+        let picker = makePicker()
         let tracker = GitFileTracker(shell: shell)
         let fsManager = fileSystemManager ?? MockFileSystemManager()
         let sut = StopTrackingManager(shell: shell, picker: picker, tracker: tracker, fileSystemManager: fsManager)
@@ -213,7 +213,7 @@ private extension StopTrackingManagerTests {
         // Provide enough mock results to handle any shell commands that might be called
         let safeResults = results + Array(repeating: "", count: 10)
         let shell = MockShell(results: safeResults)
-        let picker = MockPicker()
+        let picker = makePicker()
         let tracker = GitFileTracker(shell: shell)
         let fsManager = fileSystemManager ?? MockFileSystemManager()
         let sut = StopTrackingManager(shell: shell, picker: picker, tracker: tracker, fileSystemManager: fsManager)
@@ -223,7 +223,7 @@ private extension StopTrackingManagerTests {
     
     func makeSUTWithThrowingShell(fileSystemManager: FileSystemManager? = nil) -> (sut: StopTrackingManager, shell: MockShell, fileSystemManager: FileSystemManager) {
         let shell = MockShell(results: [], shouldThrowError: true)
-        let picker = MockPicker()
+        let picker = makePicker()
         let tracker = GitFileTracker(shell: shell)
         let fsManager = fileSystemManager ?? MockFileSystemManager()
         let sut = StopTrackingManager(shell: shell, picker: picker, tracker: tracker, fileSystemManager: fsManager)
@@ -233,13 +233,17 @@ private extension StopTrackingManagerTests {
     
     func makeSUTWithResultsAndSelection(
         results: [String] = [],
-        selectionResponses: [String: Int] = [:],
+        singleSelectionResponses: [String: Int] = [:],
+        multiSelectionResponses: [String: [Int]] = [:],
         fileSystemManager: FileSystemManager? = nil
     ) -> (sut: StopTrackingManager, shell: MockShell, fileSystemManager: FileSystemManager) {
         // Provide enough mock results to handle any shell commands that might be called
         let safeResults = results + Array(repeating: "", count: 10)
         let shell = MockShell(results: safeResults)
-        let picker = MockPicker(selectionResponses: selectionResponses)
+        let picker = makePicker(
+            singleSelectionResponses: singleSelectionResponses,
+            multiSelectionResponses: multiSelectionResponses
+        )
         let tracker = GitFileTracker(shell: shell)
         let fsManager = fileSystemManager ?? MockFileSystemManager()
         let sut = StopTrackingManager(shell: shell, picker: picker, tracker: tracker, fileSystemManager: fsManager)
@@ -247,6 +251,28 @@ private extension StopTrackingManagerTests {
         return (sut, shell, fsManager)
     }
     
+    func makePicker(
+        singleSelectionResponses: [String: Int] = [:],
+        multiSelectionResponses: [String: [Int]] = [:],
+        permissionResponses: [String: Bool] = [:]
+    ) -> MockSwiftPicker {
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary(permissionResponses))
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(0),
+            defaultMulti: .none,
+            singleType: .dictionary(
+                Dictionary(uniqueKeysWithValues: singleSelectionResponses.map { ($0.key, .index($0.value)) })
+            ),
+            multiType: .dictionary(
+                Dictionary(uniqueKeysWithValues: multiSelectionResponses.map { ($0.key, .indices($0.value)) })
+            )
+        )
+        
+        return MockSwiftPicker(
+            inputResult: .init(),
+            permissionResult: permissionResult,
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
+    }
 }
-
-

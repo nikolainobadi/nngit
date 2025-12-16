@@ -10,9 +10,6 @@ import GitShellKit
 @testable import nngit
 
 struct BranchValidationHelperTests {
-    
-    // MARK: - validateBranchesForSwitching Tests
-    
     @Test("Passes validation when branches are available for switching.")
     func validateBranchesForSwitchingSuccess() throws {
         let branches = [

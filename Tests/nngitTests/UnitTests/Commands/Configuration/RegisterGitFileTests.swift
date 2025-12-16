@@ -7,7 +7,7 @@
 
 import Testing
 import Foundation
-import SwiftPicker
+import SwiftPickerTesting
 import GitShellKit
 import NnShellKit
 @testable import nngit
@@ -38,7 +38,7 @@ extension RegisterGitFileTests {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let configLoader = MockGitConfigLoader()
         let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
 
         let output = try Nngit.testRun(
@@ -68,7 +68,7 @@ extension RegisterGitFileTests {
         let configLoader = MockGitConfigLoader()
         let fileCreator = MockGitFileCreator(copyResult: "/templates/template.txt")
         let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, fileCreator: fileCreator)
 
         let output = try Nngit.testRun(
@@ -96,8 +96,8 @@ extension RegisterGitFileTests {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let configLoader = MockGitConfigLoader()
         let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            requiredInputResponses: ["Enter path to template file:": sourcePath]
+        let picker = makePicker(
+            inputResponses: ["Enter path to template file:": sourcePath]
         )
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
 
@@ -125,8 +125,8 @@ extension RegisterGitFileTests {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let configLoader = MockGitConfigLoader()
         let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            requiredInputResponses: ["Output filename (leave blank for 'source-file.txt'):": ""]
+        let picker = makePicker(
+            inputResponses: ["Output filename (leave blank for 'source-file.txt'):": ""]
         )
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
 
@@ -153,8 +153,8 @@ extension RegisterGitFileTests {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let configLoader = MockGitConfigLoader()
         let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            requiredInputResponses: ["Output filename (leave blank for 'original.txt'):": "custom.txt"]
+        let picker = makePicker(
+            inputResponses: ["Output filename (leave blank for 'original.txt'):": "custom.txt"]
         )
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
 
@@ -181,8 +181,8 @@ extension RegisterGitFileTests {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let configLoader = MockGitConfigLoader()
         let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            requiredInputResponses: ["Display name (leave blank for 'auto-nickname.txt'):": ""]
+        let picker = makePicker(
+            inputResponses: ["Display name (leave blank for 'auto-nickname.txt'):": ""]
         )
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
 
@@ -209,8 +209,8 @@ extension RegisterGitFileTests {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let configLoader = MockGitConfigLoader()
         let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            requiredInputResponses: ["Display name (leave blank for 'file.txt'):": "Custom Display Name"]
+        let picker = makePicker(
+            inputResponses: ["Display name (leave blank for 'file.txt'):": "Custom Display Name"]
         )
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
 
@@ -238,7 +238,7 @@ extension RegisterGitFileTests {
         let configLoader = MockGitConfigLoader()
         let fileCreator = MockGitFileCreator(copyResult: "/templates/copied-file.txt")
         let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, fileCreator: fileCreator)
 
         let output = try Nngit.testRun(
@@ -264,7 +264,7 @@ extension RegisterGitFileTests {
     func throwsErrorWhenSourceFileNotFound() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell)
 
         #expect(throws: RegisterGitFileError.sourceFileNotFound("nonexistent.txt")) {
@@ -287,8 +287,8 @@ extension RegisterGitFileTests {
     func throwsErrorWhenPromptedSourceFileNotFound() throws {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            requiredInputResponses: ["Enter path to template file:": "nonexistent-prompted.txt"]
+        let picker = makePicker(
+            inputResponses: ["Enter path to template file:": "nonexistent-prompted.txt"]
         )
         let context = MockContext(picker: picker, shell: shell)
 
@@ -313,7 +313,7 @@ extension RegisterGitFileTests {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let configLoader = MockGitConfigLoader(shouldThrowOnAdd: true)
         let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
 
         #expect(throws: MockGitConfigLoader.TestError.configError) {
@@ -339,7 +339,7 @@ extension RegisterGitFileTests {
         let configLoader = MockGitConfigLoader()
         let fileCreator = MockGitFileCreator(shouldThrowOnCopy: true)
         let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, fileCreator: fileCreator)
 
         #expect(throws: MockGitConfigLoader.TestError.fileCreatorError) {
@@ -363,7 +363,7 @@ extension RegisterGitFileTests {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let configLoader = MockGitConfigLoader()
         let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader)
 
         try Nngit.testRun(
@@ -386,8 +386,8 @@ extension RegisterGitFileTests {
         let localGitCheck = makeGitCommand(.localGitCheck, path: nil)
         let configLoader = MockGitConfigLoader()
         let shell = MockShell(results: ["true"]) // localGitCheck
-        let picker = MockPicker(
-            requiredInputResponses: [
+        let picker = makePicker(
+            inputResponses: [
                 "Enter path to template file:": sourcePath,
                 "Output filename (leave blank for 'minimal.txt'):": "",
                 "Display name (leave blank for 'minimal.txt'):": ""
@@ -416,5 +416,20 @@ private extension RegisterGitFileTests {
         let path = tempDirectory.appendingPathComponent(name).path
         try content.write(toFile: path, atomically: true, encoding: .utf8)
         return path
+    }
+    
+    func makePicker(
+        inputResponses: [String: String] = [:],
+        permissionResponses: [String: Bool] = [:]
+    ) -> MockSwiftPicker {
+        let inputResult = MockInputResult(defaultValue: "", type: .dictionary(inputResponses))
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary(permissionResponses))
+        
+        return MockSwiftPicker(
+            inputResult: inputResult,
+            permissionResult: permissionResult,
+            selectionResult: .init(),
+            treeNavigationResult: .init()
+        )
     }
 }

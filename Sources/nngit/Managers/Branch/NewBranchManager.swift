@@ -7,16 +7,14 @@
 
 import Foundation
 import GitShellKit
-import SwiftPicker
 
-/// Manager for handling new branch creation with remote synchronization checks.
 struct NewBranchManager {
-    private let shell: GitShell
-    private let picker: CommandLinePicker
-    private let branchLoader: GitBranchLoader
     private let config: GitConfig
+    private let shell: any GitShell
+    private let picker: any GitPicker
+    private let branchLoader: any GitBranchLoader
     
-    init(shell: GitShell, picker: CommandLinePicker, branchLoader: GitBranchLoader, config: GitConfig) {
+    init(shell: any GitShell, picker: any GitPicker, branchLoader: any GitBranchLoader, config: GitConfig) {
         self.shell = shell
         self.picker = picker
         self.branchLoader = branchLoader
@@ -106,18 +104,7 @@ private extension NewBranchManager {
 
 
 // MARK: - Supporting Types
-private extension NewBranchManager {
-    enum SyncOption: DisplayablePickerItem {
-        case merge
-        case rebase
-        
-        var displayName: String {
-            switch self {
-            case .merge:
-                return "Merge remote changes (git pull)"
-            case .rebase:
-                return "Rebase onto remote changes (git pull --rebase)"
-            }
-        }
-    }
+enum SyncOption {
+    case merge
+    case rebase
 }

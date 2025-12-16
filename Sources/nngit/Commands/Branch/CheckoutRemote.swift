@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftPicker
 import GitShellKit
 import ArgumentParser
 

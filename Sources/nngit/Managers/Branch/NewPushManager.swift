@@ -7,15 +7,13 @@
 
 import Foundation
 import GitShellKit
-import SwiftPicker
 
-/// Manager for handling new push operations with safety checks.
 struct NewPushManager {
-    private let shell: GitShell
-    private let picker: CommandLinePicker
-    private let configLoader: GitConfigLoader
+    private let shell: any GitShell
+    private let picker: any GitPicker
+    private let configLoader: any GitConfigLoader
     
-    init(shell: GitShell, picker: CommandLinePicker, configLoader: GitConfigLoader) {
+    init(shell: any GitShell, picker: any GitPicker, configLoader: any GitConfigLoader) {
         self.shell = shell
         self.picker = picker
         self.configLoader = configLoader
@@ -25,7 +23,6 @@ struct NewPushManager {
 
 // MARK: - Push Operations
 extension NewPushManager {
-    /// Performs a new push operation with all safety checks.
     func pushNewBranch() throws {
         try verifyRemoteGitExists()
         

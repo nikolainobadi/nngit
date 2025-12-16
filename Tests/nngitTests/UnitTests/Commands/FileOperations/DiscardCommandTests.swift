@@ -8,6 +8,7 @@
 import Testing
 import NnShellKit
 import GitShellKit
+import SwiftPickerTesting
 @testable import nngit
 
 @MainActor
@@ -22,7 +23,11 @@ struct DiscardCommandTests {
         ]
         
         let shell = MockShell(results: results)
-        let picker = MockPicker()
+        let picker = makePicker(
+            permissionResponses: [
+                "Are you sure you want to discard the changes you made in this branch? You cannot undo this action.": true
+            ]
+        )
         let context = MockContext(picker: picker, shell: shell)
 
         try runCommand(context)
@@ -31,7 +36,7 @@ struct DiscardCommandTests {
         #expect(shell.executedCommands.contains(localGitCheckCommand))
         #expect(shell.executedCommands.contains(makeGitCommand(.clearStagedFiles, path: nil)))
         #expect(shell.executedCommands.contains(makeGitCommand(.clearUnstagedFiles, path: nil)))
-        #expect(picker.requiredPermissions.contains("Are you sure you want to discard the changes you made in this branch? You cannot undo this action."))
+        #expect(picker.capturedPermissionPrompts.contains("Are you sure you want to discard the changes you made in this branch? You cannot undo this action."))
     }
     
     @Test("clears only staged files")
@@ -42,7 +47,11 @@ struct DiscardCommandTests {
         ]
         
         let shell = MockShell(results: results)
-        let picker = MockPicker()
+        let picker = makePicker(
+            permissionResponses: [
+                "Are you sure you want to discard changes in staged files? You cannot undo this action.": true
+            ]
+        )
         let context = MockContext(picker: picker, shell: shell)
         
         try runCommand(context, discardScope: .staged)
@@ -59,7 +68,11 @@ struct DiscardCommandTests {
         ]
         
         let shell = MockShell(results: results)
-        let picker = MockPicker()
+        let picker = makePicker(
+            permissionResponses: [
+                "Are you sure you want to discard changes in unstaged files? You cannot undo this action.": true
+            ]
+        )
         let context = MockContext(picker: picker, shell: shell)
         
         try runCommand(context, discardScope: .unstaged)
@@ -76,7 +89,7 @@ struct DiscardCommandTests {
         ]
         
         let shell = MockShell(results: results)
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell)
         
         try runCommand(context)
@@ -93,7 +106,7 @@ struct DiscardCommandTests {
         ]
         
         let shell = MockShell(results: results)
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell)
         
         try runCommandWithFiles(context)
@@ -113,10 +126,9 @@ struct DiscardCommandTests {
         ]
         
         let shell = MockShell(results: results)
-        let picker = MockPicker(
+        let picker = makePicker(
             permissionResponses: ["Are you sure you want to discard changes in 1 selected file(s)? You cannot undo this action.": true],
-            requiredInputResponses: [:],
-            selectionResponses: ["Select files to discard changes from:": 0]
+            multiSelectionResponses: ["Select files to discard changes from:": [0]]
         )
         let context = MockContext(picker: picker, shell: shell)
         
@@ -134,7 +146,7 @@ struct DiscardCommandTests {
         ]
         
         let shell = MockShell(results: results)
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell)
         
         try runCommandWithFiles(context, discardScope: .staged)
@@ -175,5 +187,27 @@ private extension DiscardCommandTests {
         }
         
         try Nngit.testRun(context: testFactory, args: args)
+    }
+    
+    func makePicker(
+        permissionResponses: [String: Bool] = [:],
+        multiSelectionResponses: [String: [Int]] = [:]
+    ) -> MockSwiftPicker {
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary(permissionResponses))
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(0),
+            defaultMulti: .none,
+            singleType: .ordered([]),
+            multiType: .dictionary(
+                Dictionary(uniqueKeysWithValues: multiSelectionResponses.map { ($0.key, .indices($0.value)) })
+            )
+        )
+        
+        return MockSwiftPicker(
+            inputResult: .init(),
+            permissionResult: permissionResult,
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
     }
 }

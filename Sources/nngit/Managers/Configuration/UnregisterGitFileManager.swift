@@ -6,18 +6,16 @@
 //
 
 import Foundation
-import SwiftPicker
 
-/// Manager utility for handling git file unregistration workflows.
 struct UnregisterGitFileManager {
-    private let configLoader: GitConfigLoader
-    private let fileCreator: GitFileCreator
-    private let picker: CommandLinePicker
+    private let picker: any GitPicker
+    private let fileCreator: any GitFileCreator
+    private let configLoader: any GitConfigLoader
     
-    init(configLoader: GitConfigLoader, fileCreator: GitFileCreator, picker: CommandLinePicker) {
-        self.configLoader = configLoader
-        self.fileCreator = fileCreator
+    init(configLoader: any GitConfigLoader, fileCreator: any GitFileCreator, picker: any GitPicker) {
         self.picker = picker
+        self.fileCreator = fileCreator
+        self.configLoader = configLoader
     }
 }
 

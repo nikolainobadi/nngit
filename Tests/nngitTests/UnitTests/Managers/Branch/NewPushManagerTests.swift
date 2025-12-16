@@ -7,7 +7,8 @@
 
 import Testing
 import NnShellKit
-import SwiftPicker
+import SwiftPickerTesting
+import SwiftPickerKit
 import GitShellKit
 @testable import nngit
 
@@ -29,7 +30,7 @@ struct NewPushManagerTests {
         
         #expect(shell.executedCommands.contains("git fetch origin"))
         #expect(shell.executedCommands.contains("git push -u origin feature-branch"))
-        #expect(picker.requiredPermissions.isEmpty)
+        #expect(picker.capturedPermissionPrompts.isEmpty)
     }
     
     @Test("Pushes branch successfully when on default branch.")
@@ -47,7 +48,7 @@ struct NewPushManagerTests {
         
         #expect(shell.executedCommands.contains("git fetch origin"))
         #expect(shell.executedCommands.contains("git push -u origin main"))
-        #expect(picker.requiredPermissions.isEmpty)
+        #expect(picker.capturedPermissionPrompts.isEmpty)
         #expect(!shell.executedCommands.contains("git status --porcelain")) // Skip conflict checks for default branch
     }
     
@@ -68,12 +69,12 @@ struct NewPushManagerTests {
         
         #expect(shell.executedCommands.contains("git fetch origin"))
         #expect(shell.executedCommands.contains("git push -u origin feature-branch"))
-        #expect(picker.requiredPermissions.isEmpty)
+        #expect(picker.capturedPermissionPrompts.isEmpty)
     }
     
     @Test("Pushes branch successfully when user confirms despite being behind.")
     func pushNewBranchBehindUserConfirms() throws {
-        let permissionResponses = ["⚠️  Warning: Your branch is 2 commit(s) behind 'main'. Consider rebasing before pushing to avoid potential conflicts. Continue with push anyway?": true]
+        let permissionResponses = [behindWarningPrompt(behind: 2, defaultBranch: "main"): true]
         let results = [
             "origin",           // checkForRemote (remote exists)
             "feature-branch",   // getCurrentBranchName
@@ -89,12 +90,12 @@ struct NewPushManagerTests {
         
         #expect(shell.executedCommands.contains("git fetch origin"))
         #expect(shell.executedCommands.contains("git push -u origin feature-branch"))
-        #expect(picker.requiredPermissions.contains("⚠️  Warning: Your branch is 2 commit(s) behind 'main'. Consider rebasing before pushing to avoid potential conflicts. Continue with push anyway?"))
+        #expect(picker.capturedPermissionPrompts.contains(behindWarningPrompt(behind: 2, defaultBranch: "main")))
     }
     
     @Test("Throws error when user denies push while behind default branch.")
     func pushNewBranchBehindUserDenies() throws {
-        let permissionResponses = ["⚠️  Warning: Your branch is 3 commit(s) behind 'main'. Consider rebasing before pushing to avoid potential conflicts. Continue with push anyway?": false]
+        let permissionResponses = [behindWarningPrompt(behind: 3, defaultBranch: "main"): false]
         let results = [
             "origin",           // checkForRemote (remote exists)
             "feature-branch",   // getCurrentBranchName
@@ -112,7 +113,7 @@ struct NewPushManagerTests {
         
         #expect(shell.executedCommands.contains("git fetch origin"))
         #expect(!shell.executedCommands.contains("git push -u origin feature-branch"))
-        #expect(picker.requiredPermissions.contains("⚠️  Warning: Your branch is 3 commit(s) behind 'main'. Consider rebasing before pushing to avoid potential conflicts. Continue with push anyway?"))
+        #expect(picker.capturedPermissionPrompts.contains(behindWarningPrompt(behind: 3, defaultBranch: "main")))
     }
     
     @Test("Pushes branch successfully when ahead of default branch.")
@@ -132,7 +133,7 @@ struct NewPushManagerTests {
         
         #expect(shell.executedCommands.contains("git fetch origin"))
         #expect(shell.executedCommands.contains("git push -u origin feature-branch"))
-        #expect(picker.requiredPermissions.isEmpty)
+        #expect(picker.capturedPermissionPrompts.isEmpty)
     }
     
     @Test("Works with custom default branch name.")
@@ -152,7 +153,7 @@ struct NewPushManagerTests {
         
         #expect(shell.executedCommands.contains("git fetch origin"))
         #expect(shell.executedCommands.contains("git push -u origin feature-branch"))
-        #expect(picker.requiredPermissions.isEmpty)
+        #expect(picker.capturedPermissionPrompts.isEmpty)
     }
 }
 
@@ -163,16 +164,37 @@ extension NewPushManagerTests {
         defaultBranch: String = "main",
         permissionResponses: [String: Bool] = [:],
         shellResults: [String] = []
-    ) -> (sut: NewPushManager, shell: MockShell, picker: MockPicker) {
+    ) -> (sut: NewPushManager, shell: MockShell, picker: MockSwiftPicker) {
         let shell = MockShell(results: shellResults)
-        let picker = MockPicker(
-            permissionResponses: permissionResponses,
-            requiredInputResponses: [:],
-            selectionResponses: [:]
-        )
+        let picker = makePicker(permissionResponses: permissionResponses)
         let configLoader = StubConfigLoader(initialConfig: GitConfig(defaultBranch: defaultBranch))
         let sut = NewPushManager(shell: shell, picker: picker, configLoader: configLoader)
         
         return (sut, shell, picker)
+    }
+}
+
+
+// MARK: - Test Helpers
+private extension NewPushManagerTests {
+    func makePicker(permissionResponses: [String: Bool] = [:]) -> MockSwiftPicker {
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary(permissionResponses))
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(0),
+            defaultMulti: .none,
+            singleType: .ordered([]),
+            multiType: .ordered([])
+        )
+        
+        return MockSwiftPicker(
+            inputResult: .init(),
+            permissionResult: permissionResult,
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
+    }
+    
+    func behindWarningPrompt(behind: Int, defaultBranch: String) -> String {
+        return "⚠️  Warning: Your branch is \(behind) commit(s) behind '\(defaultBranch)'. Consider rebasing before pushing to avoid potential conflicts. Continue with push anyway?"
     }
 }

@@ -7,7 +7,7 @@
 
 import Testing
 import NnShellKit
-import SwiftPicker
+import SwiftPickerTesting
 import GitShellKit
 @testable import nngit
 
@@ -26,7 +26,7 @@ struct SwitchBranchTests {
             "true",  // localGitCheck  
             ""  // switchCmd
         ])
-        let picker = MockPicker()
+        let picker = makePicker()
         let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
@@ -45,7 +45,7 @@ struct SwitchBranchTests {
         let shell = MockShell(results: [
             "true"  // localGitCheck
         ])
-        let picker = MockPicker()
+        let picker = makePicker()
         let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
@@ -65,10 +65,8 @@ struct SwitchBranchTests {
             "true",  // localGitCheck
             ""  // switchCmd
         ])
-        let picker = MockPicker(
-            permissionResponses: [:],
-            requiredInputResponses: [:],
-            selectionResponses: ["Select a branch (switching from main)": 0]
+        let picker = makePicker(
+            singleSelectionResponses: ["Select a branch (switching from main)": 0]
         )
         let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
@@ -90,7 +88,7 @@ struct SwitchBranchTests {
             "true",  // localGitCheck
             ""       // switchCmd
         ])
-        let picker = MockPicker()
+        let picker = makePicker()
         let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
 
@@ -111,10 +109,8 @@ struct SwitchBranchTests {
             "true",  // localGitCheck
             ""       // switchCmd
         ])
-        let picker = MockPicker(
-            permissionResponses: [:],
-            requiredInputResponses: [:],
-            selectionResponses: ["Select a branch (switching from main)": 0]
+        let picker = makePicker(
+            singleSelectionResponses: ["Select a branch (switching from main)": 0]
         )
         let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
@@ -139,8 +135,8 @@ struct SwitchBranchTests {
             "true",  // localGitCheck
             ""       // git checkout -b feature origin/feature
         ])
-        let picker = MockPicker(
-            selectionResponses: ["Select a branch (switching from main)": 0]
+        let picker = makePicker(
+            singleSelectionResponses: ["Select a branch (switching from main)": 0]
         )
         let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
@@ -165,8 +161,8 @@ struct SwitchBranchTests {
             "true",  // localGitCheck
             ""       // git checkout -b develop origin/develop
         ])
-        let picker = MockPicker(
-            selectionResponses: ["Select a branch (switching from main)": 0]
+        let picker = makePicker(
+            singleSelectionResponses: ["Select a branch (switching from main)": 0]
         )
         let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
@@ -191,8 +187,8 @@ struct SwitchBranchTests {
             "true",  // localGitCheck
             ""       // git checkout -b hotfix origin/hotfix
         ])
-        let picker = MockPicker(
-            selectionResponses: ["Select a branch (switching from main)": 0]
+        let picker = makePicker(
+            singleSelectionResponses: ["Select a branch (switching from main)": 0]
         )
         let configLoader = StubConfigLoader(initialConfig: GitConfig.defaultConfig)
         let context = MockContext(picker: picker, shell: shell, configLoader: configLoader, branchLoader: loader)
@@ -202,5 +198,27 @@ struct SwitchBranchTests {
 
         #expect(shell.executedCommands.contains(localGitCheck))
         #expect(shell.executedCommands.contains("git checkout -b hotfix origin/hotfix"))
+    }
+}
+
+
+// MARK: - Test Helpers
+private extension SwitchBranchTests {
+    func makePicker(singleSelectionResponses: [String: Int] = [:]) -> MockSwiftPicker {
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(0),
+            defaultMulti: .none,
+            singleType: .dictionary(
+                Dictionary(uniqueKeysWithValues: singleSelectionResponses.map { ($0.key, .index($0.value)) })
+            ),
+            multiType: .ordered([])
+        )
+        
+        return MockSwiftPicker(
+            inputResult: .init(),
+            permissionResult: .init(),
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
     }
 }

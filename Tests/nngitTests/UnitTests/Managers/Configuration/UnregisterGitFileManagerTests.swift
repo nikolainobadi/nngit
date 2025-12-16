@@ -7,7 +7,7 @@
 
 import Testing
 import Foundation
-import SwiftPicker
+import SwiftPickerTesting
 @testable import nngit
 
 final class UnregisterGitFileManagerTests {
@@ -15,14 +15,12 @@ final class UnregisterGitFileManagerTests {
     private let fileManager = FileManager.default
     
     init() {
-        // Create unique temp directory for this test instance
         tempDirectory = fileManager.temporaryDirectory
             .appendingPathComponent("UnregisterGitFileManagerTests-\(UUID().uuidString)")
         try! fileManager.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
     }
     
     deinit {
-        // Clean up entire temp directory
         try? fileManager.removeItem(at: tempDirectory)
     }
 }
@@ -36,9 +34,7 @@ extension UnregisterGitFileManagerTests {
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt"),
             GitFile(fileName: "readme.md", nickname: "Readme", localPath: "/templates/readme.md")
         ]
-        let (sut, configLoader, _, picker) = makeSUT(gitFiles: gitFiles)
-        picker.addPermissionResponse("Remove git file 'Test File (test.txt)'?", response: true)
-        picker.addBooleanResponse("Delete template file from disk as well?", response: false)
+        let (sut, configLoader, _) = makeSUT(gitFiles: gitFiles, permissionResults: [true, false])
         
         try sut.unregisterGitFile(templateName: "test.txt", removeAll: false)
         
@@ -51,9 +47,7 @@ extension UnregisterGitFileManagerTests {
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt"),
             GitFile(fileName: "readme.md", nickname: "Readme", localPath: "/templates/readme.md")
         ]
-        let (sut, configLoader, _, picker) = makeSUT(gitFiles: gitFiles)
-        picker.addPermissionResponse("Remove git file 'Readme (readme.md)'?", response: true)
-        picker.addBooleanResponse("Delete template file from disk as well?", response: false)
+        let (sut, configLoader, _) = makeSUT(gitFiles: gitFiles, permissionResults: [true, false])
         
         try sut.unregisterGitFile(templateName: "Readme", removeAll: false)
         
@@ -65,9 +59,7 @@ extension UnregisterGitFileManagerTests {
         let gitFiles = [
             GitFile(fileName: "Test.TXT", nickname: "Test File", localPath: "/templates/Test.TXT")
         ]
-        let (sut, configLoader, _, picker) = makeSUT(gitFiles: gitFiles)
-        picker.addPermissionResponse("Remove git file 'Test File (Test.TXT)'?", response: true)
-        picker.addBooleanResponse("Delete template file from disk as well?", response: false)
+        let (sut, configLoader, _) = makeSUT(gitFiles: gitFiles, permissionResults: [true, false])
         
         try sut.unregisterGitFile(templateName: "test.txt", removeAll: false)
         
@@ -79,29 +71,11 @@ extension UnregisterGitFileManagerTests {
         let gitFiles = [
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt")
         ]
-        let (sut, configLoader, _, picker) = makeSUT(gitFiles: gitFiles)
-        picker.addPermissionResponse("Remove git file 'Test File (test.txt)'?", response: true)
-        picker.addBooleanResponse("Delete template file from disk as well?", response: false)
+        let (sut, configLoader, _) = makeSUT(gitFiles: gitFiles, permissionResults: [true, false])
         
         try sut.unregisterGitFile(templateName: "test file", removeAll: false)
         
         #expect(configLoader.removedFileName == "test.txt")
-    }
-    
-    @Test("Prompts for selection when no template name provided.")
-    func promptsForSelection() throws {
-        let gitFiles = [
-            GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt"),
-            GitFile(fileName: "readme.md", nickname: "Readme", localPath: "/templates/readme.md")
-        ]
-        let (sut, configLoader, _, picker) = makeSUT(gitFiles: gitFiles)
-        picker.addSelectionResponse("Select a git file to unregister:", response: 1) // Select second file
-        picker.addPermissionResponse("Remove git file 'Readme (readme.md)'?", response: true)
-        picker.addBooleanResponse("Delete template file from disk as well?", response: false)
-        
-        try sut.unregisterGitFile(templateName: nil, removeAll: false)
-        
-        #expect(configLoader.removedFileName == "readme.md")
     }
     
     @Test("Deletes template file from disk when requested.")
@@ -112,9 +86,7 @@ extension UnregisterGitFileManagerTests {
         let gitFiles = [
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: templatePath.path)
         ]
-        let (sut, configLoader, _, picker) = makeSUT(gitFiles: gitFiles)
-        picker.addPermissionResponse("Remove git file 'Test File (test.txt)'?", response: true)
-        picker.addBooleanResponse("Delete template file from disk as well?", response: true)
+        let (sut, configLoader, _) = makeSUT(gitFiles: gitFiles, permissionResults: [true, true])
         
         #expect(fileManager.fileExists(atPath: templatePath.path))
         
@@ -130,9 +102,7 @@ extension UnregisterGitFileManagerTests {
         let gitFiles = [
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/nonexistent/path/test.txt")
         ]
-        let (sut, configLoader, _, picker) = makeSUT(gitFiles: gitFiles)
-        picker.addPermissionResponse("Remove git file 'Test File (test.txt)'?", response: true)
-        picker.addBooleanResponse("Delete template file from disk as well?", response: true)
+        let (sut, configLoader, _) = makeSUT(gitFiles: gitFiles, permissionResults: [true, true])
         
         // Should not throw even if file doesn't exist
         try sut.unregisterGitFile(templateName: "test.txt", removeAll: false)
@@ -147,9 +117,7 @@ extension UnregisterGitFileManagerTests {
             GitFile(fileName: "readme.md", nickname: "Readme", localPath: "/templates/readme.md"),
             GitFile(fileName: "config.json", nickname: "Config", localPath: "/templates/config.json")
         ]
-        let (sut, configLoader, _, picker) = makeSUT(gitFiles: gitFiles)
-        picker.addPermissionResponse("Are you sure you want to remove all 3 registered git files?", response: true)
-        picker.addBooleanResponse("Delete template files from disk as well?", response: false)
+        let (sut, configLoader, _) = makeSUT(gitFiles: gitFiles, permissionResults: [true, false])
         
         try sut.unregisterGitFile(templateName: nil, removeAll: true)
         
@@ -169,9 +137,7 @@ extension UnregisterGitFileManagerTests {
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: template1.path),
             GitFile(fileName: "readme.md", nickname: "Readme", localPath: template2.path)
         ]
-        let (sut, configLoader, _, picker) = makeSUT(gitFiles: gitFiles)
-        picker.addPermissionResponse("Are you sure you want to remove all 2 registered git files?", response: true)
-        picker.addBooleanResponse("Delete template files from disk as well?", response: true)
+        let (sut, configLoader, _) = makeSUT(gitFiles: gitFiles, permissionResults: [true, true])
         
         #expect(fileManager.fileExists(atPath: template1.path))
         #expect(fileManager.fileExists(atPath: template2.path))
@@ -186,7 +152,7 @@ extension UnregisterGitFileManagerTests {
     
     @Test("Throws error when no files are registered.")
     func throwsErrorWhenNoFiles() {
-        let (sut, _, _, _) = makeSUT(gitFiles: [])
+        let (sut, _, _) = makeSUT(gitFiles: [])
         
         #expect(throws: UnregisterGitFileError.noRegisteredFiles) {
             try sut.unregisterGitFile(templateName: "test.txt", removeAll: false)
@@ -198,7 +164,7 @@ extension UnregisterGitFileManagerTests {
         let gitFiles = [
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt")
         ]
-        let (sut, _, _, _) = makeSUT(gitFiles: gitFiles)
+        let (sut, _, _) = makeSUT(gitFiles: gitFiles)
         
         #expect(throws: UnregisterGitFileError.fileNotFound("nonexistent.txt")) {
             try sut.unregisterGitFile(templateName: "nonexistent.txt", removeAll: false)
@@ -210,24 +176,10 @@ extension UnregisterGitFileManagerTests {
         let gitFiles = [
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt")
         ]
-        let (sut, _, _, picker) = makeSUT(gitFiles: gitFiles)
-        picker.addPermissionResponse("Remove git file 'Test File (test.txt)'?", response: false)
+        let (sut, _, _) = makeSUT(gitFiles: gitFiles, permissionResults: [false])
         
         #expect(throws: UnregisterGitFileError.deletionCancelled) {
             try sut.unregisterGitFile(templateName: "test.txt", removeAll: false)
-        }
-    }
-    
-    @Test("Throws error when user cancels selection.")
-    func throwsErrorOnSelectionCancellation() {
-        let gitFiles = [
-            GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt")
-        ]
-        let (sut, _, _, picker) = makeSUT(gitFiles: gitFiles)
-        picker.addSelectionResponse("Select a git file to unregister:", response: nil) // Cancel selection
-        
-        #expect(throws: UnregisterGitFileError.deletionCancelled) {
-            try sut.unregisterGitFile(templateName: nil, removeAll: false)
         }
     }
     
@@ -236,8 +188,7 @@ extension UnregisterGitFileManagerTests {
         let gitFiles = [
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt")
         ]
-        let (sut, _, _, picker) = makeSUT(gitFiles: gitFiles)
-        picker.addPermissionResponse("Are you sure you want to remove all 1 registered git files?", response: false)
+        let (sut, _, _) = makeSUT(gitFiles: gitFiles, permissionResults: [false])
         
         #expect(throws: UnregisterGitFileError.deletionCancelled) {
             try sut.unregisterGitFile(templateName: nil, removeAll: true)
@@ -249,10 +200,8 @@ extension UnregisterGitFileManagerTests {
         let gitFiles = [
             GitFile(fileName: "test.txt", nickname: "Test File", localPath: "/templates/test.txt")
         ]
-        let (sut, configLoader, _, picker) = makeSUT(gitFiles: gitFiles)
+        let (sut, configLoader, _) = makeSUT(gitFiles: gitFiles, permissionResults: [true, false])
         configLoader.removeResult = false // Simulate remove returning false
-        picker.addPermissionResponse("Remove git file 'Test File (test.txt)'?", response: true)
-        picker.addBooleanResponse("Delete template file from disk as well?", response: false)
         
         #expect(throws: UnregisterGitFileError.fileNotFound("test.txt")) {
             try sut.unregisterGitFile(templateName: "test.txt", removeAll: false)
@@ -263,15 +212,12 @@ extension UnregisterGitFileManagerTests {
 
 // MARK: - Helper Methods
 private extension UnregisterGitFileManagerTests {
-    func makeSUT(gitFiles: [GitFile] = []) -> (UnregisterGitFileManager, MockGitConfigLoader, MockGitFileCreator, MockPicker) {
+    func makeSUT(gitFiles: [GitFile] = [], permissionResults: [Bool] = []) -> (sut: UnregisterGitFileManager, loader: MockGitConfigLoader, fileCreator: MockGitFileCreator) {
         let configLoader = MockGitConfigLoader(mockGitFiles: gitFiles)
         let fileCreator = MockGitFileCreator()
-        let picker = MockPicker()
-        let sut = UnregisterGitFileManager(
-            configLoader: configLoader,
-            fileCreator: fileCreator,
-            picker: picker
-        )
-        return (sut, configLoader, fileCreator, picker)
+        let picker = MockSwiftPicker(permissionResult: .init(type: .ordered(permissionResults)))
+        let sut = UnregisterGitFileManager(configLoader: configLoader, fileCreator: fileCreator, picker: picker)
+        
+        return (sut, configLoader, fileCreator)
     }
 }

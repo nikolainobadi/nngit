@@ -9,7 +9,7 @@ import Testing
 import Foundation
 import NnShellKit
 import GitShellKit
-import SwiftPicker
+import SwiftPickerTesting
 @testable import nngit
 
 @MainActor
@@ -17,7 +17,7 @@ struct StopTrackingTests {
     @Test("Throws error when not in git repository.")
     func throwsErrorWhenNotInGitRepository() {
         let shell = MockShell(results: [], shouldThrowError: true)
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell)
         
         #expect(throws: Error.self) {
@@ -32,7 +32,7 @@ struct StopTrackingTests {
     func returnsEarlyWhenNoGitignoreExists() throws {
         let results = ["true"] // localGitCheck passes
         let shell = MockShell(results: results)
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell)
         
         // Create a temporary directory without .gitignore for the test
@@ -56,7 +56,7 @@ struct StopTrackingTests {
     func returnsEarlyWhenNoFilesMatch() throws {
         let results = ["true", ""] // localGitCheck passes, no tracked files
         let shell = MockShell(results: results)
-        let picker = MockPicker()
+        let picker = makePicker()
         let context = MockContext(picker: picker, shell: shell)
         
         // Create temporary gitignore file
@@ -78,7 +78,7 @@ struct StopTrackingTests {
     func stopsTrackingAllFiles() throws {
         let results = ["true", "file1.log\nfile2.log\n.env", "", "", ""] // localGitCheck passes, tracked files, git rm commands
         let shell = MockShell(results: results)
-        let picker = MockPicker(selectionResponses: ["What would you like to do?": 0])
+        let picker = makePicker(selectionResponses: ["What would you like to do?": 0])
         let context = MockContext(picker: picker, shell: shell)
         
         // Create temporary gitignore file
@@ -108,10 +108,10 @@ struct StopTrackingTests {
     func stopsTrackingSelectedFiles() throws {
         let results = ["true", "file1.log\nfile2.log\n.env", ""] // localGitCheck passes, tracked files, git rm command
         let shell = MockShell(results: results)
-        let picker = MockPicker(selectionResponses: [
-            "What would you like to do?": 1,
-            "Select files to stop tracking:": 0
-        ])
+        let picker = makePicker(
+            selectionResponses: ["What would you like to do?": 1],
+            multiSelectionResponses: ["Select files to stop tracking:": [0]]
+        )
         let context = MockContext(picker: picker, shell: shell)
         
         // Create temporary gitignore file
@@ -140,7 +140,7 @@ struct StopTrackingTests {
     func returnsEarlyWhenNoFilesSelected() throws {
         let results = ["true", "file1.log\nfile2.log"] // localGitCheck passes, tracked files
         let shell = MockShell(results: results)
-        let picker = MockPicker(selectionResponses: ["What would you like to do?": 1])
+        let picker = makePicker(selectionResponses: ["What would you like to do?": 1])
         let context = MockContext(picker: picker, shell: shell)
         
         // Create temporary gitignore file
@@ -168,7 +168,7 @@ struct StopTrackingTests {
     func returnsEarlyWhenUserCancels() throws {
         let results = ["true", "file1.log\nfile2.log"] // localGitCheck passes, tracked files
         let shell = MockShell(results: results)
-        let picker = MockPicker(selectionResponses: ["What would you like to do?": 2])
+        let picker = makePicker(selectionResponses: ["What would you like to do?": 2])
         let context = MockContext(picker: picker, shell: shell)
         
         // Create temporary gitignore file
@@ -197,7 +197,7 @@ struct StopTrackingTests {
         // This test simplifies error handling since MockShell doesn't support selective command errors
         let results = ["true", "file1.log\nfile2.log\nfile3.log", "", "", ""] // localGitCheck passes, tracked files, git rm commands
         let shell = MockShell(results: results)
-        let picker = MockPicker(selectionResponses: ["What would you like to do?": 0])
+        let picker = makePicker(selectionResponses: ["What would you like to do?": 0])
         let context = MockContext(picker: picker, shell: shell)
         
         // Create temporary gitignore file
@@ -237,5 +237,30 @@ private extension StopTrackingTests {
         let gitignorePath = tempDir.appending("/.gitignore")
         try! content.write(toFile: gitignorePath, atomically: true, encoding: .utf8)
         return tempDir
+    }
+    
+    func makePicker(
+        permissionResponses: [String: Bool] = [:],
+        selectionResponses: [String: Int] = [:],
+        multiSelectionResponses: [String: [Int]] = [:]
+    ) -> MockSwiftPicker {
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary(permissionResponses))
+        let selectionResult = MockSelectionResult(
+            defaultSingle: .index(0),
+            defaultMulti: .none,
+            singleType: .dictionary(
+                Dictionary(uniqueKeysWithValues: selectionResponses.map { ($0.key, .index($0.value)) })
+            ),
+            multiType: .dictionary(
+                Dictionary(uniqueKeysWithValues: multiSelectionResponses.map { ($0.key, .indices($0.value)) })
+            )
+        )
+        
+        return MockSwiftPicker(
+            inputResult: .init(),
+            permissionResult: permissionResult,
+            selectionResult: selectionResult,
+            treeNavigationResult: .init()
+        )
     }
 }

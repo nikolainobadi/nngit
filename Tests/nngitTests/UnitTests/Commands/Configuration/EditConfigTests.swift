@@ -1,5 +1,5 @@
 import Testing
-import SwiftPicker
+import SwiftPickerTesting
 import GitShellKit
 import NnShellKit
 @testable import nngit
@@ -11,7 +11,7 @@ struct EditConfigTests {
         let localCheck = makeGitCommand(.localGitCheck, path: nil)
         let initial = GitConfig.defaultConfig
         let loader = StubConfigLoader(initialConfig: initial)
-        let picker = MockPicker()
+        let picker = makePicker()
         let shell = MockShell(results: ["true"])
         let context = MockContext(picker: picker, shell: shell, configLoader: loader)
 
@@ -28,9 +28,9 @@ struct EditConfigTests {
         let localCheck = makeGitCommand(.localGitCheck, path: nil)
         let initial = GitConfig.defaultConfig
         let loader = StubConfigLoader(initialConfig: initial)
-        let picker = MockPicker(
-            permissionResponses: ["Save these changes?": true],
-            requiredInputResponses: ["Enter a new default branch name (leave blank to keep 'main')": "develop"]
+        let picker = makePicker(
+            inputResponses: ["Enter a new default branch name (leave blank to keep 'main')": "develop"],
+            permissionResponses: ["Save these changes?": true]
         )
         let shell = MockShell(results: ["true"])
         let context = MockContext(picker: picker, shell: shell, configLoader: loader)
@@ -47,5 +47,20 @@ struct EditConfigTests {
 
     private func runCommand(context: MockContext, args: [String]) throws -> String {
         return try Nngit.testRun(context: context, args: ["config"] + args)
+    }
+    
+    private func makePicker(
+        inputResponses: [String: String] = [:],
+        permissionResponses: [String: Bool] = [:]
+    ) -> MockSwiftPicker {
+        let inputResult = MockInputResult(defaultValue: "", type: .dictionary(inputResponses))
+        let permissionResult = MockPermissionResult(defaultValue: true, type: .dictionary(permissionResponses))
+        
+        return MockSwiftPicker(
+            inputResult: inputResult,
+            permissionResult: permissionResult,
+            selectionResult: .init(),
+            treeNavigationResult: .init()
+        )
     }
 }

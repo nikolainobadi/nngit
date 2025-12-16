@@ -6,12 +6,12 @@
 //
 
 import NnShellKit
-import SwiftPicker
 import GitShellKit
+import SwiftPickerTesting
 @testable import nngit
 
 final class MockContext {
-    private var picker: MockPicker?
+    private var picker: MockSwiftPicker?
     private var shell: MockShell?
     private var configLoader: GitConfigLoader?
     private var branchLoader: GitBranchLoader?
@@ -20,7 +20,7 @@ final class MockContext {
     private var fileCreator: GitFileCreator?
     private var fileSystemManager: FileSystemManager?
     
-    init(picker: MockPicker? = nil,
+    init(picker: MockSwiftPicker? = nil,
          shell: MockShell? = nil,
          configLoader: GitConfigLoader? = nil,
          branchLoader: GitBranchLoader? = nil,
@@ -42,12 +42,12 @@ final class MockContext {
 
 // MARK: - Context
 extension MockContext: NnGitContext {
-    func makePicker() -> CommandLinePicker {
+    func makePicker() -> any GitPicker {
         if let picker {
             return picker
         }
         
-        let newPicker = MockPicker()
+        let newPicker = MockSwiftPicker()
         picker = newPicker
         return newPicker
     }
@@ -109,3 +109,5 @@ extension MockContext {
         return shell
     }
 }
+
+extension MockSwiftPicker: GitPicker { }

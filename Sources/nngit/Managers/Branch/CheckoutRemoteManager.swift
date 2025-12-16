@@ -6,15 +6,13 @@
 //
 
 import GitShellKit
-import SwiftPicker
 
-/// Manager utility for handling remote branch checkout workflows and operations.
 struct CheckoutRemoteManager {
-    private let shell: GitShell
-    private let picker: CommandLinePicker
-    private let branchLoader: GitBranchLoader
+    private let shell: any GitShell
+    private let picker: any GitPicker
+    private let branchLoader: any GitBranchLoader
     
-    init(shell: GitShell, picker: CommandLinePicker, branchLoader: GitBranchLoader) {
+    init(shell: any GitShell, picker: any GitPicker, branchLoader: any GitBranchLoader) {
         self.shell = shell
         self.picker = picker
         self.branchLoader = branchLoader
@@ -90,26 +88,12 @@ private extension CheckoutRemoteManager {
     }
     
     func selectRemoteBranch(availableBranches: [String]) throws -> String {
-        let remoteBranchItems = availableBranches.map { RemoteBranchItem(name: $0) }
-        let selectedBranch = try picker.requiredSingleSelection("Select a remote branch to checkout", items: remoteBranchItems)
-        return selectedBranch.name
+        return try picker.requiredSingleSelection("Select a remote branch to checkout", items: availableBranches)
     }
     
     func checkoutRemoteBranch(branchName: String) throws {
         let remoteBranchName = "origin/\(branchName)"
         try shell.runWithOutput("git checkout -b \(branchName) \(remoteBranchName)")
         print("✅ Created and switched to local branch '\(branchName)' tracking '\(remoteBranchName)'")
-    }
-}
-
-
-// MARK: - Supporting Types
-private extension CheckoutRemoteManager {
-    struct RemoteBranchItem: DisplayablePickerItem {
-        let name: String
-        
-        var displayName: String {
-            return name
-        }
     }
 }
